@@ -28,12 +28,22 @@
     <!-- Panel kiri -->
     <aside class="panel left">
       <nav class="tabs">
-        <button data-tab="media" class="active">Media</button>
+        <button data-tab="template" class="active">Template</button>
+        <button data-tab="media">Media</button>
         <button data-tab="text">Teks</button>
         <button data-tab="ai">AI ✨</button>
       </nav>
 
-      <section class="tab-body" data-tab="media">
+      <section class="tab-body" data-tab="template">
+        <p class="hint">Template motion graphics siap pakai. Semua teks, warna, dan waktu bisa diedit setelah dimuat.</p>
+        <button class="tpl-card" id="tplBisnis">
+          <span class="tpl-thumb">🤖</span>
+          <span><strong>Bisnis dengan AI</strong><br><span class="hint">9:16 · 26 dtk · 6 adegan · musik · transisi · subtitle karaoke</span></span>
+        </button>
+        <p class="hint">Mau tema lain? Buka tab <b>AI ✨</b> → "Buat video dari ide", Claude akan menyusun adegan dengan gaya yang sama.</p>
+      </section>
+
+      <section class="tab-body hidden" data-tab="media">
         <label class="dropzone" id="dropzone">
           <input type="file" id="fileInput" multiple accept="video/*,image/*,audio/*" hidden>
           <strong>+ Impor media</strong>
@@ -46,10 +56,18 @@
         <p class="hint">Klik gaya untuk menambah teks di posisi playhead.</p>
         <div class="text-presets">
           <button data-preset="title">Judul Besar</button>
-          <button data-preset="subtitle">Subtitle</button>
+          <button data-preset="subtitle">Subtitle Karaoke</button>
           <button data-preset="caption">Caption Kotak</button>
           <button data-preset="neon">Neon</button>
           <button data-preset="lower">Lower Third</button>
+          <button data-preset="word">Kata per Kata</button>
+        </div>
+        <p class="hint">Elemen grafis:</p>
+        <div class="text-presets two">
+          <button data-shape="gradient">🌈 Latar gradien</button>
+          <button data-shape="rect">▬ Kotak</button>
+          <button data-shape="circle">● Lingkaran</button>
+          <button data-shape="progress">━ Progress bar</button>
         </div>
       </section>
 
@@ -86,7 +104,7 @@
             </label>
           </div>
           <label class="check"><input type="checkbox" id="aiUseFrame"> Kirim frame preview (AI melihat videomu)</label>
-          <button id="aiIdeaBtn" class="primary wide">Buat naskah + teks</button>
+          <button id="aiIdeaBtn" class="primary wide">Buat video otomatis</button>
         </details>
 
         <details class="ai-card">

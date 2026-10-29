@@ -78,29 +78,40 @@ export async function askJSON({ apiKey, model, system, content, schema, effort =
   return { data: JSON.parse(text), usage: res.usage, model: res.model };
 }
 
-// ---------- Fitur 1: naskah video dari ide ----------
+// ---------- Fitur 1: video lengkap dari ide ----------
+const HEX = { type: 'string', description: 'Warna hex #RRGGBB' };
 export const SCRIPT_SCHEMA = obj({
   title: { type: 'string' },
-  background_color: { type: 'string', description: 'Warna hex latar yang cocok, mis. #101828' },
-  accent_color: { type: 'string', description: 'Warna hex teks utama, mis. #FFD400' },
   scenes: {
     type: 'array',
     items: obj({
-      caption: { type: 'string', description: 'Teks yang tampil di layar, maks ~12 kata' },
-      duration: { type: 'number', description: 'Durasi adegan dalam detik' },
-      animation: { type: 'string', enum: ['pop', 'fade', 'slide', 'typewriter'] },
-      emphasis: { type: 'boolean', description: 'true untuk hook/judul yang perlu lebih besar' },
+      kicker: { type: 'string', description: 'Label kecil 1-3 kata, mis. "CARA #1"' },
+      emoji: { type: 'string', description: 'Satu emoji yang mewakili adegan' },
+      headline: { type: 'string', description: 'Judul besar, maks 5 kata' },
+      body: { type: 'string', description: 'Penjelasan singkat, maks 16 kata' },
+      narration: { type: 'string', description: 'Subtitle yang diucapkan, maks 9 kata, tanpa tanda baca' },
+      duration: { type: 'number', description: 'Durasi adegan dalam detik (3-6)' },
+      bg_from: HEX,
+      bg_to: HEX,
+      accent: { type: 'string', description: 'Warna aksen hex terang yang kontras dengan latar' },
+      transition: { type: 'string', enum: ['none', 'fade', 'slide-left', 'slide-up', 'zoom', 'whip', 'wipe', 'circle'] },
     }),
   },
 });
 
+export const SCRIPT_SYSTEM = `Kamu sutradara konten video pendek (TikTok/Reels) dan desainer motion graphics.
+Tulis dalam bahasa Indonesia yang santai dan jelas. Setiap adegan tampil sebagai: label kecil,
+emoji besar, judul besar, kartu penjelasan, dan subtitle karaoke di bawah.
+Latar adalah gradien gelap ke warna kuat (bg_from gelap, bg_to lebih terang) agar teks putih terbaca.
+Variasikan transisi antar adegan; adegan pertama transition "none".
+Jangan mengarang angka statistik atau klaim yang tidak bisa dibuktikan.`;
+
 export function scriptPrompt({ idea, style, duration }) {
   return [
-    `Buat naskah video pendek vertikal berbahasa Indonesia.`,
-    `Ide: ${idea}`,
+    `Ide video: ${idea}`,
     `Gaya: ${style}. Target total durasi: ${duration} detik.`,
-    `Adegan pertama harus hook yang kuat (emphasis=true). Adegan terakhir ajakan (follow/komentar/beli).`,
-    `Jumlah durasi semua adegan harus mendekati ${duration} detik. Caption singkat dan mudah dibaca di HP.`,
+    `Adegan pertama adalah hook yang bikin penonton berhenti scroll. Adegan terakhir ajakan (follow/simpan/beli).`,
+    `Jumlah durasi semua adegan harus mendekati ${duration} detik.`,
   ].join('\n');
 }
 
@@ -144,7 +155,12 @@ const PROPS = obj({
   size: nullable({ type: 'number' }),
   bg: nullable({ type: 'string' }),
   stroke: nullable({ type: 'string' }),
-  anim: nullable({ type: 'string', enum: ['none', 'pop', 'fade', 'slide', 'typewriter'] }),
+  anim: nullable({ type: 'string', enum: ['none', 'pop', 'fade', 'slide', 'slide-left', 'zoom', 'typewriter'] }),
+  transition: nullable({ type: 'string', enum: ['none', 'fade', 'slide-left', 'slide-up', 'zoom', 'whip', 'wipe', 'circle'] }),
+  motion: nullable({ type: 'string', enum: ['none', 'zoom-in', 'zoom-out', 'pan-left', 'pan-right'] }),
+  textStyle: nullable({ type: 'string', enum: ['static', 'karaoke', 'word'] }),
+  highlight: nullable({ type: 'string' }),
+  upper: nullable({ type: 'boolean' }),
   volume: nullable({ type: 'number' }),
   speed: nullable({ type: 'number' }),
   muted: nullable({ type: 'boolean' }),
@@ -178,4 +194,7 @@ Aturan:
 - "set_background": props.color berisi warna hex latar proyek.
 - opacity 0-1, volume 0-1, speed 0.25-4, filter brightness/contrast/saturate dalam persen (100 = normal), grayscale 0-100.
 - Warna dalam hex (#RRGGBB). bg null = tidak berubah; bg "" = hapus latar teks.
+- transition = efek masuk klip dari klip sebelumnya di track yang sama. motion = gerak kamera pelan (Ken Burns).
+- textStyle "karaoke" = kata aktif disorot warna highlight; "word" = kata muncul satu per satu.
+- Klip type "shape" adalah elemen grafis (gradient, rect, circle, progress).
 - Jika perintah tidak bisa dilakukan, kembalikan ops kosong dan jelaskan di explanation.`;

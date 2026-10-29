@@ -1,6 +1,12 @@
 import {
-  askJSON, SCRIPT_SCHEMA, scriptPrompt, SUBTITLE_SCHEMA, subtitlePrompt, OPS_SCHEMA, AGENT_SYSTEM,
+  askJSON, SCRIPT_SCHEMA, SCRIPT_SYSTEM, scriptPrompt, SUBTITLE_SCHEMA, subtitlePrompt, OPS_SCHEMA, AGENT_SYSTEM,
 } from './ai.js';
+import {
+  clamp, renderFrame, framePlan, evalProps, localSize, srcTime, fadeLocal, loadFonts, KF_KEYS,
+  FONT_OPTIONS, TRANSITIONS, MOTIONS, TEXT_ANIMS,
+} from './render.js';
+import { exportMP4, mixAudio, webCodecsAvailable } from './export.js';
+import { buildSceneClips, DEMO_BISNIS_AI, LAYER } from './templates.js';
 
 // =====================================================================
 // State
@@ -16,6 +22,7 @@ const state = {
   project: { width: 1080, height: 1920, fps: 30, bg: '#000000', clips: [] },
   media: new Map(),   // mediaId -> { id, type, name, url, duration, w, h, thumb, el }
   els: new Map(),     // clipId  -> HTMLMediaElement milik klip video/audio
+  audioBuffers: new Map(), // mediaId -> AudioBuffer (untuk ekspor)
   time: 0,
   playing: false,
   selectedId: null,
@@ -24,12 +31,12 @@ const state = {
 };
 
 const uid = () => Math.random().toString(36).slice(2, 9);
-const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const clips = () => state.project.clips;
 const getClip = (id) => clips().find((c) => c.id === id);
 const selected = () => getClip(state.selectedId);
 const isVisual = (c) => c.type !== 'audio';
 const isMedia = (c) => c.type === 'video' || c.type === 'audio';
+const isActiveAt = (c, t) => t >= c.start && t < c.start + c.dur;
 
 function projectDuration() {
   return clips().reduce((m, c) => Math.max(m, c.start + c.dur), 0);
@@ -47,7 +54,7 @@ function fmt(t) {
 const history = { stack: [], index: -1 };
 
 function snapshot() {
-  return JSON.stringify({ clips: clips(), bg: state.project.bg, w: state.project.width, h: state.project.height });
+  return JSON.stringify({ clips: clips(), bg: state.project.bg, w: state.project.width, h: state.project.height, fps: state.project.fps });
 }
 
 function commit() {
@@ -61,7 +68,7 @@ function commit() {
 
 function restore(snap) {
   const d = JSON.parse(snap);
-  Object.assign(state.project, { clips: d.clips, bg: d.bg, width: d.w, height: d.h });
+  Object.assign(state.project, { clips: d.clips, bg: d.bg, width: d.w, height: d.h, fps: d.fps });
   applyCanvasSize();
   if (!getClip(state.selectedId)) state.selectedId = null;
   cleanupEls();
@@ -104,9 +111,9 @@ async function videoThumb(url) {
 
 async function importFile(file) {
   const type = file.type.split('/')[0];
-  if (!['video', 'image', 'audio'].includes(type)) return;
+  if (!['video', 'image', 'audio'].includes(type)) return null;
   const url = URL.createObjectURL(file);
-  const m = { id: uid(), type, name: file.name, url, duration: 5, w: 0, h: 0, thumb: null, el: null };
+  const m = { id: uid(), type, name: file.name, url, blob: file, duration: 5, w: 0, h: 0, thumb: null, el: null };
   try {
     if (type === 'image') {
       const img = new Image();
@@ -127,10 +134,11 @@ async function importFile(file) {
     }
   } catch (e) {
     alert(`${file.name}: ${e.message}`);
-    return;
+    return null;
   }
   state.media.set(m.id, m);
   renderMediaList();
+  return m;
 }
 
 function renderMediaList() {
@@ -163,6 +171,7 @@ function baseClip(extra) {
     id: uid(), track: 0, start: 0, dur: 3, in: 0, speed: 1,
     x: W / 2, y: H / 2, scale: 1, rotation: 0, opacity: 1, fadeIn: 0, fadeOut: 0,
     volume: 1, muted: false, filter: { ...DEFAULT_FILTER },
+    transition: { type: 'none', dur: 0.5 }, motion: 'none', keyframes: [],
     ...extra,
   };
 }
@@ -172,7 +181,7 @@ function overlaps(track, start, dur, ignoreId) {
 }
 
 function freeTrack(preferred, start, dur) {
-  for (let t = preferred; t < preferred + 20; t++) if (!overlaps(t, start, dur)) return t;
+  for (let t = preferred; t < preferred + 30; t++) if (!overlaps(t, start, dur)) return t;
   return preferred;
 }
 
@@ -182,12 +191,14 @@ function mainTrack() {
   return v.length ? Math.max(...v.map((c) => c.track)) : MAIN_TRACK;
 }
 
-// Teks selalu di atas track utama; kalau penuh, sisipkan track baru paling atas.
-function textTrack(start, dur) {
+const isOverlayClip = (c) => c.type === 'text' || (c.type === 'shape' && c.shape !== 'gradient');
+
+// Teks/elemen selalu di atas track utama; kalau penuh, sisipkan track baru paling atas.
+function overlayTrack(start, dur) {
   const main = mainTrack();
   for (let t = 0; t < main; t++) {
-    const onlyText = clips().every((c) => c.track !== t || c.type === 'text');
-    if (onlyText && !overlaps(t, start, dur)) return t;
+    const onlyOverlay = clips().every((c) => c.track !== t || isOverlayClip(c));
+    if (onlyOverlay && !overlaps(t, start, dur)) return t;
   }
   for (const c of clips()) c.track++;
   return 0;
@@ -203,7 +214,8 @@ function addMediaClip(m) {
   let clip;
   if (m.type === 'audio') {
     const start = state.time;
-    clip = baseClip({ type: 'audio', mediaId: m.id, name: m.name, start, dur: m.duration, track: freeTrack(mainTrack() + 1, start, m.duration) });
+    const below = Math.max(mainTrack(), ...clips().filter(isVisual).map((c) => c.track)) + 1;
+    clip = baseClip({ type: 'audio', mediaId: m.id, name: m.name, start, dur: m.duration, track: freeTrack(below, start, m.duration) });
   } else {
     // Video/gambar disusun berurutan di track utama seperti CapCut.
     const track = mainTrack();
@@ -211,40 +223,68 @@ function addMediaClip(m) {
     const dur = m.type === 'video' ? m.duration : 3;
     clip = baseClip({
       type: m.type, mediaId: m.id, name: m.name, start, dur, track,
-      w: m.w, h: m.h, scale: fitScale(m.w, m.h),
+      w: m.w, h: m.h, scale: fitScale(m.w, m.h), motion: m.type === 'image' ? 'zoom-in' : 'none',
     });
   }
   clips().push(clip);
   select(clip.id);
   commit();
   refreshAll();
+  return clip;
 }
 
 const TEXT_PRESETS = {
-  title: { size: 120, weight: 800, color: '#ffffff', stroke: '#000000', strokeW: 10, bg: '', anim: 'pop', yRel: 0.3 },
-  subtitle: { size: 64, weight: 700, color: '#ffffff', stroke: '#000000', strokeW: 8, bg: '', anim: 'fade', yRel: 0.78 },
-  caption: { size: 64, weight: 700, color: '#111111', stroke: '', strokeW: 0, bg: '#ffffff', anim: 'pop', yRel: 0.7 },
-  neon: { size: 96, weight: 800, color: '#22d3ee', stroke: '', strokeW: 0, bg: '', anim: 'fade', glow: 30, yRel: 0.5 },
-  lower: { size: 52, weight: 600, color: '#ffffff', stroke: '', strokeW: 0, bg: '#e11d48', anim: 'slide', yRel: 0.85 },
+  title: { font: '"Bebas Neue", Impact, sans-serif', size: 160, weight: 400, color: '#ffffff', stroke: '', strokeW: 0, bg: '', anim: 'pop', upper: true, yRel: 0.3 },
+  subtitle: { size: 58, weight: 900, color: '#ffffff', stroke: '#000000', strokeW: 9, bg: '', anim: 'fade', upper: true, textStyle: 'karaoke', hlBox: true, yRel: 0.8 },
+  caption: { font: 'Poppins, system-ui, sans-serif', size: 60, weight: 800, color: '#111111', stroke: '', strokeW: 0, bg: '#ffffff', anim: 'pop', yRel: 0.7 },
+  neon: { size: 96, weight: 900, color: '#22d3ee', stroke: '', strokeW: 0, bg: '', anim: 'zoom', glow: 30, yRel: 0.5 },
+  lower: { font: 'Poppins, system-ui, sans-serif', size: 50, weight: 600, color: '#ffffff', stroke: '', strokeW: 0, bg: '#e11d48', anim: 'slide-left', yRel: 0.85 },
+  word: { size: 90, weight: 900, color: '#ffffff', stroke: '', strokeW: 0, bg: '', anim: 'none', textStyle: 'word', upper: true, highlight: '#facc15', yRel: 0.5 },
 };
 
 function makeTextClip(text, opts = {}) {
   const { width: W, height: H } = state.project;
+  const k = Math.min(W, H) / 1080;
   const p = TEXT_PRESETS[opts.preset || 'subtitle'];
   const start = opts.start ?? state.time;
   const dur = opts.dur ?? 3;
   return baseClip({
     type: 'text', name: 'Teks', text, start, dur,
-    track: opts.track ?? textTrack(start, dur),
-    font: 'system-ui, sans-serif', size: p.size, weight: p.weight, color: p.color,
-    stroke: p.stroke, strokeW: p.strokeW, bg: p.bg, glow: p.glow || 0, align: 'center',
-    anim: p.anim, x: W / 2, y: H * p.yRel, maxWidth: W * 0.86,
+    track: opts.track ?? overlayTrack(start, dur),
+    font: p.font || 'Montserrat, system-ui, sans-serif', size: p.size * k, weight: p.weight, color: p.color,
+    stroke: p.stroke, strokeW: p.strokeW * k, bg: p.bg, glow: p.glow || 0, align: 'center',
+    anim: p.anim, textStyle: p.textStyle || 'static', highlight: p.highlight || '#facc15', hlBox: !!p.hlBox,
+    hlText: '#0b1020', upper: !!p.upper, shadow: true, wordSpan: 0, lineHeight: 1.15,
+    x: W / 2, y: H * p.yRel, maxWidth: W * 0.86,
     ...opts.props,
   });
 }
 
 function addText(preset) {
-  const c = makeTextClip(preset === 'lower' ? 'Nama • Keterangan' : 'Ketik teksmu', { preset });
+  const sample = { lower: 'Nama • Keterangan', subtitle: 'Subtitle kata per kata', word: 'Muncul satu per satu' }[preset] || 'Ketik teksmu';
+  const c = makeTextClip(sample, { preset });
+  clips().push(c);
+  select(c.id);
+  commit();
+  refreshAll();
+}
+
+function addShape(kind) {
+  const { width: W, height: H } = state.project;
+  const start = state.time;
+  const dur = kind === 'progress' ? Math.max(3, projectDuration() - start) : 3;
+  const common = { type: 'shape', name: 'Bentuk', shape: kind, start, dur, color: '#22d3ee', color2: '#6366f1', radius: 0, anim: 'pop' };
+  let c;
+  if (kind === 'gradient') {
+    const below = Math.max(MAIN_TRACK, ...clips().filter(isVisual).map((x) => x.track)) + 1;
+    c = baseClip({ ...common, name: 'Latar gradien', color: '#0f172a', color2: '#4f46e5', anim: 'none', w: W, h: H, motion: 'zoom-in', track: freeTrack(below, start, dur) });
+  } else {
+    const size = { rect: [W * 0.7, H * 0.12, 32], circle: [W * 0.4, W * 0.4, 0], progress: [W * 0.86, 12, 6] }[kind];
+    c = baseClip({
+      ...common, w: size[0], h: size[1], radius: size[2], track: overlayTrack(start, dur),
+      ...(kind === 'progress' ? { color: '#ffffff', color2: '#ffffff', y: H * 0.055, anim: 'none' } : {}),
+    });
+  }
   clips().push(c);
   select(c.id);
   commit();
@@ -252,7 +292,7 @@ function addText(preset) {
 }
 
 // =====================================================================
-// Media elements & audio graph
+// Media elements & audio graph (preview)
 // =====================================================================
 let audioCtx = null;
 let masterGain = null;
@@ -301,185 +341,60 @@ function cleanupEls() {
   }
 }
 
-function fadeFactor(c, t) {
-  const local = t - c.start;
-  let f = 1;
-  if (c.fadeIn > 0) f = Math.min(f, local / c.fadeIn);
-  if (c.fadeOut > 0) f = Math.min(f, (c.dur - local) / c.fadeOut);
-  return clamp(f, 0, 1);
+// Waktu sumber video yang dibutuhkan frame t (termasuk klip yang sedang keluar karena transisi).
+function videoTargets(t) {
+  const out = new Map();
+  for (const it of framePlan(clips(), t, state.project.fps)) {
+    if (it.c.type === 'video') out.set(it.c.id, { c: it.c, time: srcTime(it.c, it.local), live: !it.tout });
+  }
+  return out;
 }
 
 function syncMedia() {
   const t = state.time;
+  const vids = videoTargets(t);
   for (const c of clips()) {
     if (!isMedia(c)) continue;
     const el = elFor(c);
     if (!el) continue;
-    const active = t >= c.start && t < c.start + c.dur;
-    if (!active) {
+    const target = vids.get(c.id);
+    const active = isActiveAt(c, t);
+    if (!active && !target) {
       if (!el.paused) el.pause();
       continue;
     }
-    const target = c.in + (t - c.start) * c.speed;
+    const time = target ? target.time : srcTime(c, t - c.start);
+    const live = active && state.playing;
     el.playbackRate = c.speed;
-    el.muted = c.muted;
-    el.volume = clamp(c.volume * fadeFactor(c, t), 0, 1);
-    if (state.playing) {
-      if (Math.abs(el.currentTime - target) > 0.3) el.currentTime = target;
+    el.muted = c.muted || !active;
+    el.volume = clamp(c.volume * fadeLocal(c, t - c.start), 0, 1);
+    if (live) {
+      if (Math.abs(el.currentTime - time) > 0.3) el.currentTime = time;
       if (el.paused) el.play().catch(() => {});
     } else {
       if (!el.paused) el.pause();
-      if (!el.seeking && Math.abs(el.currentTime - target) > 0.02) el.currentTime = target;
+      if (!el.seeking && Math.abs(el.currentTime - time) > 0.02) el.currentTime = time;
     }
   }
 }
 
 // =====================================================================
-// Rendering kanvas
+// Rendering kanvas (preview)
 // =====================================================================
-function easeOutBack(x) {
-  const c1 = 1.70158;
-  const c3 = c1 + 1;
-  return 1 + c3 * (x - 1) ** 3 + c1 * (x - 1) ** 2;
-}
-
-function filterCss(f) {
-  if (!f) return 'none';
-  const parts = [];
-  if (f.brightness !== 100) parts.push(`brightness(${f.brightness}%)`);
-  if (f.contrast !== 100) parts.push(`contrast(${f.contrast}%)`);
-  if (f.saturate !== 100) parts.push(`saturate(${f.saturate}%)`);
-  if (f.grayscale) parts.push(`grayscale(${f.grayscale}%)`);
-  if (f.hue) parts.push(`hue-rotate(${f.hue}deg)`);
-  if (f.blur) parts.push(`blur(${f.blur}px)`);
-  return parts.join(' ') || 'none';
-}
-
-function textLayout(c, text = c.text) {
-  ctx.font = `${c.weight} ${c.size}px ${c.font}`;
-  const lines = [];
-  for (const para of String(text).split('\n')) {
-    let line = '';
-    for (const word of para.split(' ')) {
-      const test = line ? `${line} ${word}` : word;
-      if (line && ctx.measureText(test).width > c.maxWidth) {
-        lines.push(line);
-        line = word;
-      } else {
-        line = test;
-      }
-    }
-    lines.push(line);
-  }
-  const lh = c.size * 1.2;
-  const w = Math.max(1, ...lines.map((l) => ctx.measureText(l).width));
-  return { lines, lh, w, h: lines.length * lh };
-}
-
-// Ukuran lokal (sebelum scale) untuk hit-test & outline seleksi.
-function localSize(c) {
-  if (c.type === 'text') {
-    const L = textLayout(c);
-    const pad = c.bg ? c.size * 0.35 : 0;
-    return { w: L.w + pad * 2, h: L.h + pad * 2 };
-  }
-  return { w: c.w || 100, h: c.h || 100 };
-}
-
-function drawText(c, local) {
-  let text = c.text;
-  if (c.anim === 'typewriter') {
-    const p = clamp(local / Math.min(1.5, c.dur * 0.6), 0, 1);
-    text = text.slice(0, Math.round(text.length * p));
-  }
-  const full = textLayout(c);
-  const L = textLayout(c, text);
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  if (c.bg) {
-    const pad = c.size * 0.35;
-    const w = full.w + pad * 2;
-    const h = full.h + pad * 2;
-    ctx.fillStyle = c.bg;
-    ctx.beginPath();
-    ctx.roundRect(-w / 2, -h / 2, w, h, c.size * 0.25);
-    ctx.fill();
-  }
-  const top = -full.h / 2 + full.lh / 2;
-  L.lines.forEach((line, i) => {
-    const y = top + i * full.lh;
-    if (c.stroke && c.strokeW > 0) {
-      ctx.lineJoin = 'round';
-      ctx.lineWidth = c.strokeW;
-      ctx.strokeStyle = c.stroke;
-      ctx.strokeText(line, 0, y);
-    }
-    if (c.glow) {
-      ctx.shadowColor = c.color;
-      ctx.shadowBlur = c.glow;
-    }
-    ctx.fillStyle = c.color;
-    ctx.fillText(line, 0, y);
-    ctx.shadowBlur = 0;
-  });
-}
-
-function drawClip(c, t) {
-  const local = t - c.start;
-  let alpha = c.opacity * fadeFactor(c, t);
-  let scale = c.scale;
-  let dy = 0;
-  if (c.type === 'text') {
-    const p = clamp(local / 0.4, 0, 1);
-    if (c.anim === 'pop') scale *= 0.5 + 0.5 * easeOutBack(p);
-    if (c.anim === 'fade') alpha *= p;
-    if (c.anim === 'slide') { dy = (1 - p) ** 2 * 120; alpha *= p; }
-  }
-  if (alpha <= 0) return;
-
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  ctx.translate(c.x, c.y + dy);
-  ctx.rotate(c.rotation * Math.PI / 180);
-  ctx.scale(scale, scale);
-  if (c.type === 'text') {
-    drawText(c, local);
-  } else {
-    const src = elFor(c);
-    const ready = c.type === 'image' ? src?.complete : src?.readyState >= 2;
-    if (ready) {
-      ctx.filter = filterCss(c.filter);
-      ctx.drawImage(src, -c.w / 2, -c.h / 2, c.w, c.h);
-    }
-  }
-  ctx.restore();
-}
-
-function activeVisual(t) {
-  return clips()
-    .filter((c) => isVisual(c) && t >= c.start && t < c.start + c.dur)
-    .sort((a, b) => b.track - a.track); // track 0 digambar terakhir (paling atas)
-}
-
 function draw() {
-  const { width: W, height: H, bg } = state.project;
-  const t = state.time;
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.filter = 'none';
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
-  for (const c of activeVisual(t)) drawClip(c, t);
-
+  renderFrame(ctx, state.project, state.time, elFor);
   const s = selected();
-  if (s && isVisual(s) && !state.exporting && !state.playing && t >= s.start && t < s.start + s.dur) {
-    const { w, h } = localSize(s);
+  if (s && isVisual(s) && !state.exporting && !state.playing && isActiveAt(s, state.time)) {
+    const { width: W, height: H } = state.project;
+    const P = evalProps(s, state.time - s.start, W, H);
+    const { w, h } = localSize(ctx, s, W, H);
     ctx.save();
-    ctx.translate(s.x, s.y);
-    ctx.rotate(s.rotation * Math.PI / 180);
+    ctx.translate(P.x, P.y);
+    ctx.rotate(P.rotation * Math.PI / 180);
     ctx.strokeStyle = '#22d3ee';
     ctx.lineWidth = 4;
     ctx.setLineDash([16, 10]);
-    ctx.strokeRect(-w * s.scale / 2, -h * s.scale / 2, w * s.scale, h * s.scale);
+    ctx.strokeRect(-w * P.scale / 2, -h * P.scale / 2, w * P.scale, h * P.scale);
     ctx.restore();
   }
 }
@@ -492,19 +407,24 @@ let lastFrame = performance.now();
 function loop(now) {
   const dt = Math.min(0.1, (now - lastFrame) / 1000);
   lastFrame = now;
+  // Ekspor WebCodecs merender frame sendiri; jangan ganggu kanvasnya.
+  if (state.exporting?.offline) {
+    requestAnimationFrame(loop);
+    return;
+  }
   if (state.playing) {
     state.time += dt;
     const end = projectDuration();
     if (state.time >= end) {
       state.time = end;
       pause();
-      if (state.exporting) finishExport();
+      if (state.exporting) finishRealtimeExport();
     }
   }
   syncMedia();
   draw();
   updatePlayhead();
-  if (state.exporting) $('#exportProgress').value = state.time / state.exporting.dur;
+  if (state.exporting) setExportProgress(state.time / state.exporting.dur);
   requestAnimationFrame(loop);
 }
 
@@ -525,6 +445,36 @@ function pause() {
 
 function seek(t) {
   state.time = clamp(t, 0, Math.max(projectDuration(), 0));
+  if (!state.playing) renderInspectorValues();
+}
+
+// =====================================================================
+// Transformasi + keyframe otomatis
+// =====================================================================
+const localNow = (c) => clamp(state.time - c.start, 0, c.dur);
+
+// Kalau klip punya keyframe, ubahan posisi/skala otomatis tersimpan sebagai keyframe di playhead.
+function setTransform(c, key, value) {
+  if (!c.keyframes?.length) {
+    c[key] = value;
+    return;
+  }
+  const kf = upsertKeyframe(c);
+  kf[key] = value;
+}
+
+function upsertKeyframe(c) {
+  const { width: W, height: H, fps } = state.project;
+  const t = Math.round(localNow(c) * fps) / fps;
+  let kf = c.keyframes.find((k) => Math.abs(k.t - t) < 0.5 / fps);
+  if (!kf) {
+    const cur = evalProps({ ...c, motion: 'none' }, t, W, H);
+    kf = { t };
+    for (const key of KF_KEYS) kf[key] = cur[key];
+    c.keyframes.push(kf);
+    c.keyframes.sort((a, b) => a.t - b.t);
+  }
+  return kf;
 }
 
 // =====================================================================
@@ -539,14 +489,16 @@ function canvasPoint(e) {
 }
 
 function hitTest(p) {
-  const list = activeVisual(state.time).reverse(); // dari yang paling atas
+  const { width: W, height: H } = state.project;
+  const list = clips().filter((c) => isVisual(c) && isActiveAt(c, state.time)).sort((a, b) => a.track - b.track);
   for (const c of list) {
-    const { w, h } = localSize(c);
-    const a = -c.rotation * Math.PI / 180;
-    const dx = p.x - c.x;
-    const dy = p.y - c.y;
-    const lx = (dx * Math.cos(a) - dy * Math.sin(a)) / c.scale;
-    const ly = (dx * Math.sin(a) + dy * Math.cos(a)) / c.scale;
+    const P = evalProps(c, state.time - c.start, W, H);
+    const { w, h } = localSize(ctx, c, W, H);
+    const a = -P.rotation * Math.PI / 180;
+    const dx = p.x - P.x;
+    const dy = p.y - P.y;
+    const lx = (dx * Math.cos(a) - dy * Math.sin(a)) / P.scale;
+    const ly = (dx * Math.sin(a) + dy * Math.cos(a)) / P.scale;
     if (Math.abs(lx) <= w / 2 && Math.abs(ly) <= h / 2) return c;
   }
   return null;
@@ -558,7 +510,9 @@ canvas.addEventListener('pointerdown', (e) => {
   const c = hitTest(p);
   select(c?.id ?? null);
   if (c) {
-    canvasDrag = { id: c.id, ox: p.x - c.x, oy: p.y - c.y };
+    const { width: W, height: H } = state.project;
+    const P = evalProps({ ...c, motion: 'none' }, state.time - c.start, W, H);
+    canvasDrag = { id: c.id, ox: p.x - P.x, oy: p.y - P.y };
     canvas.setPointerCapture(e.pointerId);
   }
 });
@@ -572,19 +526,24 @@ canvas.addEventListener('pointermove', (e) => {
   // Snap ke tengah kanvas
   if (Math.abs(x - W / 2) < 20) x = W / 2;
   if (Math.abs(y - H / 2) < 20) y = H / 2;
-  c.x = Math.round(x);
-  c.y = Math.round(y);
+  setTransform(c, 'x', Math.round(x));
+  setTransform(c, 'y', Math.round(y));
   renderInspectorValues();
 });
 canvas.addEventListener('pointerup', () => {
-  if (canvasDrag) commit();
+  if (canvasDrag) {
+    commit();
+    renderTimeline();
+  }
   canvasDrag = null;
 });
 canvas.addEventListener('wheel', (e) => {
   const c = selected();
   if (!c || !isVisual(c)) return;
   e.preventDefault();
-  c.scale = clamp(c.scale * (e.deltaY < 0 ? 1.05 : 1 / 1.05), 0.02, 20);
+  const { width: W, height: H } = state.project;
+  const cur = evalProps({ ...c, motion: 'none' }, localNow(c), W, H).scale;
+  setTransform(c, 'scale', clamp(cur * (e.deltaY < 0 ? 1.05 : 1 / 1.05), 0.02, 20));
   renderInspectorValues();
   clearTimeout(canvas._wheelT);
   canvas._wheelT = setTimeout(commit, 300);
@@ -604,11 +563,17 @@ function trackCount() {
 }
 
 function trackLabel(i) {
-  const types = new Set(clips().filter((c) => c.track === i).map((c) => c.type));
+  const types = new Set(clips().filter((c) => c.track === i).map((c) => (c.type === 'shape' && c.shape === 'gradient' ? 'bg' : c.type)));
   if (!types.size) return '';
   if ([...types].every((t) => t === 'video' || t === 'image')) return types.size > 1 ? 'Utama' : { video: 'Video', image: 'Gambar' }[[...types][0]];
   if (types.size > 1) return 'Campur';
-  return { text: 'Teks', video: 'Video', image: 'Gambar', audio: 'Audio' }[[...types][0]];
+  return { text: 'Teks', audio: 'Audio', shape: 'Elemen', bg: 'Latar' }[[...types][0]];
+}
+
+function clipLabel(c) {
+  if (c.type === 'text') return `T  ${c.text}`;
+  if (c.type === 'shape') return `◼ ${c.name}`;
+  return `${c.name}${c.speed !== 1 ? `  ${c.speed}x` : ''}`;
 }
 
 function renderTimeline() {
@@ -633,10 +598,24 @@ function renderTimeline() {
     positionClipEl(el, c);
     const thumb = state.media.get(c.mediaId)?.thumb;
     if (thumb && c.type !== 'audio') el.style.backgroundImage = `url('${thumb}')`;
+    if (c.type === 'shape' && c.shape === 'gradient') el.style.backgroundImage = `linear-gradient(90deg, ${c.color}, ${c.color2})`;
     const lbl = document.createElement('span');
     lbl.className = 'lbl';
-    lbl.textContent = c.type === 'text' ? `T  ${c.text}` : `${c.name}${c.speed !== 1 ? `  ${c.speed}x` : ''}`;
+    lbl.textContent = clipLabel(c);
     el.append(lbl);
+    if (c.transition?.type && c.transition.type !== 'none') {
+      const tr = document.createElement('span');
+      tr.className = 'tr-mark';
+      tr.title = `Transisi: ${c.transition.type}`;
+      tr.style.width = `${c.transition.dur * state.pps}px`;
+      el.append(tr);
+    }
+    for (const kf of c.keyframes || []) {
+      const d = document.createElement('span');
+      d.className = 'kf';
+      d.style.left = `${kf.t * state.pps}px`;
+      el.append(d);
+    }
     el.insertAdjacentHTML('beforeend', '<div class="h l"></div><div class="h r"></div>');
     el.addEventListener('pointerdown', onClipPointerDown);
     tracksEl.appendChild(el);
@@ -709,7 +688,7 @@ function onClipPointerDown(e) {
   const c = getClip(el.dataset.id);
   select(c.id);
   const mode = e.target.classList.contains('l') ? 'trimL' : e.target.classList.contains('r') ? 'trimR' : 'move';
-  clipDrag = { el, id: c.id, mode, x0: e.clientX, y0: e.clientY, orig: { ...c }, pts: snapPoints(c.id), moved: false };
+  clipDrag = { el, id: c.id, mode, x0: e.clientX, y0: e.clientY, orig: structuredClone(c), pts: snapPoints(c.id), moved: false };
   el.setPointerCapture(e.pointerId);
   el.addEventListener('pointermove', onClipPointerMove);
   el.addEventListener('pointerup', onClipPointerUp, { once: true });
@@ -733,10 +712,12 @@ function onClipPointerMove(e) {
     c.track = clamp(o.track + Math.round((e.clientY - d.y0) / ROW), 0, trackCount());
   } else if (d.mode === 'trimL') {
     const minStart = isMedia(c) ? o.start - o.in / o.speed : 0;
-    let start = clamp(snap(o.start + dt, d.pts), Math.max(0, minStart), o.start + o.dur - 0.1);
+    const start = clamp(snap(o.start + dt, d.pts), Math.max(0, minStart), o.start + o.dur - 0.1);
     c.start = start;
     c.dur = o.start + o.dur - start;
-    if (isMedia(c)) c.in = o.in + (start - o.start) * o.speed;
+    if (isMedia(c) || c.type === 'video') c.in = o.in + (start - o.start) * o.speed;
+    // Keyframe ikut bergeser agar tetap di posisi waktu yang sama.
+    c.keyframes = (o.keyframes || []).map((kf) => ({ ...kf, t: kf.t - (start - o.start) }));
   } else {
     const maxDur = isMedia(c) && media ? (media.duration - o.in) / o.speed : Infinity;
     const end = snap(o.start + o.dur + dt, d.pts);
@@ -785,12 +766,15 @@ function select(id) {
 function splitClip(c, t) {
   if (!c || t <= c.start + 0.05 || t >= c.start + c.dur - 0.05) return null;
   const b = structuredClone(c);
+  const offset = t - c.start;
   b.id = uid();
   b.start = t;
   b.dur = c.start + c.dur - t;
-  b.in = c.in + (t - c.start) * c.speed;
+  b.in = c.in + offset * c.speed;
   b.fadeIn = 0;
-  c.dur = t - c.start;
+  b.transition = { type: 'none', dur: 0.5 };
+  b.keyframes = (c.keyframes || []).map((kf) => ({ ...kf, t: kf.t - offset }));
+  c.dur = offset;
   c.fadeOut = 0;
   clips().push(b);
   return b;
@@ -864,13 +848,18 @@ function field(target, path, label, type, opt = {}) {
     input.type = type;
     Object.assign(input, opt.attrs || {});
   }
-  const val = getPath(target, path);
-  if (type === 'checkbox') input.checked = !!val;
-  else input.value = val ?? '';
+  const read = () => (opt.get ? opt.get() : getPath(target, path));
+  const load = () => {
+    const val = read();
+    if (type === 'checkbox') input.checked = !!val;
+    else input.value = val ?? '';
+  };
+  load();
+  input._load = load;
   input.dataset.path = path;
   const out = document.createElement('span');
   out.className = 'val';
-  const show = () => { out.textContent = type === 'range' ? (opt.fmt ? opt.fmt(+input.value) : input.value) : ''; };
+  const show = () => { out.textContent = type === 'range' ? (opt.fmt ? opt.fmt(+input.value) : Math.round(+input.value * 100) / 100) : ''; };
   show();
   input.addEventListener('sync', show);
   input.addEventListener('input', () => {
@@ -883,6 +872,7 @@ function field(target, path, label, type, opt = {}) {
   input.addEventListener('change', () => {
     commit();
     renderTimeline();
+    if (opt.rerender) renderInspector();
   });
   wrap.append(input);
   if (type === 'range') wrap.append(out);
@@ -906,6 +896,24 @@ function button(label, onClick) {
   return b;
 }
 
+function btnRow(...buttons) {
+  const row = document.createElement('div');
+  row.className = 'btn-row';
+  row.append(...buttons);
+  return row;
+}
+
+// Field transformasi membaca/menulis lewat keyframe bila ada.
+function tField(c, key, label, attrs, fmtFn) {
+  const { width: W, height: H } = state.project;
+  return field(c, key, label, 'range', {
+    attrs,
+    fmt: fmtFn,
+    get: () => evalProps({ ...c, motion: 'none' }, localNow(c), W, H)[key],
+    set: (v) => setTransform(c, key, v),
+  });
+}
+
 function renderInspector() {
   inspector.innerHTML = '';
   const c = selected();
@@ -919,55 +927,100 @@ function renderInspector() {
     const info = document.createElement('p');
     info.className = 'hint';
     info.innerHTML = `Ukuran: ${P.width}×${P.height}<br>Klip: ${clips().length}<br><br>
-      <b>Pintasan:</b> Spasi play · S potong · Del hapus · Ctrl+D duplikat · Ctrl+Z undo · ←/→ geser 1 frame.<br>
+      <b>Pintasan:</b> Spasi play · S potong · Del hapus · Ctrl+D duplikat · Ctrl+Z undo · ←/→ geser 1 frame · K keyframe.<br>
       Geser objek langsung di preview, scroll mouse untuk zoom objek.`;
     inspector.append(info);
     return;
   }
   const W = P.width;
   const H = P.height;
-  $('#inspectorTitle').textContent = { video: 'Video', image: 'Gambar', audio: 'Audio', text: 'Teks' }[c.type];
+  $('#inspectorTitle').textContent = { video: 'Video', image: 'Gambar', audio: 'Audio', text: 'Teks', shape: 'Elemen' }[c.type];
 
   if (c.type === 'text') {
     inspector.append(group('Teks',
       field(c, 'text', 'Isi', 'textarea'),
-      field(c, 'font', 'Font', 'select', { options: [
-        ['system-ui, sans-serif', 'Sans'], ['Georgia, serif', 'Serif'], ['Impact, Haettenschweiler, sans-serif', 'Impact'],
-        ['"Courier New", monospace', 'Mono'], ['"Comic Sans MS", cursive', 'Komik'],
-      ] }),
+      field(c, 'font', 'Font', 'select', { options: FONT_OPTIONS }),
       field(c, 'size', 'Ukuran', 'range', { attrs: { min: 16, max: 300 } }),
-      field(c, 'weight', 'Tebal', 'select', { numeric: true, options: [[400, 'Normal'], [600, 'Semi'], [700, 'Bold'], [800, 'Extra']] }),
+      field(c, 'weight', 'Tebal', 'select', { numeric: true, options: [[400, 'Normal'], [600, 'Semi'], [700, 'Bold'], [800, 'Extra'], [900, 'Black']] }),
       field(c, 'color', 'Warna', 'color'),
+      field(c, 'upper', 'HURUF BESAR', 'checkbox'),
+      field(c, 'shadow', 'Bayangan', 'checkbox'),
       field(c, 'stroke', 'Garis tepi', 'color'),
       field(c, 'strokeW', 'Tebal garis', 'range', { attrs: { min: 0, max: 30 } }),
       field(c, 'glow', 'Glow', 'range', { attrs: { min: 0, max: 60 } }),
       field(c, 'maxWidth', 'Lebar maks', 'range', { attrs: { min: 100, max: W } }),
-      field(c, 'anim', 'Animasi', 'select', { options: [['none', 'Tidak ada'], ['pop', 'Pop'], ['fade', 'Fade'], ['slide', 'Slide naik'], ['typewriter', 'Mesin ketik']] }),
+      field(c, 'anim', 'Animasi masuk', 'select', { options: TEXT_ANIMS }),
+    ));
+    inspector.append(group('Gaya subtitle',
+      field(c, 'textStyle', 'Mode', 'select', { options: [['static', 'Statis'], ['karaoke', 'Karaoke (sorot kata)'], ['word', 'Kata per kata']], rerender: true }),
+      field(c, 'highlight', 'Warna sorot', 'color'),
+      field(c, 'hlBox', 'Kotak sorot', 'checkbox'),
+      field(c, 'hlText', 'Teks di kotak', 'color'),
     ));
     const bgRow = field(c, 'bg', 'Latar teks', 'color');
-    const clear = button('Tanpa latar', () => { c.bg = ''; commit(); renderInspector(); });
-    inspector.append(group('Kotak latar', bgRow, clear));
+    inspector.append(group('Kotak latar', bgRow, button('Tanpa latar', () => { c.bg = ''; commit(); renderInspector(); })));
+  }
+
+  if (c.type === 'shape') {
+    const items = [
+      field(c, 'shape', 'Jenis', 'select', { options: [['gradient', 'Latar gradien'], ['rect', 'Kotak'], ['circle', 'Lingkaran'], ['progress', 'Progress bar']], rerender: true }),
+      field(c, 'color', 'Warna 1', 'color'),
+      field(c, 'color2', 'Warna 2', 'color'),
+    ];
+    if (c.shape !== 'gradient') {
+      items.push(field(c, 'w', 'Lebar', 'range', { attrs: { min: 4, max: W * 1.5 } }));
+      if (c.shape !== 'circle') items.push(field(c, 'h', 'Tinggi', 'range', { attrs: { min: 2, max: H } }));
+      if (c.shape !== 'circle') items.push(field(c, 'radius', 'Sudut', 'range', { attrs: { min: 0, max: 200 } }));
+      items.push(field(c, 'anim', 'Animasi masuk', 'select', { options: TEXT_ANIMS.filter(([v]) => v !== 'typewriter') }));
+    } else {
+      items.push(field(c, 'angle', 'Sudut warna', 'range', { attrs: { min: 0, max: 360 } }));
+    }
+    inspector.append(group('Elemen', ...items));
   }
 
   if (isVisual(c)) {
-    inspector.append(group('Transformasi',
-      field(c, 'x', 'X', 'range', { attrs: { min: -W / 2, max: W * 1.5 } }),
-      field(c, 'y', 'Y', 'range', { attrs: { min: -H / 2, max: H * 1.5 } }),
-      field(c, 'scale', 'Skala', 'range', { attrs: { min: 0.05, max: 5, step: 0.01 }, fmt: (v) => v.toFixed(2) }),
-      field(c, 'rotation', 'Rotasi', 'range', { attrs: { min: -180, max: 180 }, fmt: (v) => `${v}°` }),
-      field(c, 'opacity', 'Opasitas', 'range', { attrs: { min: 0, max: 1, step: 0.01 }, fmt: (v) => `${Math.round(v * 100)}%` }),
-    ));
-    if (c.type !== 'text') {
-      const row = document.createElement('div');
-      row.className = 'btn-row';
+    const g = group('Transformasi',
+      tField(c, 'x', 'X', { min: -W / 2, max: W * 1.5 }),
+      tField(c, 'y', 'Y', { min: -H / 2, max: H * 1.5 }),
+      tField(c, 'scale', 'Skala', { min: 0.05, max: 5, step: 0.01 }, (v) => v.toFixed(2)),
+      tField(c, 'rotation', 'Rotasi', { min: -180, max: 180 }, (v) => `${Math.round(v)}°`),
+      tField(c, 'opacity', 'Opasitas', { min: 0, max: 1, step: 0.01 }, (v) => `${Math.round(v * 100)}%`),
+    );
+    inspector.append(g);
+    if (c.type === 'video' || c.type === 'image') {
       const fit = (mode) => () => {
-        Object.assign(c, { scale: fitScale(c.w, c.h, mode), x: W / 2, y: H / 2 });
+        Object.assign(c, { scale: fitScale(c.w, c.h, mode), x: W / 2, y: H / 2, keyframes: [] });
         commit();
-        renderInspector();
+        refreshAll();
       };
-      row.append(button('Pas (contain)', fit('contain')), button('Penuh (cover)', fit('cover')));
-      inspector.lastChild.append(row);
+      g.append(btnRow(button('Pas (contain)', fit('contain')), button('Penuh (cover)', fit('cover'))));
+    }
 
+    // Keyframe
+    const n = c.keyframes?.length || 0;
+    const kfInfo = document.createElement('p');
+    kfInfo.className = 'hint';
+    kfInfo.textContent = n
+      ? `${n} keyframe. Ubah posisi/skala di playhead untuk menambah keyframe otomatis.`
+      : 'Tambah keyframe di beberapa titik waktu untuk membuat gerakan (posisi, skala, rotasi, opasitas).';
+    inspector.append(group('Keyframe', kfInfo, btnRow(
+      button('◆ Set keyframe', () => { c.keyframes ??= []; upsertKeyframe(c); commit(); refreshAll(); }),
+      button('Hapus di sini', () => {
+        const t = localNow(c);
+        c.keyframes = (c.keyframes || []).filter((k) => Math.abs(k.t - t) > 0.5 / P.fps);
+        commit();
+        refreshAll();
+      }),
+      button('Hapus semua', () => { c.keyframes = []; commit(); refreshAll(); }),
+    )));
+
+    inspector.append(group('Transisi & gerak',
+      field(c, 'transition.type', 'Transisi masuk', 'select', { options: TRANSITIONS }),
+      field(c, 'transition.dur', 'Durasi transisi', 'range', { attrs: { min: 0.2, max: 2, step: 0.1 }, fmt: (v) => `${v}s` }),
+      field(c, 'motion', 'Gerak kamera', 'select', { options: MOTIONS }),
+    ));
+
+    if (c.type === 'video' || c.type === 'image') {
       inspector.append(group('Filter',
         field(c, 'filter.brightness', 'Kecerahan', 'range', { attrs: { min: 0, max: 200 } }),
         field(c, 'filter.contrast', 'Kontras', 'range', { attrs: { min: 0, max: 200 } }),
@@ -1010,13 +1063,10 @@ function setSpeed(c, v) {
 }
 
 function renderInspectorValues() {
-  const c = selected();
-  if (!c) return;
+  if (!selected()) return;
   for (const input of inspector.querySelectorAll('[data-path]')) {
     if (input === document.activeElement) continue;
-    const v = getPath(c, input.dataset.path);
-    if (input.type === 'checkbox') input.checked = !!v;
-    else input.value = v ?? '';
+    input._load?.();
     input.dispatchEvent(new Event('sync'));
   }
 }
@@ -1038,13 +1088,16 @@ function applyCanvasSize() {
 $('#ratioSelect').addEventListener('change', (e) => {
   const [w, h] = e.target.value.split('x').map(Number);
   const { width: oW, height: oH } = state.project;
-  // Pertahankan posisi relatif setiap objek.
+  const sx = w / oW;
+  const sy = h / oH;
   for (const c of clips()) {
-    c.x = c.x / oW * w;
-    c.y = c.y / oH * h;
-    if (c.type === 'text') c.maxWidth = w * 0.86;
+    c.x *= sx;
+    c.y *= sy;
+    for (const kf of c.keyframes || []) { kf.x *= sx; kf.y *= sy; }
+    if (c.type === 'text') c.maxWidth = Math.min(c.maxWidth * sx, w * 0.9);
     // Skala relatif terhadap ukuran "pas" dipertahankan.
-    else if (isVisual(c)) c.scale *= Math.min(w / c.w, h / c.h) / Math.min(oW / c.w, oH / c.h);
+    else if (c.type === 'video' || c.type === 'image') c.scale *= Math.min(w / c.w, h / c.h) / Math.min(oW / c.w, oH / c.h);
+    else if (c.type === 'shape' && c.shape !== 'gradient') c.w *= sx;
   }
   Object.assign(state.project, { width: w, height: h });
   applyCanvasSize();
@@ -1053,79 +1106,189 @@ $('#ratioSelect').addEventListener('change', (e) => {
 });
 
 // =====================================================================
-// Ekspor (MediaRecorder dari canvas.captureStream + WebAudio)
+// Ekspor
 // =====================================================================
-function pickMime() {
-  const cands = [
-    'video/mp4;codecs=avc1.640028,mp4a.40.2',
-    'video/mp4',
-    'video/webm;codecs=vp9,opus',
-    'video/webm;codecs=vp8,opus',
-    'video/webm',
-  ];
-  return cands.find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported(m));
+function setExportProgress(p) {
+  $('#exportProgress').value = clamp(p, 0, 1);
+}
+
+function showExportModal(info) {
+  $('#exportModal').classList.remove('hidden');
+  $('#exportDownload').classList.add('hidden');
+  $('#exportCancel').textContent = 'Batal';
+  $('#exportInfo').textContent = info;
+  setExportProgress(0);
+}
+
+function exportDone(blob, ext, note) {
+  const a = $('#exportDownload');
+  a.href = URL.createObjectURL(blob);
+  a.download = `kanvascut-${Date.now()}.${ext}`;
+  a.classList.remove('hidden');
+  $('#exportCancel').textContent = 'Tutup';
+  $('#exportInfo').textContent = `Selesai · ${(blob.size / 1e6).toFixed(1)} MB · ${note}`;
+  setExportProgress(1);
+}
+
+function seekEl(el, time) {
+  return new Promise((resolve) => {
+    if (el.readyState >= 2 && !el.seeking && Math.abs(el.currentTime - time) < 0.001) return resolve();
+    const done = () => { el.removeEventListener('seeked', done); clearTimeout(timer); resolve(); };
+    const timer = setTimeout(done, 3000);
+    el.addEventListener('seeked', done);
+    el.currentTime = time;
+  });
+}
+
+async function decodeAudioFor(c) {
+  const m = state.media.get(c.mediaId);
+  if (!m) return null;
+  if (!state.audioBuffers.has(m.id)) {
+    const data = await (m.blob ? m.blob.arrayBuffer() : fetch(m.url).then((r) => r.arrayBuffer()));
+    const ac = new OfflineAudioContext(2, 1, 48000);
+    state.audioBuffers.set(m.id, await ac.decodeAudioData(data).catch(() => null));
+  }
+  return state.audioBuffers.get(m.id);
+}
+
+async function renderAt(t) {
+  await Promise.all([...videoTargets(t).values()].map(({ c, time }) => seekEl(elFor(c), Math.min(time, (state.media.get(c.mediaId)?.duration ?? time) - 0.001))));
+  renderFrame(ctx, state.project, t, elFor);
 }
 
 async function startExport() {
   const dur = projectDuration();
   if (!dur) return alert('Timeline masih kosong.');
-  const mime = pickMime();
-  if (!mime) return alert('Browser ini tidak mendukung MediaRecorder. Gunakan Chrome/Edge/Firefox terbaru.');
-  ensureAudio();
+  if (state.exporting) return;
   pause();
   select(null);
+  await loadFonts();
+  if (!webCodecsAvailable()) return startRealtimeExport(dur);
+
+  const { width, height, fps } = state.project;
+  state.exporting = { offline: true, cancelled: false, dur };
+  showExportModal(`Menyiapkan ${width}×${height} @ ${fps}fps…`);
+  try {
+    for (const el of state.els.values()) el.pause();
+    const videoEls = clips().filter((c) => c.type === 'video').map(elFor);
+    await Promise.all(videoEls.map((el) => (el.readyState >= 2 ? null : once(el, 'loadeddata').catch(() => null))));
+    $('#exportInfo').textContent = 'Mencampur audio…';
+    const audioBuffer = await mixAudio(clips().filter(isMedia), dur, decodeAudioFor);
+    $('#exportInfo').textContent = `Merender ${Math.round(dur * fps)} frame…`;
+    const res = await exportMP4({
+      canvas, width, height, fps, duration: dur, renderAt, audioBuffer,
+      onProgress: setExportProgress,
+      isCancelled: () => state.exporting.cancelled,
+    });
+    if (res) exportDone(res.blob, 'mp4', `MP4 ${res.videoCodec}${res.audioCodec ? ` + ${res.audioCodec}` : ''}`);
+    else $('#exportModal').classList.add('hidden');
+  } catch (e) {
+    $('#exportInfo').textContent = `Gagal: ${e.message}`;
+    $('#exportCancel').textContent = 'Tutup';
+  } finally {
+    state.exporting = null;
+    seek(state.time);
+  }
+}
+
+// Cadangan untuk browser tanpa WebCodecs: rekam kanvas secara real-time.
+function pickMime() {
+  const cands = ['video/mp4;codecs=avc1.640028,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+  return cands.find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported(m));
+}
+
+async function startRealtimeExport(dur) {
+  const mime = pickMime();
+  if (!mime) return alert('Browser ini tidak mendukung ekspor video. Gunakan Chrome/Edge terbaru.');
+  ensureAudio();
   seek(0);
   syncMedia();
-  // Beri waktu video untuk seek ke frame pertama.
   await new Promise((r) => setTimeout(r, 400));
-
   const stream = canvas.captureStream(state.project.fps);
   for (const tr of recordDest.stream.getAudioTracks()) stream.addTrack(tr);
   const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 10_000_000 });
   const chunks = [];
   rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
   state.exporting = { rec, chunks, mime, dur, cancelled: false };
-
-  $('#exportModal').classList.remove('hidden');
-  $('#exportDownload').classList.add('hidden');
-  $('#exportCancel').textContent = 'Batal';
-  $('#exportInfo').textContent = `Format: ${mime.split(';')[0]} · ${state.project.width}×${state.project.height} @ ${state.project.fps}fps`;
+  showExportModal(`Mode real-time (${mime.split(';')[0]}). Jangan pindah tab.`);
   rec.start(500);
   play();
 }
 
-function finishExport() {
+function finishRealtimeExport() {
   const ex = state.exporting;
-  if (!ex) return;
+  if (!ex?.rec) return;
   ex.rec.onstop = () => {
     state.exporting = null;
     if (ex.cancelled) {
       $('#exportModal').classList.add('hidden');
       return;
     }
-    const blob = new Blob(ex.chunks, { type: ex.mime.split(';')[0] });
     const ext = ex.mime.includes('mp4') ? 'mp4' : 'webm';
-    const a = $('#exportDownload');
-    a.href = URL.createObjectURL(blob);
-    a.download = `kanvascut-${Date.now()}.${ext}`;
-    a.classList.remove('hidden');
-    $('#exportCancel').textContent = 'Tutup';
-    $('#exportInfo').textContent = `Selesai · ${(blob.size / 1e6).toFixed(1)} MB (.${ext})`;
-    $('#exportProgress').value = 1;
+    exportDone(new Blob(ex.chunks, { type: ex.mime.split(';')[0] }), ext, ext.toUpperCase());
   };
   ex.rec.stop();
 }
 
 $('#exportBtn').addEventListener('click', startExport);
 $('#exportCancel').addEventListener('click', () => {
-  if (state.exporting) {
-    state.exporting.cancelled = true;
-    pause();
-    finishExport();
-  } else {
+  const ex = state.exporting;
+  if (!ex) {
     $('#exportModal').classList.add('hidden');
+    return;
+  }
+  ex.cancelled = true;
+  if (ex.rec) {
+    pause();
+    finishRealtimeExport();
   }
 });
+
+// =====================================================================
+// Template & adegan
+// =====================================================================
+async function loadMediaFromUrl(url, name) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Gagal memuat ${url}`);
+  const blob = await res.blob();
+  return importFile(new File([blob], name, { type: blob.type || 'audio/mpeg' }));
+}
+
+// Ganti teks/elemen lama dengan adegan baru; video/gambar/audio milik pengguna dipertahankan.
+function applyScenes(scenes) {
+  const { width: W, height: H } = state.project;
+  const keep = clips().filter((c) => c.type === 'video' || c.type === 'image' || c.type === 'audio');
+  const hasVisual = keep.some(isVisual);
+  for (const c of keep) c.track = isVisual(c) ? LAYER.bg : Math.max(c.track, LAYER.music);
+  const { clips: built, end } = buildSceneClips(scenes, baseClip, { W, H, withBackground: !hasVisual });
+  state.project.clips = [...keep, ...built];
+  state.selectedId = null;
+  cleanupEls();
+  return end;
+}
+
+async function loadTemplate(tpl) {
+  state.project.width = 1080;
+  state.project.height = 1920;
+  applyCanvasSize();
+  state.project.clips = [];
+  const end = applyScenes(tpl.scenes);
+  if (tpl.music) {
+    const m = await loadMediaFromUrl(tpl.music, tpl.music.split('/').pop());
+    if (m) {
+      clips().push(baseClip({
+        type: 'audio', mediaId: m.id, name: m.name, start: 0, dur: Math.min(m.duration, end), track: LAYER.music,
+        volume: 0.8, fadeIn: 0.3, fadeOut: 1.5,
+      }));
+    }
+  }
+  await loadFonts();
+  seek(0);
+  commit();
+  refreshAll();
+}
+
+$('#tplBisnis').addEventListener('click', () => loadTemplate(DEMO_BISNIS_AI).catch((e) => alert(e.message)));
 
 // =====================================================================
 // AI
@@ -1137,8 +1300,8 @@ try {
   $('#apiKey').value = localStorage.getItem(LS_KEY) || '';
   $('#aiModel').value = localStorage.getItem(LS_MODEL) || 'claude-opus-5-5';
 } catch { /* storage diblokir */ }
-$('#apiKey').addEventListener('change', (e) => { try { localStorage.setItem(LS_KEY, e.target.value.trim()); } catch {} });
-$('#aiModel').addEventListener('change', (e) => { try { localStorage.setItem(LS_MODEL, e.target.value); } catch {} });
+$('#apiKey').addEventListener('change', (e) => { try { localStorage.setItem(LS_KEY, e.target.value.trim()); } catch { /* abaikan */ } });
+$('#aiModel').addEventListener('change', (e) => { try { localStorage.setItem(LS_MODEL, e.target.value); } catch { /* abaikan */ } });
 
 function log(msg, cls = '') {
   const p = document.createElement('div');
@@ -1176,35 +1339,21 @@ function frameBlock() {
   return { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data } };
 }
 
-$('#aiIdeaBtn').addEventListener('click', (e) => runAI(e.currentTarget, 'Membuat naskah', async () => {
+$('#aiIdeaBtn').addEventListener('click', (e) => runAI(e.currentTarget, 'Menyusun video', async () => {
   const idea = $('#aiIdea').value.trim();
   if (!idea) throw new Error('Tulis idenya dulu.');
   const prompt = scriptPrompt({ idea, style: $('#aiStyle').value, duration: +$('#aiDuration').value });
   const content = $('#aiUseFrame').checked && clips().length
     ? [frameBlock(), { type: 'text', text: `${prompt}\nGambar di atas adalah frame video saat ini, sesuaikan naskah dengan isinya.` }]
     : prompt;
-  const { data, model } = await askJSON({
-    ...aiOpts(),
-    system: 'Kamu penulis naskah konten video pendek yang viral dan penata teks on-screen.',
-    content,
-    schema: SCRIPT_SCHEMA,
-  });
-  const hasVisual = clips().some((c) => c.type === 'video' || c.type === 'image');
-  if (!hasVisual) state.project.bg = data.background_color;
-  let t = hasVisual ? 0 : state.time;
-  for (const s of data.scenes) {
-    const dur = clamp(s.duration, 0.8, 15);
-    const c = makeTextClip(s.caption, {
-      preset: s.emphasis ? 'title' : 'caption',
-      start: t, dur,
-      props: { anim: s.animation, ...(s.emphasis ? { color: data.accent_color, y: state.project.height * 0.45 } : {}) },
-    });
-    clips().push(c);
-    t += dur;
-  }
+  const { data, model } = await askJSON({ ...aiOpts(), system: SCRIPT_SYSTEM, content, schema: SCRIPT_SCHEMA });
+  const scenes = data.scenes.map((s) => ({ ...s, duration: clamp(s.duration, 2, 8) }));
+  applyScenes(scenes);
+  await loadFonts();
+  seek(0);
   commit();
   refreshAll();
-  log(`✔ "${data.title}" — ${data.scenes.length} adegan ditambahkan (${model}).`, 'ok');
+  log(`✔ "${data.title}" — ${scenes.length} adegan dibuat (${model}). Tambahkan musik dari tab Media.`, 'ok');
 }));
 
 $('#aiSubBtn').addEventListener('click', (e) => runAI(e.currentTarget, 'Membuat subtitle', async () => {
@@ -1223,7 +1372,7 @@ $('#aiSubBtn').addEventListener('click', (e) => runAI(e.currentTarget, 'Membuat 
   }
   commit();
   refreshAll();
-  log(`✔ ${data.segments.length} subtitle ditambahkan.`, 'ok');
+  log(`✔ ${data.segments.length} subtitle karaoke ditambahkan.`, 'ok');
 }));
 
 function projectSummary() {
@@ -1234,11 +1383,12 @@ function projectSummary() {
     selected_clip_id: state.selectedId,
     clips: clips().map((c) => {
       const o = { id: c.id, type: c.type, track: c.track, start: +c.start.toFixed(2), dur: +c.dur.toFixed(2) };
-      if (c.type === 'text') Object.assign(o, { text: c.text, color: c.color, size: c.size, bg: c.bg, anim: c.anim });
+      if (c.type === 'text') Object.assign(o, { text: c.text, color: c.color, size: Math.round(c.size), bg: c.bg, anim: c.anim, textStyle: c.textStyle, highlight: c.highlight, upper: c.upper });
+      else if (c.type === 'shape') Object.assign(o, { shape: c.shape, color: c.color, color2: c.color2 });
       else o.name = c.name;
-      if (isVisual(c)) Object.assign(o, { x: Math.round(c.x), y: Math.round(c.y), scale: +c.scale.toFixed(3), rotation: c.rotation, opacity: c.opacity });
+      if (isVisual(c)) Object.assign(o, { x: Math.round(c.x), y: Math.round(c.y), scale: +c.scale.toFixed(3), rotation: c.rotation, opacity: c.opacity, transition: c.transition?.type, motion: c.motion });
       if (isMedia(c)) Object.assign(o, { volume: c.volume, speed: c.speed, muted: c.muted });
-      if (c.filter && c.type !== 'text') Object.assign(o, c.filter);
+      if (c.type === 'video' || c.type === 'image') Object.assign(o, c.filter);
       return o;
     }),
   };
@@ -1253,6 +1403,8 @@ function applyProps(c, props) {
       if (c.filter) c.filter[k] = v;
     } else if (k === 'speed') {
       if (isMedia(c)) setSpeed(c, v);
+    } else if (k === 'transition') {
+      c.transition = { type: v, dur: c.transition?.dur ?? 0.5 };
     } else if (k === 'opacity' || k === 'volume') {
       c[k] = clamp(v, 0, 1);
     } else if (k === 'dur') {
@@ -1276,9 +1428,7 @@ function applyOps(ops) {
     else if (op.op === 'split' && c && op.at != null) { if (splitClip(c, op.at)) done++; }
     else if (op.op === 'add_text' && op.props?.text) {
       const p = op.props;
-      const start = p.start ?? state.time;
-      const dur = p.dur ?? 3;
-      const n = makeTextClip(p.text, { preset: 'caption', start, dur, track: p.track ?? undefined });
+      const n = makeTextClip(p.text, { preset: 'caption', start: p.start ?? state.time, dur: p.dur ?? 3, track: p.track ?? undefined });
       applyProps(n, { ...p, start: null, dur: null, track: null });
       clips().push(n);
       done++;
@@ -1332,6 +1482,7 @@ for (const target of [dz, document.body]) {
 }
 
 for (const b of document.querySelectorAll('[data-preset]')) b.addEventListener('click', () => addText(b.dataset.preset));
+for (const b of document.querySelectorAll('[data-shape]')) b.addEventListener('click', () => addShape(b.dataset.shape));
 
 $('#playBtn').addEventListener('click', () => (state.playing ? pause() : play()));
 $('#toStartBtn').addEventListener('click', () => seek(0));
@@ -1350,17 +1501,28 @@ document.addEventListener('keydown', (e) => {
   else if (mod && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); }
   else if (mod && e.key.toLowerCase() === 'd') { e.preventDefault(); duplicateSelected(); }
   else if (e.key === 's' || e.key === 'S') splitAtPlayhead();
-  else if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
+  else if ((e.key === 'k' || e.key === 'K') && selected() && isVisual(selected())) {
+    const c = selected();
+    c.keyframes ??= [];
+    upsertKeyframe(c);
+    commit();
+    refreshAll();
+  } else if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
   else if (e.key === 'ArrowLeft') seek(state.time - 1 / state.project.fps);
   else if (e.key === 'ArrowRight') seek(state.time + 1 / state.project.fps);
 });
 
 window.addEventListener('resize', renderTimeline);
+tlScroll.addEventListener('scroll', () => { $('#trackHeads').scrollTop = tlScroll.scrollTop; });
 
 // Untuk debugging / pengujian otomatis.
-window.kanvascut = { state, addText, makeTextClip, applyOps, commit, refreshAll, seek, play, pause, projectDuration };
+window.kanvascut = {
+  state, addText, addShape, makeTextClip, applyOps, applyScenes, loadTemplate, startExport, commit, refreshAll, seek, play, pause, projectDuration,
+  templates: { DEMO_BISNIS_AI },
+};
 
 applyCanvasSize();
+loadFonts();
 commit();
 refreshAll();
 requestAnimationFrame(loop);

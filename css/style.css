@@ -1,3 +1,8 @@
+@font-face { font-family: "Montserrat"; src: url("../fonts/montserrat-latin-wght-normal.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Bebas Neue"; src: url("../fonts/bebas-neue-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Poppins"; src: url("../fonts/poppins-latin-600-normal.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Poppins"; src: url("../fonts/poppins-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+
 :root {
   --bg: #0f1115;
   --panel: #171a21;
@@ -12,6 +17,7 @@
   --clip-image: #0d9488;
   --clip-audio: #16a34a;
   --clip-text: #9333ea;
+  --clip-shape: #c2410c;
   --row: 46px;
 }
 
@@ -79,6 +85,9 @@ label.check { display: flex; align-items: center; gap: 6px; }
 
 .text-presets { display: grid; gap: 8px; }
 .text-presets button { text-align: left; padding: 10px; }
+.text-presets.two { grid-template-columns: 1fr 1fr; }
+.tpl-card { display: flex; gap: 10px; align-items: center; width: 100%; text-align: left; padding: 10px; margin: 8px 0; }
+.tpl-thumb { width: 54px; height: 84px; border-radius: 6px; display: grid; place-items: center; font-size: 26px; background: linear-gradient(160deg, #0f172a, #1d4ed8); flex: none; }
 
 .ai-card { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-bottom: 10px; }
 .ai-card summary { cursor: pointer; font-weight: 600; }
@@ -110,6 +119,7 @@ label.check { display: flex; align-items: center; gap: 6px; }
 .tl-toolbar .spacer { flex: 1; }
 .tl-body { display: grid; grid-template-columns: 74px 1fr; min-height: 0; }
 .tl-heads { padding-top: 24px; border-right: 1px solid var(--line); overflow: hidden; }
+.tl-heads::after { content: ""; display: block; height: 40px; }
 .tl-heads div { height: var(--row); display: flex; align-items: center; padding-left: 8px; color: var(--muted); font-size: 11px; border-bottom: 1px solid #ffffff08; }
 .tl-scroll { overflow: auto; position: relative; }
 .tl-inner { position: relative; min-height: 100%; }
@@ -121,6 +131,9 @@ label.check { display: flex; align-items: center; gap: 6px; }
 .clip.image { background-color: var(--clip-image); }
 .clip.audio { background-color: var(--clip-audio); }
 .clip.text { background-color: var(--clip-text); }
+.clip.shape { background-color: var(--clip-shape); }
+.clip .kf { position: absolute; bottom: 3px; width: 9px; height: 9px; margin-left: -4px; background: #fde047; transform: rotate(45deg); border: 1px solid #0008; pointer-events: none; }
+.clip .tr-mark { position: absolute; left: 0; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, #ffffff55 0 4px, transparent 4px 8px); pointer-events: none; }
 .clip.selected { border-color: #fff; }
 .clip .lbl { position: absolute; left: 10px; right: 10px; top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 2px #000; pointer-events: none; }
 .clip .h { position: absolute; top: 0; bottom: 0; width: 8px; cursor: ew-resize; background: #ffffff33; }
