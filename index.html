@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KanvasCut — Editor Video HTML Canvas + AI</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">▶ KanvasCut</div>
+    <div class="top-actions">
+      <label class="inline">Rasio
+        <select id="ratioSelect">
+          <option value="1080x1920">9:16 (TikTok/Reels)</option>
+          <option value="1920x1080">16:9 (YouTube)</option>
+          <option value="1080x1080">1:1 (Feed)</option>
+          <option value="1080x1350">4:5 (Instagram)</option>
+        </select>
+      </label>
+      <button id="undoBtn" title="Undo (Ctrl+Z)">↶</button>
+      <button id="redoBtn" title="Redo (Ctrl+Shift+Z)">↷</button>
+      <button id="exportBtn" class="primary">Ekspor Video</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <!-- Panel kiri -->
+    <aside class="panel left">
+      <nav class="tabs">
+        <button data-tab="media" class="active">Media</button>
+        <button data-tab="text">Teks</button>
+        <button data-tab="ai">AI ✨</button>
+      </nav>
+
+      <section class="tab-body" data-tab="media">
+        <label class="dropzone" id="dropzone">
+          <input type="file" id="fileInput" multiple accept="video/*,image/*,audio/*" hidden>
+          <strong>+ Impor media</strong>
+          <span>Klik atau seret video, gambar, audio ke sini</span>
+        </label>
+        <div id="mediaList" class="media-list"></div>
+      </section>
+
+      <section class="tab-body hidden" data-tab="text">
+        <p class="hint">Klik gaya untuk menambah teks di posisi playhead.</p>
+        <div class="text-presets">
+          <button data-preset="title">Judul Besar</button>
+          <button data-preset="subtitle">Subtitle</button>
+          <button data-preset="caption">Caption Kotak</button>
+          <button data-preset="neon">Neon</button>
+          <button data-preset="lower">Lower Third</button>
+        </div>
+      </section>
+
+      <section class="tab-body hidden" data-tab="ai">
+        <details open class="ai-card">
+          <summary>Pengaturan API</summary>
+          <label>Claude API key
+            <input type="password" id="apiKey" placeholder="sk-ant-..." autocomplete="off">
+          </label>
+          <label>Model
+            <select id="aiModel">
+              <option value="claude-opus-5-5">Claude Opus 5.5 (paling pintar)</option>
+              <option value="claude-sonnet-5-5">Claude Sonnet 5.5 (seimbang)</option>
+              <option value="claude-haiku-5-5">Claude Haiku 5.5 (paling murah)</option>
+            </select>
+          </label>
+          <p class="hint">Key disimpan di browser ini saja (localStorage) dan hanya dikirim ke api.anthropic.com.</p>
+        </details>
+
+        <details open class="ai-card">
+          <summary>Buat video dari ide</summary>
+          <textarea id="aiIdea" rows="3" placeholder="Contoh: 5 tips hemat uang untuk mahasiswa"></textarea>
+          <div class="row2">
+            <label>Gaya
+              <select id="aiStyle">
+                <option>Edukasi</option><option>Promosi produk</option>
+                <option>Storytelling</option><option>Motivasi</option><option>Lucu</option>
+              </select>
+            </label>
+            <label>Durasi
+              <select id="aiDuration">
+                <option value="15">15 dtk</option><option value="30" selected>30 dtk</option><option value="60">60 dtk</option>
+              </select>
+            </label>
+          </div>
+          <label class="check"><input type="checkbox" id="aiUseFrame"> Kirim frame preview (AI melihat videomu)</label>
+          <button id="aiIdeaBtn" class="primary wide">Buat naskah + teks</button>
+        </details>
+
+        <details class="ai-card">
+          <summary>Subtitle dari naskah</summary>
+          <textarea id="aiScript" rows="4" placeholder="Tempel naskah / transkrip di sini"></textarea>
+          <button id="aiSubBtn" class="primary wide">Pecah jadi subtitle berwaktu</button>
+        </details>
+
+        <details class="ai-card">
+          <summary>Perintah edit (AI agent)</summary>
+          <textarea id="aiCommand" rows="3" placeholder="Contoh: semua teks jadi kuning dengan animasi pop, potong klip pertama di detik 3"></textarea>
+          <button id="aiCmdBtn" class="primary wide">Jalankan perintah</button>
+        </details>
+
+        <div id="aiLog" class="ai-log"></div>
+      </section>
+    </aside>
+
+    <!-- Preview -->
+    <section class="stage">
+      <div class="canvas-wrap" id="canvasWrap">
+        <canvas id="preview" width="1080" height="1920"></canvas>
+      </div>
+      <div class="transport">
+        <button id="toStartBtn" title="Ke awal">⏮</button>
+        <button id="playBtn" class="play" title="Play/Pause (Spasi)">▶</button>
+        <span id="timeDisplay" class="time">00:00.00 / 00:00.00</span>
+      </div>
+    </section>
+
+    <!-- Inspector -->
+    <aside class="panel right">
+      <h3 id="inspectorTitle">Proyek</h3>
+      <div id="inspector"></div>
+    </aside>
+  </main>
+
+  <!-- Timeline -->
+  <footer class="timeline-area">
+    <div class="tl-toolbar">
+      <button id="splitBtn" title="Potong di playhead (S)">✂ Potong</button>
+      <button id="dupBtn" title="Duplikat (Ctrl+D)">⧉ Duplikat</button>
+      <button id="delBtn" title="Hapus (Del)">🗑 Hapus</button>
+      <span class="spacer"></span>
+      <label class="inline">Zoom <input type="range" id="zoom" min="10" max="300" value="60"></label>
+    </div>
+    <div class="tl-body">
+      <div class="tl-heads" id="trackHeads"></div>
+      <div class="tl-scroll" id="tlScroll">
+        <div class="tl-inner" id="tlInner">
+          <canvas id="ruler" height="24"></canvas>
+          <div id="tracks" class="tracks"></div>
+          <div id="playhead" class="playhead"></div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <div id="exportModal" class="modal hidden">
+    <div class="modal-box">
+      <h3>Mengekspor video…</h3>
+      <p class="hint">Rendering berjalan real-time. Jangan pindah tab sampai selesai.</p>
+      <progress id="exportProgress" max="1" value="0"></progress>
+      <p id="exportInfo"></p>
+      <div class="modal-actions">
+        <button id="exportCancel">Batal</button>
+        <a id="exportDownload" class="button primary hidden" download>Unduh</a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
