@@ -11,6 +11,8 @@ lengkap dengan narasi dan subtitle karaoke yang sinkron:
 
 - [`examples/bisnis-ai-wanita.mp4`](examples/bisnis-ai-wanita.mp4) — narasi Ava (wanita, ekspresif)
 - [`examples/bisnis-ai-pria.mp4`](examples/bisnis-ai-pria.mp4) — narasi Andrew (pria, ekspresif)
+- [`examples/cuanki-buhaji.mp4`](examples/cuanki-buhaji.mp4) — video promosi Cuanki Buhaji Factory (foto asli, narasi Ava),
+  dari template **Cuanki Buhaji Factory**
 - [`examples/contoh-6-suara.mp3`](examples/contoh-6-suara.mp3) — perbandingan suara: Ava, Emma, Gadis, Andrew, Brian, Ardi
 
 Narasi ada di `examples/assets/suara/` (dibuat dengan `buat_suara.py`); musik latar disintesis

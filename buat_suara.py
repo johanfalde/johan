@@ -34,39 +34,48 @@ VOICES = {
     "pria-andrew": "en-US-AndrewMultilingualNeural",
 }
 RATE = "+0%"
+# File lebih kecil dari ini dianggap gagal (server kadang mengirim audio terpotong).
+MIN_BYTES = 4000
 # Ikuti proxy sistem bila ada (mis. jaringan kantor).
 PROXY = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy") or None
 
 
-def narrations():
-    # Ambil teks narasi langsung dari template supaya selalu sama dengan yang tampil di video.
+def templates():
+    """[(nama, folder suara, [narasi...]), ...] diambil langsung dari js/templates.js."""
     src = (ROOT / "js" / "templates.js").read_text(encoding="utf-8")
-    texts = re.findall(r"narration:\s*'([^']*)'", src)
-    if not texts:
+    out = []
+    for name, body in re.findall(r"export const (\w+) = \{(.*?)\n\};", src, re.S):
+        texts = re.findall(r"narration:\s*'([^']*)'", body)
+        base = re.search(r"voiceSet\('([^']+)'\)", body)
+        if texts and base:
+            out.append((name, ROOT / base.group(1), texts))
+    if not out:
         sys.exit("Tidak menemukan narasi di js/templates.js")
-    return texts
+    return out
 
 
 async def main():
-    texts = narrations()
-    for folder, voice in VOICES.items():
-        out = ROOT / "examples" / "assets" / "suara" / folder
+    for tpl, base, texts in templates():
+      for folder, voice in VOICES.items():
+        out = base / folder
         out.mkdir(parents=True, exist_ok=True)
         for i, text in enumerate(texts, 1):
             path = out / f"{i:02d}.mp3"
-            if path.exists() and path.stat().st_size > 0 and "--ulang" not in sys.argv:
+            if path.exists() and path.stat().st_size > MIN_BYTES and "--ulang" not in sys.argv:
                 continue  # sudah ada; pakai --ulang untuk membuat ulang semua
-            print(f"[{folder}] {path.name}: {text}")
+            print(f"[{tpl} · {folder}] {path.name}: {text}")
             for attempt in range(1, 4):
                 try:
                     await edge_tts.Communicate(text, voice, rate=RATE, proxy=PROXY).save(str(path))
+                    if path.stat().st_size <= MIN_BYTES:  # audio terpotong dari server
+                        raise edge_tts.exceptions.NoAudioReceived("audio terlalu pendek")
                     break
                 except edge_tts.exceptions.NoAudioReceived:
                     if attempt == 3:
                         raise
                     print("  server tidak mengirim audio, coba lagi...")
                     await asyncio.sleep(2 * attempt)
-    print(f"\nSelesai: {len(texts)} narasi x {len(VOICES)} suara di examples/assets/suara/")
+    print("\nSelesai. Narasi tersimpan di examples/assets/suara/ (per template).")
 
 
 if __name__ == "__main__":

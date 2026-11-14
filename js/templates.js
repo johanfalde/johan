@@ -10,7 +10,8 @@ export const LAYER = {
 export const VOICE_DELAY = 0.3;
 
 /**
- * @param scenes  [{ kicker, headline, body, emoji, narration, duration, bg_from, bg_to, accent, transition, voice_dur? }]
+ * @param scenes  [{ kicker, headline, body, emoji, narration, duration, bg_from, bg_to, accent, transition,
+ *                   photo?: { mediaId, w, h }, motion?, voice_dur? }]
  * @param base    fungsi pembuat klip dasar dari editor
  * @param opts    { W, H, start, withBackground, progressBar }
  */
@@ -37,7 +38,21 @@ export function buildSceneClips(scenes, base, { W, H, start = 0, withBackground 
     const D = Math.max(1.5, s.duration);
     const end = (offset) => ({ start: T + offset, dur: D - offset, fadeOut: 0.25 });
 
-    if (withBackground) {
+    const photo = withBackground && s.photo;
+    // Posisi elemen (fraksi tinggi layar). Adegan foto: teks di bawah supaya makanannya tetap terlihat.
+    const Y = photo
+      ? { kicker: 0.12, emoji: 0.23, emojiSize: 130, headline: 0.63, body: 0.755, narr: 0.885 }
+      : { kicker: 0.2, emoji: 0.36, emojiSize: 190, headline: 0.53, body: 0.68, narr: 0.85 };
+
+    if (photo) {
+      const cover = Math.max(W / s.photo.w, H / s.photo.h);
+      out.push(base({
+        type: 'image', role: 'scene', name: 'Foto', mediaId: s.photo.mediaId, w: s.photo.w, h: s.photo.h,
+        track: LAYER.bg, start: T, dur: D, x: W / 2, y: H / 2, scale: cover, motion: s.motion || (i % 2 ? 'zoom-out' : 'zoom-in'),
+        transition: { type: i === 0 ? 'none' : s.transition, dur: 0.5 },
+      }));
+      out.push(shape({ name: 'Bayangan', shape: 'shade', track: LAYER.glow, start: T, dur: D, x: W / 2, y: H / 2, color: '#000000', top: 0.15, bottom: 0.8 }));
+    } else if (withBackground) {
       out.push(shape({
         name: 'Latar', shape: 'gradient', track: LAYER.bg, start: T, dur: D, color: s.bg_from, color2: s.bg_to,
         angle: 120 + i * 40, x: W / 2, y: H / 2, motion: 'zoom-in',
@@ -51,7 +66,7 @@ export function buildSceneClips(scenes, base, { W, H, start = 0, withBackground 
     }
 
     if (s.kicker) {
-      const ky = H * 0.2;
+      const ky = H * Y.kicker;
       const kSize = 38 * k;
       out.push(shape({
         name: 'Label', shape: 'rect', track: LAYER.kickerPill, ...end(0.1), anim: 'slide-left',
@@ -64,9 +79,9 @@ export function buildSceneClips(scenes, base, { W, H, start = 0, withBackground 
     }
 
     if (s.emoji) {
-      const ey = H * 0.36;
+      const ey = H * Y.emoji;
       out.push(text({
-        name: 'Ikon', text: s.emoji, track: LAYER.emoji, ...end(0.15), font: 'system-ui, sans-serif', size: 190 * k,
+        name: 'Ikon', text: s.emoji, track: LAYER.emoji, ...end(0.15), font: 'system-ui, sans-serif', size: Y.emojiSize * k,
         weight: 400, anim: 'pop', shadow: true, y: ey, keyframes: float(W / 2, ey, D - 0.15, 22 * k),
       }));
     }
@@ -74,17 +89,18 @@ export function buildSceneClips(scenes, base, { W, H, start = 0, withBackground 
     out.push(text({
       name: 'Judul', text: s.headline, track: LAYER.headline, ...end(0.3), font: '"Bebas Neue", Impact, sans-serif',
       weight: 400, size: 150 * k, upper: true, anim: 'none', textStyle: 'word', wordSpan: 0.9,
-      highlight: s.accent, y: H * 0.53, lineHeight: 1.0,
+      highlight: s.accent, y: H * Y.headline, lineHeight: 1.0,
     }));
 
     if (s.body) {
-      const by = H * 0.68;
+      const by = H * Y.body;
       const bodySize = 46 * k;
       const maxW = W * 0.72;
       const lines = Math.max(1, Math.ceil(s.body.length * bodySize * 0.55 / maxW));
       out.push(shape({
         name: 'Kartu', shape: 'rect', track: LAYER.card, ...end(0.6), anim: 'fade', w: W * 0.84,
-        h: lines * bodySize * 1.3 + 80 * k, radius: 36 * k, color: '#ffffff', color2: '#ffffff', opacity: 0.14, y: by,
+        h: lines * bodySize * 1.3 + 80 * k, radius: 36 * k, y: by,
+        ...(photo ? { color: '#000000', color2: '#000000', opacity: 0.45 } : { color: '#ffffff', color2: '#ffffff', opacity: 0.14 }),
       }));
       out.push(text({
         name: 'Isi', text: s.body, track: LAYER.body, ...end(0.6), font: 'Poppins, system-ui, sans-serif', weight: 600,
@@ -100,7 +116,7 @@ export function buildSceneClips(scenes, base, { W, H, start = 0, withBackground 
       out.push(text({
         name: 'Subtitle', text: s.narration, track: LAYER.narration, ...timing, size: 54 * k, weight: 900,
         upper: true, anim: 'fade', textStyle: 'karaoke', hlBox: true, highlight: s.accent, hlText: '#0b1020',
-        stroke: '#000000', strokeW: 8 * k, maxWidth: W * 0.84, y: H * 0.85,
+        stroke: '#000000', strokeW: 8 * k, maxWidth: W * 0.84, y: H * Y.narr,
       }));
     }
     T += D;
@@ -118,16 +134,20 @@ export function buildSceneClips(scenes, base, { W, H, start = 0, withBackground 
 // ---------------------------------------------------------------------
 // Template contoh: "Bisnis dengan AI" (9:16, 26 detik)
 // ---------------------------------------------------------------------
+// Folder narasi per template: <base>/<suara>/01.mp3 … (dibuat buat_suara.py / buat_suara_gemini.py).
+export function voiceSet(base) {
+  return {
+    wanita: `${base}/wanita`, 'wanita-ava': `${base}/wanita-ava`,
+    pria: `${base}/pria`, 'pria-andrew': `${base}/pria-andrew`,
+    'gemini-wanita': { dir: `${base}/gemini-wanita`, ext: 'wav' },
+    'gemini-pria': { dir: `${base}/gemini-pria`, ext: 'wav' },
+  };
+}
+
 export const DEMO_BISNIS_AI = {
   title: 'Bisnis dengan AI',
   music: 'examples/assets/musik-bisnis.mp3',
-  voices: {
-    wanita: 'examples/assets/suara/wanita', 'wanita-ava': 'examples/assets/suara/wanita-ava',
-    pria: 'examples/assets/suara/pria', 'pria-andrew': 'examples/assets/suara/pria-andrew',
-    // Dibuat dengan buat_suara_gemini.py (WAV).
-    'gemini-wanita': { dir: 'examples/assets/suara/gemini-wanita', ext: 'wav' },
-    'gemini-pria': { dir: 'examples/assets/suara/gemini-pria', ext: 'wav' },
-  },
+  voices: voiceSet('examples/assets/suara'),
   scenes: [
     {
       kicker: 'Bisnis 2026', emoji: '🤖', headline: 'Bisnis kamu masih manual?',
@@ -164,6 +184,56 @@ export const DEMO_BISNIS_AI = {
       body: 'Simpan video ini dan kirim ke teman yang punya usaha.',
       narration: 'Follow dan simpan, biar nggak lupa ya!',
       duration: 4.2, bg_from: '#1e1b4b', bg_to: '#be123c', accent: '#fb7185', transition: 'wipe',
+    },
+  ],
+};
+
+// ---------------------------------------------------------------------
+// Template promosi: "Cuanki Buhaji Factory" (9:16, foto asli dari pemilik usaha)
+// ---------------------------------------------------------------------
+const MANGKUK = 'examples/assets/cuanki/mangkuk.jpg';
+const GEROBAK = 'examples/assets/cuanki/gerobak.jpg';
+
+export const DEMO_CUANKI = {
+  title: 'Cuanki Buhaji Factory',
+  music: 'examples/assets/musik-bisnis.mp3',
+  voices: voiceSet('examples/assets/suara/cuanki'),
+  scenes: [
+    {
+      image: MANGKUK, motion: 'zoom-in', kicker: 'Kuliner Bandung', emoji: '🍜', headline: 'Cuanki yang lagi viral!',
+      body: 'Kuah gurih, bakso, tahu, dan siomay goreng yang renyah.',
+      narration: 'Lagi cari cuanki Bandung yang enak dan lagi viral? Ini dia!',
+      duration: 4.4, bg_from: '#1c0a00', bg_to: '#c2410c', accent: '#facc15', transition: 'none',
+    },
+    {
+      image: GEROBAK, motion: 'zoom-out', kicker: 'Buhaji Factory', emoji: '👩‍🍳', headline: 'Cuanki asli Bandung',
+      body: 'Dibuat setiap hari dengan resep khas Bandung.',
+      narration: 'Buhaji Factory, cuanki asli Bandung dengan kuah gurih yang bikin nagih.',
+      duration: 4.6, bg_from: '#1c0a00', bg_to: '#b91c1c', accent: '#fde047', transition: 'whip',
+    },
+    {
+      image: MANGKUK, motion: 'pan-left', kicker: 'Promo hari ini', emoji: '🔥', headline: 'Cuma 10 ribu!',
+      body: 'Dari Rp15.000 jadi Rp10.000 per porsi. Murah meriah, porsi puas.',
+      narration: 'Lagi promo, cuma sepuluh ribu rupiah per porsi!',
+      duration: 4.2, bg_from: '#3f0d0d', bg_to: '#dc2626', accent: '#fde047', transition: 'zoom',
+    },
+    {
+      image: MANGKUK, motion: 'zoom-out', kicker: 'Frozen food', emoji: '❄️', headline: 'Bisa kirim frozen',
+      body: 'Stok cuanki di rumah, tinggal rebus kapan saja.',
+      narration: 'Mau stok di rumah? Cuanki kami bisa dikirim dalam bentuk frozen food.',
+      duration: 4.6, bg_from: '#082f49', bg_to: '#0284c7', accent: '#7dd3fc', transition: 'slide-up',
+    },
+    {
+      image: GEROBAK, motion: 'pan-right', kicker: 'Go international', emoji: '✈️', headline: 'Sampai mancanegara',
+      body: 'Rasa khas Bandung kini dinikmati sampai luar negeri.',
+      narration: 'Rasa khas Bandung ini, sekarang sudah sampai ke mancanegara.',
+      duration: 4.4, bg_from: '#1e1b4b', bg_to: '#4338ca', accent: '#a5b4fc', transition: 'circle',
+    },
+    {
+      image: GEROBAK, motion: 'zoom-in', kicker: 'Pesan sekarang', emoji: '👉', headline: 'Buhaji Factory Cuanki Bandung',
+      body: 'Mampir langsung, atau pesan versi frozen untuk dikirim.',
+      narration: 'Yuk cobain sekarang, dan pesan frozen-nya untuk stok di rumah!',
+      duration: 4.6, bg_from: '#1c0a00', bg_to: '#ea580c', accent: '#facc15', transition: 'wipe',
     },
   ],
 };

@@ -1,13 +1,13 @@
 import {
   askJSON, SCRIPT_SCHEMA, SCRIPT_SYSTEM, scriptPrompt, SUBTITLE_SCHEMA, subtitlePrompt, OPS_SCHEMA, AGENT_SYSTEM,
-} from './ai.js?v=1.15';
+} from './ai.js?v=1.16';
 import {
   clamp, renderFrame, framePlan, evalProps, localSize, srcTime, fadeLocal, loadFonts, KF_KEYS,
   FONT_OPTIONS, TRANSITIONS, MOTIONS, TEXT_ANIMS,
-} from './render.js?v=1.15';
-import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.15';
-import { buildSceneClips, DEMO_BISNIS_AI, LAYER, VOICE_DELAY } from './templates.js?v=1.15';
-import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.15';
+} from './render.js?v=1.16';
+import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.16';
+import { buildSceneClips, DEMO_BISNIS_AI, DEMO_CUANKI, LAYER, VOICE_DELAY } from './templates.js?v=1.16';
+import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.16';
 
 // =====================================================================
 // State
@@ -1271,7 +1271,8 @@ async function loadMediaFromUrl(url, name) {
 function applyScenes(scenes) {
   const { width: W, height: H } = state.project;
   state.project.scenes = structuredClone(scenes);
-  const keep = clips().filter((c) => (c.type === 'video' || c.type === 'image' || c.type === 'audio') && c.role !== 'voice');
+  // Foto latar adegan (role 'scene') dibangun ulang oleh template; media milik pengguna dipertahankan.
+  const keep = clips().filter((c) => (c.type === 'video' || c.type === 'image' || c.type === 'audio') && c.role !== 'voice' && c.role !== 'scene');
   const hasVisual = keep.some(isVisual);
   for (const c of keep) c.track = isVisual(c) ? LAYER.bg : Math.max(c.track, LAYER.music);
   const { clips: built, end } = buildSceneClips(scenes, baseClip, { W, H, withBackground: !hasVisual });
@@ -1286,6 +1287,7 @@ async function loadTemplate(tpl) {
   state.project.height = 1920;
   applyCanvasSize();
   state.project.clips = [];
+  await attachScenePhotos(tpl.scenes);
   const end = applyScenes(tpl.scenes);
   if (tpl.music) {
     const m = await loadMediaFromUrl(tpl.music, tpl.music.split('/').pop());
@@ -1303,6 +1305,20 @@ async function loadTemplate(tpl) {
   seek(0);
   commit();
   refreshAll();
+}
+
+// Muat foto latar adegan (scene.image) sebagai media, satu kali per URL.
+const photoCache = new Map();
+async function attachScenePhotos(scenes) {
+  for (const s of scenes) {
+    if (!s.image) continue;
+    let m = photoCache.get(s.image);
+    if (!m || !state.media.has(m.id)) {
+      m = await loadMediaFromUrl(s.image, s.image.split('/').pop());
+      photoCache.set(s.image, m);
+    }
+    if (m) s.photo = { mediaId: m.id, w: m.w, h: m.h };
+  }
 }
 
 async function applyTemplateNarration(tpl) {
@@ -1384,6 +1400,7 @@ async function loadTemplateVoice(tpl, voice) {
 }
 
 $('#tplBisnis').addEventListener('click', () => loadTemplate(DEMO_BISNIS_AI).catch((e) => alert(e.message)));
+$('#tplCuanki').addEventListener('click', () => loadTemplate(DEMO_CUANKI).catch((e) => alert(e.message)));
 
 
 // =====================================================================

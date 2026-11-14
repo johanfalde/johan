@@ -11,6 +11,7 @@ Mac/Linux:
 
 Opsi:  --wanita Aoede  --pria Puck  --gaya santai|jualan|profesional|cerita  --ulang
        --hanya pria   (buat suara pria saja, mis. kalau kuota kemarin habis setelah suara wanita)
+       --template cuanki   (hanya narasi template Cuanki)
 Hasil: examples/assets/suara/gemini-wanita/01.wav …  dan  examples/assets/suara/gemini-pria/01.wav …
 Tidak butuh paket tambahan (hanya library standar Python).
 """
@@ -37,12 +38,18 @@ STYLES = {
 }
 
 
-def narrations():
+def templates():
+    """[(nama, folder suara, [narasi...]), ...] diambil langsung dari js/templates.js."""
     src = (ROOT / "js" / "templates.js").read_text(encoding="utf-8")
-    texts = re.findall(r"narration:\s*'([^']*)'", src)
-    if not texts:
+    out = []
+    for name, body in re.findall(r"export const (\w+) = \{(.*?)\n\};", src, re.S):
+        texts = re.findall(r"narration:\s*'([^']*)'", body)
+        base = re.search(r"voiceSet\('([^']+)'\)", body)
+        if texts and base:
+            out.append((name, ROOT / base.group(1), texts))
+    if not out:
         sys.exit("Tidak menemukan narasi di js/templates.js")
-    return texts
+    return out
 
 
 def call(key, path, body=None):
@@ -109,25 +116,28 @@ def main():
     ap.add_argument("--gaya", default="santai", choices=STYLES)
     ap.add_argument("--ulang", action="store_true", help="buat ulang file yang sudah ada")
     ap.add_argument("--hanya", choices=("wanita", "pria"), help="buat satu suara saja (hemat kuota)")
+    ap.add_argument("--template", help="hanya template tertentu, mis. cuanki atau bisnis (hemat kuota)")
     args = ap.parse_args()
 
     key = os.environ.get("GEMINI_API_KEY") or getpass.getpass("Tempel Gemini API key (tidak ditampilkan): ").strip()
     models = pick_model(key)
     print(f"Model: {models[0].replace('models/', '')}")
-    texts = narrations()
     targets = [("gemini-wanita", args.wanita), ("gemini-pria", args.pria)]
     if args.hanya:
         targets = [t for t in targets if t[0] == f"gemini-{args.hanya}"]
-    for folder, voice in targets:
-        out = ROOT / "examples" / "assets" / "suara" / folder
-        out.mkdir(parents=True, exist_ok=True)
-        (out / "suara.txt").write_text(f"Gemini {voice} ({args.gaya})\n", encoding="utf-8")
-        for i, text in enumerate(texts, 1):
-            path = out / f"{i:02d}.wav"
-            if path.exists() and path.stat().st_size > 0 and not args.ulang:
-                continue
-            print(f"[{folder} · {voice}] {path.name}: {text}")
-            path.write_bytes(speak(key, models, text, voice, args.gaya))
+    for tpl, base, texts in templates():
+        if args.template and args.template.lower() not in tpl.lower():
+            continue
+        for folder, voice in targets:
+            out = base / folder
+            out.mkdir(parents=True, exist_ok=True)
+            (out / "suara.txt").write_text(f"Gemini {voice} ({args.gaya})\n", encoding="utf-8")
+            for i, text in enumerate(texts, 1):
+                path = out / f"{i:02d}.wav"
+                if path.exists() and path.stat().st_size > 0 and not args.ulang:
+                    continue
+                print(f"[{tpl} · {folder} · {voice}] {path.name}: {text}")
+                path.write_bytes(speak(key, models, text, voice, args.gaya))
     print("\nSelesai. Di aplikasi pilih 'Gemini — wanita/pria (tersimpan)' di tab Template.")
 
 

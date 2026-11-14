@@ -221,6 +221,17 @@ function drawText(ctx, c, local) {
 // Bentuk (latar gradien, kotak, lingkaran, progress bar)
 // ---------------------------------------------------------------------
 function drawShape(ctx, c, local, W, H) {
+  if (c.shape === 'shade') {
+    // Bayangan vertikal (atas tipis → bawah gelap) agar teks terbaca di atas foto.
+    const g = ctx.createLinearGradient(0, -H / 2, 0, H / 2);
+    const rgb = '0,0,0';
+    g.addColorStop(0, `rgba(${rgb},${c.top ?? 0.15})`);
+    g.addColorStop(0.45, `rgba(${rgb},${(c.top ?? 0.15) * 0.6})`);
+    g.addColorStop(1, `rgba(${rgb},${c.bottom ?? 0.8})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(-W / 2, -H / 2, W, H);
+    return;
+  }
   if (c.shape === 'gradient') {
     const ang = ((c.angle ?? 135) + local * 6) * Math.PI / 180;
     const r = Math.hypot(W, H) / 2;
@@ -282,7 +293,7 @@ export function localSize(ctx, c, W, H) {
     const pad = c.bg ? c.size * 0.35 : 0;
     return { w: L.w + pad * 2, h: L.h + pad * 2 };
   }
-  if (c.type === 'shape' && c.shape === 'gradient') return { w: W, h: H };
+  if (c.type === 'shape' && (c.shape === 'gradient' || c.shape === 'shade')) return { w: W, h: H };
   if (c.type === 'shape' && c.shape === 'circle') return { w: c.w, h: c.w };
   return { w: c.w || 100, h: c.h || 100 };
 }
