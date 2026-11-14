@@ -87,3 +87,13 @@ examples/           video contoh + musik
 - Proyek belum disimpan otomatis (media tersimpan sebagai blob sementara).
 - Integrasi AI lain bisa ditambahkan di `js/ai.js`: text-to-speech untuk voice-over,
   generator gambar/B-roll, atau transkripsi audio untuk subtitle otomatis.
+
+## Klip video AI gratis: Wan 2.2 di Kaggle
+
+[`kaggle/wan22_video_gratis.ipynb`](kaggle/wan22_video_gratis.ipynb) membuat klip video dari teks atau
+foto produk dengan model open-source Wan2.2-TI2V-5B (Apache 2.0, tanpa watermark, boleh komersial)
+memakai GPU gratis Kaggle. Hasil MP4 9:16 bisa langsung diimpor ke KanvasCut.
+
+1. Di Kaggle: *Create → New Notebook → File → Import Notebook*, pilih file `.ipynb` ini.
+2. *Settings*: Accelerator **GPU T4 x2**, Internet **On**.
+3. Jalankan sel dari atas. Mulai dengan preset `"tes"` untuk mengukur kecepatan.
