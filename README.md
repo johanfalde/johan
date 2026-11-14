@@ -6,9 +6,14 @@ fitur AI memakai **Claude API** langsung dari browser.
 
 ## Contoh hasil
 
-[`examples/bisnis-ai.mp4`](examples/bisnis-ai.mp4) — video 9:16, 26 detik, tema "Bisnis dengan AI",
-dirender oleh editor ini dari template bawaan (tab **Template**). Musik latar disintesis sendiri
-(`examples/assets/musik-bisnis.mp3`), jadi bebas hak cipta.
+Video 9:16 tema "Bisnis dengan AI", dirender oleh editor ini dari template bawaan (tab **Template**),
+lengkap dengan narasi dan subtitle karaoke yang sinkron:
+
+- [`examples/bisnis-ai-wanita.mp4`](examples/bisnis-ai-wanita.mp4) — narasi Gadis (wanita)
+- [`examples/bisnis-ai-pria.mp4`](examples/bisnis-ai-pria.mp4) — narasi Ardi (pria)
+
+Narasi ada di `examples/assets/suara/` (dibuat dengan `buat_suara.py`); musik latar disintesis
+sendiri (`examples/assets/musik-bisnis.mp3`), jadi bebas hak cipta.
 
 <img src="examples/bisnis-ai-poster.jpg" width="270" alt="Cuplikan video contoh">
 
@@ -57,7 +62,8 @@ di samping logo KanvasCut.
 
 ### Suara narasi pria / wanita (tab **Suara**)
 
-- **Narasi permanen untuk template (gratis, tanpa key):** jalankan sekali di folder proyek
+- **Narasi permanen untuk template (gratis, tanpa key):** file suara Gadis & Ardi untuk template
+  sudah disertakan, tinggal pilih di tab Template. Kalau teks narasi template diubah, buat ulang dengan
   `pip install edge-tts` lalu `python buat_suara.py`. Skrip membuat `examples/assets/suara/wanita/*.mp3`
   (Gadis) dan `examples/assets/suara/pria/*.mp3` (Ardi). Di tab **Template** pilih *Narasi template*
   (Wanita/Pria) lalu muat template — suara langsung terpasang. Commit & push folder itu agar ikut

@@ -13,6 +13,7 @@ suaranya ikut tersedia di GitHub Pages.
 Catatan: edge-tts adalah alat open-source tidak resmi yang memakai layanan baca-teks Microsoft Edge.
 """
 import asyncio
+import os
 import pathlib
 import re
 import sys
@@ -25,6 +26,8 @@ except ImportError:
 ROOT = pathlib.Path(__file__).resolve().parent
 VOICES = {"wanita": "id-ID-GadisNeural", "pria": "id-ID-ArdiNeural"}
 RATE = "+10%"
+# Ikuti proxy sistem bila ada (mis. jaringan kantor).
+PROXY = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy") or None
 
 
 def narrations():
@@ -44,7 +47,7 @@ async def main():
         for i, text in enumerate(texts, 1):
             path = out / f"{i:02d}.mp3"
             print(f"[{folder}] {path.name}: {text}")
-            await edge_tts.Communicate(text, voice, rate=RATE).save(str(path))
+            await edge_tts.Communicate(text, voice, rate=RATE, proxy=PROXY).save(str(path))
     print(f"\nSelesai: {len(texts)} narasi x {len(VOICES)} suara di examples/assets/suara/")
 
 
