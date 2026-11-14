@@ -31,6 +31,7 @@
         <button data-tab="template" class="active">Template</button>
         <button data-tab="media">Media</button>
         <button data-tab="text">Teks</button>
+        <button data-tab="voice">Suara</button>
         <button data-tab="ai">AI ✨</button>
       </nav>
 
@@ -69,6 +70,52 @@
           <button data-shape="circle">● Lingkaran</button>
           <button data-shape="progress">━ Progress bar</button>
         </div>
+      </section>
+
+      <section class="tab-body hidden" data-tab="voice">
+        <div class="ai-card">
+          <strong>Narasi suara pria / wanita</strong>
+          <label>Layanan
+            <select id="ttsProvider">
+              <option value="azure">Microsoft Azure (Ardi / Gadis)</option>
+              <option value="google">Google Cloud TTS</option>
+            </select>
+          </label>
+          <label>API key <input type="password" id="ttsKey" autocomplete="off"></label>
+          <label id="ttsRegionRow">Region <input id="ttsRegion" placeholder="southeastasia"></label>
+          <div class="row2">
+            <label>Suara <select id="ttsVoice"></select></label>
+            <label>Kecepatan
+              <select id="ttsRate">
+                <option value="0.9">0.9x</option><option value="1">1x</option>
+                <option value="1.1" selected>1.1x</option><option value="1.2">1.2x</option>
+              </select>
+            </label>
+          </div>
+          <p class="hint" id="ttsHint"></p>
+          <button id="ttsTest" class="wide">▶ Tes suara</button>
+        </div>
+
+        <div class="ai-card">
+          <strong>Voice-over otomatis</strong>
+          <p class="hint">Membacakan semua subtitle karaoke. Di template / video buatan AI, durasi adegan menyesuaikan panjang suara dan subtitle ikut sinkron.</p>
+          <label class="check"><input type="checkbox" id="ttsDuck" checked> Kecilkan musik saat ada suara</label>
+          <button id="voiceAllBtn" class="primary wide">🎙 Buat voice-over</button>
+        </div>
+
+        <div class="ai-card">
+          <strong>Suara di posisi playhead</strong>
+          <textarea id="ttsText" rows="3" placeholder="Teks yang mau dibacakan"></textarea>
+          <label class="check"><input type="checkbox" id="ttsAddSub" checked> Tambah subtitle karaoke</label>
+          <button id="ttsAddBtn" class="wide">+ Tambah suara</button>
+        </div>
+
+        <div class="ai-card">
+          <strong>Rekam suaramu sendiri</strong>
+          <p class="hint">Gratis, pakai mikrofon. Hasil masuk ke timeline di posisi playhead.</p>
+          <button id="micBtn" class="wide">⏺ Mulai rekam</button>
+        </div>
+        <div id="voiceLog" class="ai-log"></div>
       </section>
 
       <section class="tab-body hidden" data-tab="ai">

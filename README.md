@@ -12,16 +12,22 @@ dirender oleh editor ini dari template bawaan (tab **Template**). Musik latar di
 
 <img src="examples/bisnis-ai-poster.jpg" width="270" alt="Cuplikan video contoh">
 
-## Menjalankan
+## Membuka aplikasi
 
-Tidak perlu build. Cukup sajikan foldernya lewat HTTP (ES module tidak jalan dari `file://`):
+**Online gratis lewat GitHub Pages (disarankan):**
+
+1. Buka repo di GitHub → **Settings** → **Pages**.
+2. *Source*: **Deploy from a branch**. Pilih branch yang berisi kode ini dan folder **/ (root)**, lalu **Save**.
+3. Tunggu 1–2 menit, aplikasi terbuka di `https://<username>.github.io/<nama-repo>/`
+   (bisa dibuka di laptop maupun HP, pakai Chrome/Edge terbaru).
+
+**Di komputer sendiri:** tidak perlu build, cukup sajikan foldernya lewat HTTP
+(ES module tidak jalan kalau file dibuka langsung dari `file://`):
 
 ```bash
 python3 -m http.server 8000
 # buka http://localhost:8000
 ```
-
-Bisa juga di-host gratis di GitHub Pages / Netlify / Vercel sebagai situs statis.
 
 ## Fitur
 
@@ -45,6 +51,21 @@ Bisa juga di-host gratis di GitHub Pages / Netlify / Vercel sebagai situs statis
 - **Ekspor MP4 H.264 via WebCodecs**: frame dirender satu per satu (tanpa frame drop), audio
   dicampur offline (AAC di Chrome/Edge/Safari, Opus bila AAC tidak ada). Browser tanpa WebCodecs
   otomatis memakai perekaman real-time (MediaRecorder).
+
+### Suara narasi pria / wanita (tab **Suara**)
+
+- **Microsoft Azure AI Speech** — suara neural Indonesia paling natural: **Ardi (pria)** dan
+  **Gadis (wanita)**. Paket gratis F0: 500 ribu karakter per bulan. Di portal Azure buat resource
+  *Speech*, salin **Key** dan **Region** (mis. `southeastasia`).
+- **Google Cloud Text-to-Speech** — suara Wavenet Indonesia A/D (wanita) dan B/C (pria).
+- **Rekam suara sendiri** lewat mikrofon (gratis).
+
+Tombol **Buat voice-over** membacakan semua subtitle karaoke. Pada template atau video buatan AI,
+durasi tiap adegan otomatis menyesuaikan panjang suara, subtitle karaoke disinkronkan dengan
+suaranya, dan musik latar dikecilkan (ducking) serta diulang sampai video selesai.
+
+> Video contoh di `examples/` belum memakai narasi karena layanan suara butuh API key milikmu.
+> Muat template, isi key di tab Suara, klik **Buat voice-over**, lalu **Ekspor Video**.
 
 ### Fitur AI (Claude)
 
@@ -76,6 +97,7 @@ js/render.js        mesin render kanvas (dipakai preview & ekspor): transisi, ke
 js/export.js        ekspor WebCodecs + pencampur audio offline
 js/templates.js     pembuat adegan + template "Bisnis dengan AI"
 js/ai.js            klien Claude + skema JSON untuk tiap fitur AI
+js/tts.js           suara narasi: Azure AI Speech & Google Cloud TTS
 js/vendor/          mp4-muxer 5.2.2 (MIT)
 fonts/              Montserrat, Bebas Neue, Poppins (SIL OFL)
 examples/           video contoh + musik
@@ -85,5 +107,5 @@ examples/           video contoh + musik
 
 - Kecepatan ekspor tergantung perangkat (encoder hardware di Chrome biasanya lebih cepat dari real-time).
 - Proyek belum disimpan otomatis (media tersimpan sebagai blob sementara).
-- Integrasi AI lain bisa ditambahkan di `js/ai.js`: text-to-speech untuk voice-over,
-  generator gambar/B-roll, atau transkripsi audio untuk subtitle otomatis.
+- Integrasi AI lain bisa ditambahkan: generator gambar/B-roll, atau transkripsi audio untuk subtitle
+  otomatis dari suara.

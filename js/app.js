@@ -6,7 +6,8 @@ import {
   FONT_OPTIONS, TRANSITIONS, MOTIONS, TEXT_ANIMS,
 } from './render.js';
 import { exportMP4, mixAudio, webCodecsAvailable } from './export.js';
-import { buildSceneClips, DEMO_BISNIS_AI, LAYER } from './templates.js';
+import { buildSceneClips, DEMO_BISNIS_AI, LAYER, VOICE_DELAY } from './templates.js';
+import { synthesize, TTS_PROVIDERS } from './tts.js';
 
 // =====================================================================
 // State
@@ -54,7 +55,7 @@ function fmt(t) {
 const history = { stack: [], index: -1 };
 
 function snapshot() {
-  return JSON.stringify({ clips: clips(), bg: state.project.bg, w: state.project.width, h: state.project.height, fps: state.project.fps });
+  return JSON.stringify({ clips: clips(), bg: state.project.bg, w: state.project.width, h: state.project.height, fps: state.project.fps, scenes: state.project.scenes ?? null });
 }
 
 function commit() {
@@ -68,7 +69,7 @@ function commit() {
 
 function restore(snap) {
   const d = JSON.parse(snap);
-  Object.assign(state.project, { clips: d.clips, bg: d.bg, width: d.w, height: d.h, fps: d.fps });
+  Object.assign(state.project, { clips: d.clips, bg: d.bg, width: d.w, height: d.h, fps: d.fps, scenes: d.scenes });
   applyCanvasSize();
   if (!getClip(state.selectedId)) state.selectedId = null;
   cleanupEls();
@@ -126,6 +127,11 @@ async function importFile(file) {
       el.src = url;
       await once(el, 'loadedmetadata');
       m.duration = el.duration;
+      // Rekaman MediaRecorder (webm) sering melaporkan durasi Infinity; ukur dengan decode.
+      if (!Number.isFinite(m.duration)) {
+        const buf = await new OfflineAudioContext(1, 1, 44100).decodeAudioData(await file.arrayBuffer());
+        m.duration = buf.duration;
+      }
       if (type === 'video') {
         m.w = el.videoWidth;
         m.h = el.videoHeight;
@@ -1257,7 +1263,8 @@ async function loadMediaFromUrl(url, name) {
 // Ganti teks/elemen lama dengan adegan baru; video/gambar/audio milik pengguna dipertahankan.
 function applyScenes(scenes) {
   const { width: W, height: H } = state.project;
-  const keep = clips().filter((c) => c.type === 'video' || c.type === 'image' || c.type === 'audio');
+  state.project.scenes = structuredClone(scenes);
+  const keep = clips().filter((c) => (c.type === 'video' || c.type === 'image' || c.type === 'audio') && c.role !== 'voice');
   const hasVisual = keep.some(isVisual);
   for (const c of keep) c.track = isVisual(c) ? LAYER.bg : Math.max(c.track, LAYER.music);
   const { clips: built, end } = buildSceneClips(scenes, baseClip, { W, H, withBackground: !hasVisual });
@@ -1289,6 +1296,224 @@ async function loadTemplate(tpl) {
 }
 
 $('#tplBisnis').addEventListener('click', () => loadTemplate(DEMO_BISNIS_AI).catch((e) => alert(e.message)));
+
+
+// =====================================================================
+// Voice-over: suara pria/wanita (TTS) & rekam mikrofon
+// =====================================================================
+const LS_TTS = 'kanvascut.tts';
+const voiceLog = $('#voiceLog');
+
+function vlog(msg, cls = '') {
+  const p = document.createElement('div');
+  if (cls) p.className = cls;
+  p.textContent = msg;
+  voiceLog.prepend(p);
+}
+
+function ttsSettings() {
+  return {
+    provider: $('#ttsProvider').value, key: $('#ttsKey').value.trim(), region: $('#ttsRegion').value.trim(),
+    voice: $('#ttsVoice').value, rate: +$('#ttsRate').value,
+  };
+}
+
+function renderVoiceOptions() {
+  const p = TTS_PROVIDERS[$('#ttsProvider').value];
+  const sel = $('#ttsVoice');
+  const prev = sel.value;
+  sel.innerHTML = '';
+  for (const [v, l] of p.voices) sel.add(new Option(l, v));
+  if (p.voices.some(([v]) => v === prev)) sel.value = prev;
+  $('#ttsRegionRow').classList.toggle('hidden', !p.needsRegion);
+  $('#ttsHint').textContent = p.hint;
+}
+
+function saveTtsSettings() {
+  const { provider, key, region, voice, rate } = ttsSettings();
+  try { localStorage.setItem(LS_TTS, JSON.stringify({ provider, key, region, voice, rate })); } catch { /* abaikan */ }
+}
+
+try {
+  const saved = JSON.parse(localStorage.getItem(LS_TTS) || '{}');
+  if (saved.provider) $('#ttsProvider').value = saved.provider;
+  renderVoiceOptions();
+  if (saved.voice) $('#ttsVoice').value = saved.voice;
+  if (saved.key) $('#ttsKey').value = saved.key;
+  if (saved.region) $('#ttsRegion').value = saved.region;
+  if (saved.rate) $('#ttsRate').value = String(saved.rate);
+} catch {
+  renderVoiceOptions();
+}
+$('#ttsProvider').addEventListener('change', () => { renderVoiceOptions(); saveTtsSettings(); });
+for (const id of ['#ttsKey', '#ttsRegion', '#ttsVoice', '#ttsRate']) $(id).addEventListener('change', saveTtsSettings);
+
+async function ttsMedia(text) {
+  const blob = await synthesize({ ...ttsSettings(), text });
+  const name = `suara-${text.slice(0, 24).replace(/[^\w ]+/g, '').trim() || 'narasi'}.mp3`;
+  const m = await importFile(new File([blob], name, { type: 'audio/mpeg' }));
+  if (!m) throw new Error('Audio dari layanan suara tidak bisa dibaca.');
+  return m;
+}
+
+// Track suara: pakai track suara yang sudah ada, kalau belum ada taruh di bawah semua track.
+function voiceTrack(start, dur) {
+  const existing = clips().find((c) => c.role === 'voice');
+  const base = existing ? existing.track : Math.max(0, ...clips().map((c) => c.track)) + 1;
+  return freeTrack(base, start, dur);
+}
+
+function voiceClip(m, start, track) {
+  return baseClip({ type: 'audio', role: 'voice', mediaId: m.id, name: `🎙 ${m.name}`, start, dur: m.duration, track: track ?? voiceTrack(start, m.duration) });
+}
+
+// Musik diulang sampai akhir video dan dikecilkan saat ada narasi (ducking).
+function fitMusic(end, duck) {
+  state.project.clips = clips().filter((c) => c.role !== 'music-loop');
+  const music = clips().filter((c) => c.type === 'audio' && c.role !== 'voice');
+  if (!music.length) return;
+  const vol = duck ? 0.22 : 0.8;
+  for (const c of music) c.volume = vol;
+  const first = music.find((c) => c.track === LAYER.music);
+  const m = first && state.media.get(first.mediaId);
+  if (!m) return;
+  first.start = 0;
+  first.in = 0;
+  first.dur = Math.min(m.duration, end);
+  first.fadeOut = 0;
+  let last = first;
+  for (let t = first.dur; t < end - 0.05;) {
+    const d = Math.min(m.duration, end - t);
+    last = baseClip({ type: 'audio', role: 'music-loop', mediaId: m.id, name: first.name, start: t, dur: d, track: LAYER.music, volume: vol, fadeIn: 0.4 });
+    clips().push(last);
+    t += d;
+  }
+  last.fadeOut = 1.5;
+}
+
+// Mode adegan (template / video dari AI): durasi adegan menyesuaikan panjang suara.
+async function voiceOverScenes() {
+  const scenes = state.project.scenes;
+  for (let i = 0; i < scenes.length; i++) {
+    const s = scenes[i];
+    if (!s.narration) continue;
+    vlog(`⏳ Adegan ${i + 1}/${scenes.length}: "${s.narration}"`);
+    const m = await ttsMedia(s.narration);
+    s.base_duration ??= s.duration;
+    s.voice_media = m.id;
+    s.voice_dur = m.duration;
+    s.duration = Math.max(s.base_duration, m.duration + VOICE_DELAY + 0.7);
+  }
+  const end = applyScenes(scenes);
+  let T = 0;
+  for (const s of scenes) {
+    const m = s.voice_media && state.media.get(s.voice_media);
+    if (m) clips().push(voiceClip(m, T + VOICE_DELAY, LAYER.voice));
+    T += Math.max(1.5, s.duration);
+  }
+  fitMusic(end, $('#ttsDuck').checked);
+  return scenes.filter((s) => s.voice_media).length;
+}
+
+// Mode bebas: bacakan setiap subtitle karaoke di posisinya.
+async function voiceOverSubtitles() {
+  state.project.clips = clips().filter((c) => c.role !== 'voice');
+  const subs = clips().filter((c) => c.type === 'text' && c.textStyle === 'karaoke').sort((a, b) => a.start - b.start);
+  if (!subs.length) throw new Error('Belum ada subtitle karaoke. Tambahkan dari tab Teks atau "Subtitle dari naskah" di tab AI.');
+  for (let i = 0; i < subs.length; i++) {
+    const c = subs[i];
+    vlog(`⏳ Subtitle ${i + 1}/${subs.length}: "${c.text}"`);
+    const m = await ttsMedia(c.text);
+    clips().push(voiceClip(m, c.start));
+    c.wordSpan = m.duration;
+    c.dur = Math.max(c.dur, m.duration + 0.3);
+  }
+  if ($('#ttsDuck').checked) for (const c of clips()) if (c.type === 'audio' && c.role !== 'voice') c.volume = Math.min(c.volume, 0.22);
+  return subs.length;
+}
+
+async function runVoice(btn, fn) {
+  btn.disabled = true;
+  const old = btn.textContent;
+  btn.textContent = 'Memproses…';
+  try {
+    await fn();
+  } catch (e) {
+    vlog(`✖ ${e.message}`, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = old;
+  }
+}
+
+$('#voiceAllBtn').addEventListener('click', (e) => runVoice(e.currentTarget, async () => {
+  pause();
+  const n = state.project.scenes?.length ? await voiceOverScenes() : await voiceOverSubtitles();
+  cleanupEls();
+  seek(0);
+  commit();
+  refreshAll();
+  vlog(`✔ ${n} narasi ditambahkan, subtitle sudah sinkron. Tekan play untuk mendengar.`, 'ok');
+}));
+
+$('#ttsTest').addEventListener('click', (e) => runVoice(e.currentTarget, async () => {
+  const blob = await synthesize({ ...ttsSettings(), text: 'Halo! Ini contoh suara untuk video kamu.' });
+  const audio = new Audio(URL.createObjectURL(blob));
+  await audio.play();
+  vlog('✔ Suara diputar.', 'ok');
+}));
+
+$('#ttsAddBtn').addEventListener('click', (e) => runVoice(e.currentTarget, async () => {
+  const text = $('#ttsText').value.trim();
+  if (!text) throw new Error('Tulis teks yang mau dibacakan.');
+  const m = await ttsMedia(text);
+  const start = state.time;
+  clips().push(voiceClip(m, start));
+  if ($('#ttsAddSub').checked) {
+    clips().push(makeTextClip(text, { preset: 'subtitle', start, dur: m.duration + 0.3, props: { wordSpan: m.duration } }));
+  }
+  commit();
+  refreshAll();
+  vlog(`✔ Suara ${m.duration.toFixed(1)} dtk ditambahkan di ${fmt(start)}.`, 'ok');
+}));
+
+let recorder = null;
+$('#micBtn').addEventListener('click', async () => {
+  const btn = $('#micBtn');
+  if (recorder) {
+    recorder.stop();
+    return;
+  }
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+  } catch (err) {
+    vlog(`✖ Mikrofon tidak bisa dipakai: ${err.message}`, 'err');
+    return;
+  }
+  const chunks = [];
+  const start = state.time;
+  recorder = new MediaRecorder(stream);
+  recorder.ondataavailable = (ev) => ev.data.size && chunks.push(ev.data);
+  recorder.onstop = async () => {
+    stream.getTracks().forEach((t) => t.stop());
+    const type = recorder.mimeType || 'audio/webm';
+    recorder = null;
+    btn.textContent = '⏺ Mulai rekam';
+    btn.classList.remove('recording');
+    const ext = type.includes('mp4') ? 'm4a' : type.includes('ogg') ? 'ogg' : 'webm';
+    const m = await importFile(new File([new Blob(chunks, { type })], `rekaman-${Date.now()}.${ext}`, { type }));
+    if (!m) return;
+    clips().push(voiceClip(m, start));
+    commit();
+    refreshAll();
+    vlog(`✔ Rekaman ${m.duration.toFixed(1)} dtk ditambahkan di ${fmt(start)}.`, 'ok');
+  };
+  recorder.start();
+  btn.textContent = '⏹ Stop rekam';
+  btn.classList.add('recording');
+  vlog('⏺ Merekam… klik lagi untuk berhenti.');
+});
 
 // =====================================================================
 // AI

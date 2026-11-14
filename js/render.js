@@ -128,7 +128,7 @@ export function textLayout(ctx, c) {
 
 // Waktu mulai tiap kata (kata panjang dapat jatah lebih lama).
 function wordTimes(words, c) {
-  const span = Math.min(c.dur * 0.92, c.wordSpan > 0 ? c.wordSpan : Infinity);
+  const span = c.wordSpan > 0 ? Math.min(c.dur, c.wordSpan) : c.dur * 0.92;
   const weights = words.map((w) => w.word.length + 2);
   const total = weights.reduce((a, b) => a + b, 0) || 1;
   let acc = 0;

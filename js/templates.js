@@ -3,11 +3,14 @@
 
 // Urutan lapisan (track 0 paling atas).
 export const LAYER = {
-  progress: 0, narration: 1, headline: 2, body: 3, card: 4, emoji: 5, kickerText: 6, kickerPill: 7, glow: 8, bg: 9, music: 10,
+  progress: 0, narration: 1, headline: 2, body: 3, card: 4, emoji: 5, kickerText: 6, kickerPill: 7, glow: 8, bg: 9, music: 10, voice: 11,
 };
 
+// Jeda dari awal adegan sampai narasi mulai.
+export const VOICE_DELAY = 0.3;
+
 /**
- * @param scenes  [{ kicker, headline, body, emoji, narration, duration, bg_from, bg_to, accent, transition }]
+ * @param scenes  [{ kicker, headline, body, emoji, narration, duration, bg_from, bg_to, accent, transition, voice_dur? }]
  * @param base    fungsi pembuat klip dasar dari editor
  * @param opts    { W, H, start, withBackground, progressBar }
  */
@@ -90,8 +93,12 @@ export function buildSceneClips(scenes, base, { W, H, start = 0, withBackground 
     }
 
     if (s.narration) {
+      // Dengan voice-over, subtitle karaoke mengikuti panjang suara.
+      const timing = s.voice_dur
+        ? { start: T + VOICE_DELAY, dur: Math.min(D - VOICE_DELAY, s.voice_dur + 0.5), fadeOut: 0.25, wordSpan: s.voice_dur }
+        : end(0.2);
       out.push(text({
-        name: 'Subtitle', text: s.narration, track: LAYER.narration, ...end(0.2), size: 54 * k, weight: 900,
+        name: 'Subtitle', text: s.narration, track: LAYER.narration, ...timing, size: 54 * k, weight: 900,
         upper: true, anim: 'fade', textStyle: 'karaoke', hlBox: true, highlight: s.accent, hlText: '#0b1020',
         stroke: '#000000', strokeW: 8 * k, maxWidth: W * 0.84, y: H * 0.85,
       }));
