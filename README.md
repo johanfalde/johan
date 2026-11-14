@@ -25,9 +25,12 @@ dirender oleh editor ini dari template bawaan (tab **Template**). Musik latar di
 (ES module tidak jalan kalau file dibuka langsung dari `file://`):
 
 ```bash
-python3 -m http.server 8000
-# buka http://localhost:8000
+python serve.py
+# buka http://localhost:8000 — server ini mematikan cache, jadi update selalu langsung terlihat
 ```
+
+Untuk memperbarui ke versi terbaru: `git pull`, jalankan ulang `python serve.py`, lalu cek nomor versi
+di samping logo KanvasCut.
 
 ## Fitur
 
