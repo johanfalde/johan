@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>KanvasCut — Editor Video HTML Canvas + AI</title>
-  <link rel="stylesheet" href="css/style.css?v=1.13">
+  <link rel="stylesheet" href="css/style.css?v=1.14">
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">▶ KanvasCut <span class="ver" title="Versi aplikasi">v1.13</span></div>
+    <div class="brand">▶ KanvasCut <span class="ver" title="Versi aplikasi">v1.14</span></div>
     <div class="top-actions">
       <label class="inline">Rasio
         <select id="ratioSelect">
@@ -40,6 +40,10 @@
         <label>Suara narasi
           <select id="tplVoice">
             <option value="">Tanpa suara</option>
+            <optgroup label="Gemini tersimpan (dibuat sekali, tanpa kuota)">
+              <option value="gemini-wanita">Gemini — wanita (tersimpan)</option>
+              <option value="gemini-pria">Gemini — pria (tersimpan)</option>
+            </optgroup>
             <optgroup label="Gratis, tanpa key (file bawaan)">
               <option value="wanita-ava" selected>Ava — wanita, ekspresif</option>
               <option value="wanita">Gadis — wanita</option>
@@ -315,6 +319,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=1.13"></script>
+  <script type="module" src="js/app.js?v=1.14"></script>
 </body>
 </html>

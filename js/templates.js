@@ -124,6 +124,9 @@ export const DEMO_BISNIS_AI = {
   voices: {
     wanita: 'examples/assets/suara/wanita', 'wanita-ava': 'examples/assets/suara/wanita-ava',
     pria: 'examples/assets/suara/pria', 'pria-andrew': 'examples/assets/suara/pria-andrew',
+    // Dibuat dengan buat_suara_gemini.py (WAV).
+    'gemini-wanita': { dir: 'examples/assets/suara/gemini-wanita', ext: 'wav' },
+    'gemini-pria': { dir: 'examples/assets/suara/gemini-pria', ext: 'wav' },
   },
   scenes: [
     {

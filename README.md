@@ -63,6 +63,10 @@ di samping logo KanvasCut.
 
 ### Suara narasi pria / wanita (tab **Suara**)
 
+- **Narasi Gemini tersimpan (paling natural, tanpa kuota berulang):** jalankan sekali
+  `set GEMINI_API_KEY=key-kamu` (Mac/Linux: `export GEMINI_API_KEY=...`) lalu `python buat_suara_gemini.py`
+  (opsi `--wanita Aoede --pria Puck --gaya santai`). Hasilnya `examples/assets/suara/gemini-wanita|gemini-pria/*.wav`;
+  pilih *Gemini — wanita/pria (tersimpan)* di tab Template. Tanpa paket tambahan; menunggu otomatis saat kena batas per menit.
 - **Narasi permanen untuk template (gratis, tanpa key):** file suara Ava, Gadis (wanita) dan Andrew, Ardi (pria) untuk
   template sudah disertakan, tinggal pilih di tab Template. Kalau teks narasi template diubah, buat ulang dengan
   `pip install edge-tts` lalu `python buat_suara.py --ulang`. Tulis narasi dengan tanda baca (koma, titik, tanda seru)

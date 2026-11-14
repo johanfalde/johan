@@ -1,13 +1,13 @@
 import {
   askJSON, SCRIPT_SCHEMA, SCRIPT_SYSTEM, scriptPrompt, SUBTITLE_SCHEMA, subtitlePrompt, OPS_SCHEMA, AGENT_SYSTEM,
-} from './ai.js?v=1.13';
+} from './ai.js?v=1.14';
 import {
   clamp, renderFrame, framePlan, evalProps, localSize, srcTime, fadeLocal, loadFonts, KF_KEYS,
   FONT_OPTIONS, TRANSITIONS, MOTIONS, TEXT_ANIMS,
-} from './render.js?v=1.13';
-import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.13';
-import { buildSceneClips, DEMO_BISNIS_AI, LAYER, VOICE_DELAY } from './templates.js?v=1.13';
-import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.13';
+} from './render.js?v=1.14';
+import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.14';
+import { buildSceneClips, DEMO_BISNIS_AI, LAYER, VOICE_DELAY } from './templates.js?v=1.14';
+import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.14';
 
 // =====================================================================
 // State
@@ -1324,15 +1324,22 @@ async function loadTemplateAiVoice() {
 
 // Narasi permanen yang dibuat dengan `python buat_suara.py` (examples/assets/suara/<wanita|pria>/01.mp3, …).
 async function loadTemplateVoice(tpl, voice) {
-  const dir = tpl.voices[voice];
-  const url = (i) => `${dir}/${String(i + 1).padStart(2, '0')}.mp3`;
+  const entry = tpl.voices[voice];
+  const dir = entry.dir || entry;
+  const ext = entry.ext || 'mp3';
+  const url = (i) => `${dir}/${String(i + 1).padStart(2, '0')}.${ext}`;
   const probe = await fetch(url(0), { method: 'HEAD' }).catch(() => null);
   if (!probe?.ok) {
-    $('#tplVoiceInfo').textContent = 'File suara belum ada. Jalankan sekali di folder proyek: pip install edge-tts lalu python buat_suara.py — setelah itu muat template lagi.';
+    $('#tplVoiceInfo').textContent = voice.startsWith('gemini')
+      ? 'Narasi Gemini belum dibuat. Jalankan sekali di folder proyek: set GEMINI_API_KEY=key-kamu lalu python buat_suara_gemini.py — setelah itu muat template lagi.'
+      : 'File suara belum ada. Jalankan sekali di folder proyek: pip install edge-tts lalu python buat_suara.py — setelah itu muat template lagi.';
     return;
   }
-  const n = await voiceOverScenes((text, i) => loadMediaFromUrl(url(i), `${voice}-${String(i + 1).padStart(2, '0')}.mp3`).catch(() => null));
-  $('#tplVoiceInfo').textContent = `✔ ${n} narasi ${$('#tplVoice').selectedOptions[0].textContent} dipasang.`;
+  // suara.txt (opsional) menyebut suara aslinya, mis. "Gemini Aoede (santai)".
+  const who = await fetch(`${dir}/suara.txt`).then((r) => (r.ok ? r.text() : '')).catch(() => '');
+  const label = who.trim() || $('#tplVoice').selectedOptions[0].textContent;
+  const n = await voiceOverScenes((text, i) => loadMediaFromUrl(url(i), `${label} · ${String(i + 1).padStart(2, '0')}.${ext}`).catch(() => null));
+  $('#tplVoiceInfo').textContent = `✔ ${n} narasi ${label} dipasang.`;
 }
 
 $('#tplBisnis').addEventListener('click', () => loadTemplate(DEMO_BISNIS_AI).catch((e) => alert(e.message)));
