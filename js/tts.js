@@ -171,7 +171,8 @@ function pcmToWav(bytes, rate) {
 
 async function gemini({ key, voice, text, style }) {
   const model = await geminiModel(key);
-  const prompt = `${GEMINI_STYLES[style] || GEMINI_STYLES.santai}:\n${text}`;
+  // Arahan yang sama untuk setiap kalimat supaya nada & tempo antar-adegan tetap konsisten.
+  const prompt = `${GEMINI_STYLES[style] || GEMINI_STYLES.santai}. Pertahankan karakter suara, nada, dan tempo yang sama sepanjang video:\n${text}`;
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${encodeURIComponent(key)}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

@@ -1,13 +1,13 @@
 import {
   askJSON, SCRIPT_SCHEMA, SCRIPT_SYSTEM, scriptPrompt, SUBTITLE_SCHEMA, subtitlePrompt, OPS_SCHEMA, AGENT_SYSTEM,
-} from './ai.js?v=1.9';
+} from './ai.js?v=1.10';
 import {
   clamp, renderFrame, framePlan, evalProps, localSize, srcTime, fadeLocal, loadFonts, KF_KEYS,
   FONT_OPTIONS, TRANSITIONS, MOTIONS, TEXT_ANIMS,
-} from './render.js?v=1.9';
-import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.9';
-import { buildSceneClips, DEMO_BISNIS_AI, LAYER, VOICE_DELAY } from './templates.js?v=1.9';
-import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.9';
+} from './render.js?v=1.10';
+import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.10';
+import { buildSceneClips, DEMO_BISNIS_AI, LAYER, VOICE_DELAY } from './templates.js?v=1.10';
+import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.10';
 
 // =====================================================================
 // State
@@ -1387,9 +1387,13 @@ $('#elLoad').addEventListener('click', (e) => runVoice(e.currentTarget, async ()
 }));
 
 async function ttsMedia(text) {
-  const blob = await synthesize({ ...ttsSettings(), text });
-  const name = `suara-${text.slice(0, 24).replace(/[^\w ]+/g, '').trim() || 'narasi'}.mp3`;
-  const m = await importFile(new File([blob], name, { type: 'audio/mpeg' }));
+  const opts = ttsSettings();
+  const blob = await synthesize({ ...opts, text });
+  // Nama klip menyebut layanan & suara, supaya jelas suara mana yang terpasang di timeline.
+  const label = `${{ gemini: 'Gemini', elevenlabs: 'ElevenLabs', azure: 'Azure', google: 'Google' }[opts.provider]} ${$('#ttsVoice').selectedOptions[0]?.textContent.split(' — ')[0] || opts.voice}`;
+  const ext = blob.type.includes('wav') ? 'wav' : 'mp3';
+  const name = `${label} · ${text.slice(0, 22).replace(/[^\w ]+/g, '').trim() || 'narasi'}.${ext}`;
+  const m = await importFile(new File([blob], name, { type: blob.type || 'audio/mpeg' }));
   if (!m) throw new Error('Audio dari layanan suara tidak bisa dibaca.');
   return m;
 }
