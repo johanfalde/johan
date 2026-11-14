@@ -6,7 +6,7 @@ import {
   FONT_OPTIONS, TRANSITIONS, MOTIONS, TEXT_ANIMS,
 } from './render.js';
 import { exportMP4, mixAudio, webCodecsAvailable } from './export.js';
-import { buildSceneClips, DEMO_BISNIS_AI, LAYER } from './templates.js';
+import { buildSceneClips, DEMO_BISNIS_AI, DEMO_AFFILIATE, affiliateScenes, LAYER } from './templates.js';
 
 // =====================================================================
 // State
@@ -1156,6 +1156,20 @@ async function renderAt(t) {
   renderFrame(ctx, state.project, t, elFor);
 }
 
+// Render seluruh timeline jadi MP4 (dipakai tombol Ekspor dan pipeline otomatis).
+async function renderMP4({ onProgress = () => {}, isCancelled = () => false, onStatus = () => {} } = {}) {
+  const dur = projectDuration();
+  if (!dur) throw new Error('Timeline masih kosong.');
+  const { width, height, fps } = state.project;
+  for (const el of state.els.values()) el.pause();
+  const videoEls = clips().filter((c) => c.type === 'video').map(elFor);
+  await Promise.all(videoEls.map((el) => (el.readyState >= 2 ? null : once(el, 'loadeddata').catch(() => null))));
+  onStatus('Mencampur audio…');
+  const audioBuffer = await mixAudio(clips().filter(isMedia), dur, decodeAudioFor);
+  onStatus(`Merender ${Math.round(dur * fps)} frame…`);
+  return exportMP4({ canvas, width, height, fps, duration: dur, renderAt, audioBuffer, onProgress, isCancelled });
+}
+
 async function startExport() {
   const dur = projectDuration();
   if (!dur) return alert('Timeline masih kosong.');
@@ -1169,15 +1183,9 @@ async function startExport() {
   state.exporting = { offline: true, cancelled: false, dur };
   showExportModal(`Menyiapkan ${width}×${height} @ ${fps}fps…`);
   try {
-    for (const el of state.els.values()) el.pause();
-    const videoEls = clips().filter((c) => c.type === 'video').map(elFor);
-    await Promise.all(videoEls.map((el) => (el.readyState >= 2 ? null : once(el, 'loadeddata').catch(() => null))));
-    $('#exportInfo').textContent = 'Mencampur audio…';
-    const audioBuffer = await mixAudio(clips().filter(isMedia), dur, decodeAudioFor);
-    $('#exportInfo').textContent = `Merender ${Math.round(dur * fps)} frame…`;
-    const res = await exportMP4({
-      canvas, width, height, fps, duration: dur, renderAt, audioBuffer,
+    const res = await renderMP4({
       onProgress: setExportProgress,
+      onStatus: (t) => { $('#exportInfo').textContent = t; },
       isCancelled: () => state.exporting.cancelled,
     });
     if (res) exportDone(res.blob, 'mp4', `MP4 ${res.videoCodec}${res.audioCodec ? ` + ${res.audioCodec}` : ''}`);
@@ -1289,6 +1297,54 @@ async function loadTemplate(tpl) {
 }
 
 $('#tplBisnis').addEventListener('click', () => loadTemplate(DEMO_BISNIS_AI).catch((e) => alert(e.message)));
+
+// Muat media dari URL dan kembalikan deskripsi ringkas untuk pembuat adegan.
+async function mediaRef(url) {
+  if (!url) return null;
+  const m = await loadMediaFromUrl(url, decodeURIComponent(url.split('/').pop().split('?')[0]) || 'media');
+  if (!m) throw new Error(`Media tidak bisa dibuka: ${url}`);
+  const w = m.w || m.el?.naturalWidth || 1080;
+  const h = m.h || m.el?.naturalHeight || 1920;
+  return { id: m.id, type: m.type, w, h, duration: m.duration };
+}
+
+/**
+ * Bangun proyek dari satu baris konten (dipakai pipeline otomatis).
+ * job: { row: {...kolom template affiliate}, media: url foto/video produk, latar: [url per adegan],
+ *        music: url, template: 'affiliate' | scenes: [...] }
+ */
+async function loadJob(job) {
+  state.project.width = job.width || 1080;
+  state.project.height = job.height || 1920;
+  applyCanvasSize();
+  for (const m of state.media.values()) URL.revokeObjectURL(m.url);
+  state.media.clear();
+  state.project.clips = [];
+  cleanupEls();
+  const row = { ...(job.row || {}) };
+  row.media = await mediaRef(job.media);
+  row.latar = await Promise.all((job.latar || []).map((u) => (u ? mediaRef(u) : null)));
+  const scenes = job.scenes || affiliateScenes(row);
+  const { W, H } = { W: state.project.width, H: state.project.height };
+  const { clips: built, end } = buildSceneClips(scenes, baseClip, { W, H });
+  state.project.clips = built;
+  if (job.music) {
+    const m = await loadMediaFromUrl(job.music, job.music.split('/').pop());
+    if (m) {
+      clips().push(baseClip({
+        type: 'audio', mediaId: m.id, name: m.name, start: 0, dur: Math.min(m.duration, end), track: LAYER.music,
+        volume: job.musicVolume ?? 0.8, fadeIn: 0.3, fadeOut: 1.5,
+      }));
+    }
+  }
+  await loadFonts();
+  seek(0);
+  commit();
+  refreshAll();
+  return { duration: end, clips: clips().length };
+}
+
+$('#tplAffiliate').addEventListener('click', () => loadJob({ row: DEMO_AFFILIATE.row, music: DEMO_AFFILIATE.music }).catch((e) => alert(e.message)));
 
 // =====================================================================
 // AI
@@ -1517,8 +1573,8 @@ tlScroll.addEventListener('scroll', () => { $('#trackHeads').scrollTop = tlScrol
 
 // Untuk debugging / pengujian otomatis.
 window.kanvascut = {
-  state, addText, addShape, makeTextClip, applyOps, applyScenes, loadTemplate, startExport, commit, refreshAll, seek, play, pause, projectDuration,
-  templates: { DEMO_BISNIS_AI },
+  state, addText, addShape, makeTextClip, applyOps, applyScenes, loadTemplate, loadJob, renderMP4, startExport, commit, refreshAll, seek, play, pause, projectDuration,
+  templates: { DEMO_BISNIS_AI, DEMO_AFFILIATE },
 };
 
 applyCanvasSize();

@@ -1,0 +1,86 @@
+# Video affiliate otomatis setiap hari (gratis):
+#   02:17 WIB  kirim prompt hari ini ke Kaggle → Wan 2.2 membuat klip AI di GPU gratis
+#   05:47 WIB  ambil klip dari Kaggle → render KanvasCut → MP4 + caption → Telegram
+# Jadwal GitHub hanya berjalan dari branch default (main). Bisa juga dijalankan manual dari tab Actions.
+name: Video harian
+
+on:
+  schedule:
+    - cron: "17 19 * * *"   # 02:17 WIB
+    - cron: "47 22 * * *"   # 05:47 WIB
+  workflow_dispatch:
+    inputs:
+      langkah:
+        description: "kirim = Kaggle saja, render = ambil klip + render, semua = render tanpa menunggu Kaggle"
+        type: choice
+        options: [render, kirim, semua]
+        default: render
+      tanggal:
+        description: "Tanggal konten (YYYY-MM-DD), kosong = hari ini WIB"
+        required: false
+
+concurrency:
+  group: video-harian
+  cancel-in-progress: false
+
+env:
+  KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+  KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+  TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+  TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+  SHEET_CSV_URL: ${{ secrets.SHEET_CSV_URL }}
+  TANGGAL_ARG: ${{ inputs.tanggal && format('--tanggal {0}', inputs.tanggal) || '' }}
+
+jobs:
+  kirim-kaggle:
+    if: github.event.schedule == '17 19 * * *' || inputs.langkah == 'kirim'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Pasang CLI Kaggle
+        run: pip install -q kaggle
+      - name: Kirim prompt ke Kaggle
+        if: env.KAGGLE_USERNAME != '' && env.KAGGLE_API_TOKEN != ''
+        working-directory: automation
+        # playwright tidak perlu di langkah ini, jadi render.mjs cukup bisa di-import
+        run: npm install --no-audit --no-fund && node kaggle_wan.mjs kirim $TANGGAL_ARG
+
+  render:
+    if: github.event.schedule == '47 22 * * *' || inputs.langkah == 'render' || inputs.langkah == 'semua'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Pasang ffmpeg, font emoji, Chromium
+        working-directory: automation
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg fonts-noto-color-emoji
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Ambil klip AI dari Kaggle
+        if: env.KAGGLE_USERNAME != '' && env.KAGGLE_API_TOKEN != '' && inputs.langkah != 'semua'
+        continue-on-error: true
+        working-directory: automation
+        run: pip install -q kaggle && node kaggle_wan.mjs ambil
+      - name: Render video
+        working-directory: automation
+        run: node pipeline.mjs $TANGGAL_ARG
+      - name: Simpan hasil
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-${{ github.run_number }}
+          path: automation/output/
+          if-no-files-found: ignore
+          retention-days: 14

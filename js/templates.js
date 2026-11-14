@@ -3,7 +3,7 @@
 
 // Urutan lapisan (track 0 paling atas).
 export const LAYER = {
-  progress: 0, narration: 1, headline: 2, body: 3, card: 4, emoji: 5, kickerText: 6, kickerPill: 7, glow: 8, bg: 9, music: 10,
+  progress: 0, narration: 1, headline: 2, body: 3, card: 4, emoji: 5, productCard: 6, kickerText: 7, kickerPill: 8, glow: 9, bg: 10, music: 11,
 };
 
 /**
@@ -29,12 +29,32 @@ export function buildSceneClips(scenes, base, { W, H, start = 0, withBackground 
     { t: dur, x, y, scale, rotation: 0, opacity: 1 },
   ];
 
+  // m = { id, type: 'image'|'video', w, h, duration }
+  const mediaClip = (m, props, D) => base({
+    type: m.type, mediaId: m.id, name: 'Media', w: m.w, h: m.h, in: 0, volume: 0, muted: true,
+    // video lebih pendek dari adegan diperlambat sedikit supaya tidak habis di tengah
+    speed: m.type === 'video' && m.duration ? Math.min(1, m.duration / D) : 1,
+    ...props,
+  });
+
   let T = start;
   scenes.forEach((s, i) => {
     const D = Math.max(1.5, s.duration);
     const end = (offset) => ({ start: T + offset, dur: D - offset, fadeOut: 0.25 });
 
-    if (withBackground) {
+    if (s.background) {
+      // Klip AI / video stok / foto sebagai latar penuh, ditutup lapisan gelap supaya teks tetap terbaca.
+      out.push(mediaClip(s.background, {
+        name: 'Latar', track: LAYER.bg, start: T, dur: D, x: W / 2, y: H / 2,
+        scale: Math.max(W / s.background.w, H / s.background.h),
+        motion: s.background.type === 'image' ? 'zoom-in' : 'none',
+        transition: { type: i === 0 ? 'none' : s.transition, dur: 0.5 },
+      }, D));
+      out.push(shape({
+        name: 'Gelap', shape: 'rect', track: LAYER.glow, start: T, dur: D, w: W, h: H, x: W / 2, y: H / 2,
+        color: '#000000', color2: '#000000', opacity: s.dim ?? 0.45,
+      }));
+    } else if (withBackground) {
       out.push(shape({
         name: 'Latar', shape: 'gradient', track: LAYER.bg, start: T, dur: D, color: s.bg_from, color2: s.bg_to,
         angle: 120 + i * 40, x: W / 2, y: H / 2, motion: 'zoom-in',
@@ -60,7 +80,22 @@ export function buildSceneClips(scenes, base, { W, H, start = 0, withBackground 
       }));
     }
 
-    if (s.emoji) {
+    if (s.media) {
+      // Foto/video produk di kartu putih, posisi sama dengan emoji.
+      const my = H * 0.345;
+      const boxW = W * 0.6, boxH = H * 0.19;
+      const fit = Math.min(boxW / s.media.w, boxH / s.media.h);
+      const pad = 26 * k;
+      out.push(shape({
+        name: 'Kartu produk', shape: 'rect', track: LAYER.productCard, ...end(0.15), anim: 'pop',
+        w: s.media.w * fit + pad * 2, h: s.media.h * fit + pad * 2, radius: 36 * k,
+        color: '#ffffff', color2: '#ffffff', opacity: 0.95, y: my, keyframes: float(W / 2, my, D - 0.15, 14 * k),
+      }));
+      out.push(mediaClip(s.media, {
+        name: 'Produk', track: LAYER.emoji, ...end(0.15), x: W / 2, y: my, scale: fit, anim: 'pop',
+        keyframes: float(W / 2, my, D - 0.15, 14 * k, fit),
+      }, D - 0.15));
+    } else if (s.emoji) {
       const ey = H * 0.36;
       out.push(text({
         name: 'Ikon', text: s.emoji, track: LAYER.emoji, ...end(0.15), font: 'system-ui, sans-serif', size: 190 * k,
@@ -78,7 +113,7 @@ export function buildSceneClips(scenes, base, { W, H, start = 0, withBackground 
       const by = H * 0.68;
       const bodySize = 46 * k;
       const maxW = W * 0.72;
-      const lines = Math.max(1, Math.ceil(s.body.length * bodySize * 0.55 / maxW));
+      const lines = s.body.split('\n').reduce((n, para) => n + Math.max(1, Math.ceil(para.length * bodySize * 0.55 / maxW)), 0);
       out.push(shape({
         name: 'Kartu', shape: 'rect', track: LAYER.card, ...end(0.6), anim: 'fade', w: W * 0.84,
         h: lines * bodySize * 1.3 + 80 * k, radius: 36 * k, color: '#ffffff', color2: '#ffffff', opacity: 0.14, y: by,
@@ -152,4 +187,74 @@ export const DEMO_BISNIS_AI = {
       duration: 4.2, bg_from: '#1e1b4b', bg_to: '#be123c', accent: '#fb7185', transition: 'wipe',
     },
   ],
+};
+
+// ---------------------------------------------------------------------
+// Template affiliate (9:16, ±18 detik): hook → masalah → produk → manfaat → CTA
+// Dipakai tombol template di editor dan pipeline otomatis (automation/).
+// ---------------------------------------------------------------------
+const AFF_PALETTE = [
+  { bg_from: '#0f172a', bg_to: '#be123c', accent: '#fde047' },
+  { bg_from: '#1c1917', bg_to: '#57534e', accent: '#fca5a5' },
+  { bg_from: '#042f2e', bg_to: '#0d9488', accent: '#99f6e4' },
+  { bg_from: '#1e1b4b', bg_to: '#6d28d9', accent: '#f0abfc' },
+  { bg_from: '#431407', bg_to: '#ea580c', accent: '#fef08a' },
+];
+
+/**
+ * row: { produk, hook, masalah, manfaat ("a | b | c"), bukti, promo, cta,
+ *        emoji_hook, emoji_masalah, media (foto/video produk), latar: [media per adegan] }
+ */
+export function affiliateScenes(row) {
+  const manfaat = String(row.manfaat || '').split('|').map((t) => t.trim()).filter(Boolean);
+  const latar = row.latar || [];
+  const scenes = [
+    {
+      kicker: row.kicker || 'Wajib tahu', emoji: row.emoji_hook || '😱', headline: row.hook,
+      narration: row.narasi_hook || row.hook, duration: 3.2, transition: 'none',
+    },
+    {
+      kicker: 'Masalahnya', emoji: row.emoji_masalah || '😩', headline: row.masalah_judul || 'Sering begini?',
+      body: row.masalah, narration: row.narasi_masalah || row.masalah, duration: 3.8, transition: 'whip',
+    },
+    {
+      kicker: 'Solusinya', emoji: row.emoji_produk || '✨', media: row.media, headline: row.produk,
+      body: row.bukti, narration: row.narasi_produk || `Pakai ${row.produk}`, duration: 4.2, transition: 'zoom',
+    },
+    {
+      kicker: 'Kenapa bagus', emoji: row.emoji_manfaat || '✅', headline: manfaat[0] || row.produk,
+      body: manfaat.slice(1).map((t) => `✔ ${t}`).join('\n'), narration: row.narasi_manfaat || manfaat.join(', '),
+      duration: 3.8, transition: 'slide-up',
+    },
+    {
+      kicker: row.promo || 'Lagi promo', emoji: '👇', headline: row.cta || 'Cek keranjang kuning',
+      body: row.promo_detail || 'Stok terbatas, cek sekarang sebelum harga naik.',
+      narration: row.narasi_cta || 'Klik keranjang kuning sekarang', duration: 3.4, transition: 'circle',
+    },
+  ];
+  return scenes.map((s, i) => ({ ...AFF_PALETTE[i % AFF_PALETTE.length], ...s, ...(latar[i] ? { background: latar[i] } : {}) }));
+}
+
+export const DEMO_AFFILIATE = {
+  title: 'Affiliate: Tumbler 1 Liter',
+  music: 'examples/assets/musik-bisnis.mp3',
+  row: {
+    produk: 'Tumbler 1 Liter',
+    hook: 'Minum air putih masih malas?',
+    emoji_hook: '🥤',
+    masalah_judul: 'Lupa minum lagi',
+    masalah: 'Botol kecil cepat habis, ujung-ujungnya seharian kurang minum.',
+    narasi_masalah: 'Botol kecil cepat habis jadi malas isi ulang',
+    emoji_masalah: '😮‍💨',
+    emoji_produk: '💧',
+    bukti: 'Muat 1 liter, ada penanda waktu minum dari pagi sampai sore.',
+    narasi_produk: 'Cukup isi sekali pagi dan ikuti penanda waktunya',
+    manfaat: 'Penanda jam minum | Tahan dingin | Anti bocor | Muat tas',
+    emoji_manfaat: '🕒',
+    narasi_manfaat: 'Ada penanda jam tahan dingin dan anti bocor',
+    promo: 'Diskon hari ini',
+    cta: 'Cek keranjang kuning',
+    promo_detail: 'Harga promo terbatas. Cek dulu sebelum kehabisan.',
+    narasi_cta: 'Klik keranjang kuning sebelum promonya habis',
+  },
 };

@@ -1,0 +1,4 @@
+automation/output/
+automation/.cache/
+automation/.tmp_test/
+automation/node_modules/
