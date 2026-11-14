@@ -1,13 +1,13 @@
 import {
   askJSON, SCRIPT_SCHEMA, SCRIPT_SYSTEM, scriptPrompt, SUBTITLE_SCHEMA, subtitlePrompt, OPS_SCHEMA, AGENT_SYSTEM,
-} from './ai.js?v=1.10';
+} from './ai.js?v=1.12';
 import {
   clamp, renderFrame, framePlan, evalProps, localSize, srcTime, fadeLocal, loadFonts, KF_KEYS,
   FONT_OPTIONS, TRANSITIONS, MOTIONS, TEXT_ANIMS,
-} from './render.js?v=1.10';
-import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.10';
-import { buildSceneClips, DEMO_BISNIS_AI, LAYER, VOICE_DELAY } from './templates.js?v=1.10';
-import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.10';
+} from './render.js?v=1.12';
+import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.12';
+import { buildSceneClips, DEMO_BISNIS_AI, LAYER, VOICE_DELAY } from './templates.js?v=1.12';
+import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.12';
 
 // =====================================================================
 // State
@@ -1297,11 +1297,29 @@ async function loadTemplate(tpl) {
     }
   }
   const voice = $('#tplVoice').value;
-  if (voice && tpl.voices?.[voice]) await loadTemplateVoice(tpl, voice);
+  if (voice.startsWith('ai:')) await loadTemplateAiVoice();
+  else if (voice && tpl.voices?.[voice]) await loadTemplateVoice(tpl, voice);
   await loadFonts();
   seek(0);
   commit();
   refreshAll();
+}
+
+// Narasi dari layanan AI yang dipilih di tab Suara (Gemini, ElevenLabs, Azure, Google).
+async function loadTemplateAiVoice() {
+  const info = $('#tplVoiceInfo');
+  if (!ttsSettings().key) {
+    info.textContent = 'Isi API key di kolom di atas dulu, lalu klik template lagi.';
+    $('#tplKey').focus();
+    return;
+  }
+  info.textContent = `⏳ Membuat narasi dengan ${aiVoiceLabel()}…`;
+  try {
+    const n = await voiceOverScenes(ttsMedia);
+    info.textContent = `✔ ${n} narasi ${aiVoiceLabel()} dipasang.`;
+  } catch (e) {
+    info.textContent = `✖ ${e.message}`;
+  }
 }
 
 // Narasi permanen yang dibuat dengan `python buat_suara.py` (examples/assets/suara/<wanita|pria>/01.mp3, …).
@@ -1353,7 +1371,76 @@ function renderVoiceOptions() {
   $('#ttsHint').textContent = p.hint;
 }
 
+function aiVoiceLabel() {
+  const name = { gemini: 'Gemini', elevenlabs: 'ElevenLabs', azure: 'Azure', google: 'Google' }[$('#ttsProvider').value];
+  const voice = $('#ttsVoice').selectedOptions[0]?.textContent.split(' — ')[0] || '';
+  return `${name} ${voice}`.trim();
+}
+
+// ---------------------------------------------------------------------
+// Pilihan suara di tab Template: satu daftar berisi suara bawaan + semua suara AI,
+// tersinkron dua arah dengan pengaturan di tab Suara.
+// ---------------------------------------------------------------------
+const PROVIDER_SHORT = { gemini: 'Gemini', elevenlabs: 'ElevenLabs', azure: 'Azure', google: 'Google' };
+const PROVIDER_NOTE = { gemini: 'key gratis', elevenlabs: 'kuota gratis', azure: 'kuota gratis', google: 'kuota gratis' };
+
+function buildTplVoiceSelect() {
+  const sel = $('#tplVoice');
+  for (const g of sel.querySelectorAll('optgroup[data-ai]')) g.remove();
+  for (const [prov, p] of Object.entries(TTS_PROVIDERS)) {
+    const g = document.createElement('optgroup');
+    g.dataset.ai = prov;
+    g.label = `${PROVIDER_SHORT[prov]} AI (${PROVIDER_NOTE[prov]})`;
+    for (const [v, l] of p.voices) g.append(new Option(l, `ai:${prov}:${v}`));
+    sel.append(g);
+  }
+  for (const [v, l] of Object.entries(GEMINI_STYLES_LABELS)) $('#tplStyle').add(new Option(l, v));
+}
+
+const GEMINI_STYLES_LABELS = {
+  santai: 'Santai & antusias (konten)', jualan: 'Semangat jualan', profesional: 'Profesional / berita', cerita: 'Bercerita lembut',
+};
+
+// Template → tab Suara.
+function applyTplVoiceChoice() {
+  const val = $('#tplVoice').value;
+  const isAi = val.startsWith('ai:');
+  $('#tplAiRow').classList.toggle('hidden', !isAi);
+  if (!isAi) return;
+  const [, prov, voice] = val.split(':');
+  if ($('#ttsProvider').value !== prov) {
+    $('#ttsProvider').value = prov;
+    renderVoiceOptions();
+  }
+  if (![...$('#ttsVoice').options].some((o) => o.value === voice)) $('#ttsVoice').add(new Option(voice, voice));
+  $('#ttsVoice').value = voice;
+  $('#ttsVoiceId').value = '';
+  const p = TTS_PROVIDERS[prov];
+  $('#tplProvName').textContent = `(${PROVIDER_SHORT[prov]})`;
+  $('#tplKey').value = $('#ttsKey').value;
+  $('#tplRegionRow').classList.toggle('hidden', !p.needsRegion);
+  $('#tplRegion').value = $('#ttsRegion').value;
+  $('#tplStyleRow').classList.toggle('hidden', prov !== 'gemini');
+  $('#tplStyle').value = $('#ttsStyle').value;
+  $('#tplKeyHint').textContent = p.hint;
+  saveTtsSettings();
+}
+
+// Tab Suara → template (mis. setelah ganti layanan/suara di sana).
+function updateTplAiOption() {
+  const sel = $('#tplVoice');
+  if (!sel.value.startsWith('ai:')) return;
+  const val = `ai:${$('#ttsProvider').value}:${$('#ttsVoice').value}`;
+  if (![...sel.options].some((o) => o.value === val)) {
+    const g = sel.querySelector(`optgroup[data-ai="${$('#ttsProvider').value}"]`);
+    g?.append(new Option($('#ttsVoice').selectedOptions[0]?.textContent || $('#ttsVoice').value, val));
+  }
+  sel.value = val;
+  $('#tplKey').value = $('#ttsKey').value;
+}
+
 function saveTtsSettings() {
+  updateTplAiOption();
   const { provider, key, region, rate, model, style } = ttsSettings();
   const voice = $('#ttsVoice').value;
   const voiceId = $('#ttsVoiceId').value.trim();
@@ -1376,6 +1463,17 @@ try {
 }
 $('#ttsProvider').addEventListener('change', () => { renderVoiceOptions(); saveTtsSettings(); });
 for (const id of ['#ttsKey', '#ttsRegion', '#ttsVoice', '#ttsRate', '#ttsModel', '#ttsVoiceId', '#ttsStyle']) $(id).addEventListener('change', saveTtsSettings);
+buildTplVoiceSelect();
+$('#tplVoice').addEventListener('change', applyTplVoiceChoice);
+$('#tplKey').addEventListener('input', () => { $('#ttsKey').value = $('#tplKey').value.trim(); saveTtsSettings(); });
+$('#tplRegion').addEventListener('input', () => { $('#ttsRegion').value = $('#tplRegion').value.trim(); saveTtsSettings(); });
+$('#tplStyle').addEventListener('change', () => { $('#ttsStyle').value = $('#tplStyle').value; saveTtsSettings(); });
+// Kalau sudah ada key suara AI, template langsung memakai suara AI yang terakhir dipilih.
+if (ttsSettings().key) {
+  $('#tplVoice').value = `ai:${$('#ttsProvider').value}:${$('#ttsVoice').value}`;
+  if (!$('#tplVoice').value) $('#tplVoice').value = 'wanita-ava';
+  applyTplVoiceChoice();
+}
 
 $('#elLoad').addEventListener('click', (e) => runVoice(e.currentTarget, async () => {
   const list = await listElevenLabsVoices($('#ttsKey').value.trim());

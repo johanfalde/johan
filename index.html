@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>KanvasCut — Editor Video HTML Canvas + AI</title>
-  <link rel="stylesheet" href="css/style.css?v=1.10">
+  <link rel="stylesheet" href="css/style.css?v=1.12">
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">▶ KanvasCut <span class="ver" title="Versi aplikasi">v1.10</span></div>
+    <div class="brand">▶ KanvasCut <span class="ver" title="Versi aplikasi">v1.12</span></div>
     <div class="top-actions">
       <label class="inline">Rasio
         <select id="ratioSelect">
@@ -37,15 +37,25 @@
 
       <section class="tab-body" data-tab="template">
         <p class="hint">Template motion graphics siap pakai. Semua teks, warna, dan waktu bisa diedit setelah dimuat.</p>
-        <label>Narasi template
+        <label>Suara narasi
           <select id="tplVoice">
             <option value="">Tanpa suara</option>
-            <option value="wanita-ava" selected>Wanita — Ava (ekspresif)</option>
-            <option value="wanita">Wanita — Gadis</option>
-            <option value="pria-andrew">Pria — Andrew (ekspresif)</option>
-            <option value="pria">Pria — Ardi</option>
+            <optgroup label="Gratis, tanpa key (file bawaan)">
+              <option value="wanita-ava" selected>Ava — wanita, ekspresif</option>
+              <option value="wanita">Gadis — wanita</option>
+              <option value="pria-andrew">Andrew — pria, ekspresif</option>
+              <option value="pria">Ardi — pria</option>
+            </optgroup>
           </select>
         </label>
+        <div id="tplAiRow" class="hidden">
+          <label>API key <span id="tplProvName"></span>
+            <input type="password" id="tplKey" autocomplete="off" placeholder="tempel API key">
+          </label>
+          <label id="tplRegionRow">Region <input id="tplRegion" placeholder="southeastasia"></label>
+          <label id="tplStyleRow">Gaya bicara <select id="tplStyle"></select></label>
+          <p class="hint" id="tplKeyHint"></p>
+        </div>
         <p class="hint" id="tplVoiceInfo"></p>
         <button class="tpl-card" id="tplBisnis">
           <span class="tpl-thumb">🤖</span>
@@ -305,6 +315,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=1.10"></script>
+  <script type="module" src="js/app.js?v=1.12"></script>
 </body>
 </html>
