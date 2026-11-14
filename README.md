@@ -92,7 +92,12 @@ examples/           video contoh + musik
 
 [`kaggle/wan22_video_gratis.ipynb`](kaggle/wan22_video_gratis.ipynb) membuat klip video dari teks atau
 foto produk dengan model open-source Wan2.2-TI2V-5B (Apache 2.0, tanpa watermark, boleh komersial)
-memakai GPU gratis Kaggle. Hasil MP4 9:16 bisa langsung diimpor ke KanvasCut.
+memakai GPU gratis Kaggle. Hasil akhirnya 1080×1920 30 fps, sama dengan proyek KanvasCut.
+
+- Preset `natural` (720p, resolusi asli model), `prompt_natural()` dengan gaya `hp` / `studio` / `lifestyle`,
+  dan negative prompt anti-"tampilan AI".
+- Finishing otomatis: interpolasi gerak 24 → 30 fps dan upscale ke 1080p (ffmpeg).
+- Dengan GPU T4 x2, batch memakai kedua GPU bersamaan.
 
 1. Di Kaggle: *Create → New Notebook → File → Import Notebook*, pilih file `.ipynb` ini.
 2. *Settings*: Accelerator **GPU T4 x2**, Internet **On**.
