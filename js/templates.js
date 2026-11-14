@@ -121,6 +121,7 @@ export function buildSceneClips(scenes, base, { W, H, start = 0, withBackground 
 export const DEMO_BISNIS_AI = {
   title: 'Bisnis dengan AI',
   music: 'examples/assets/musik-bisnis.mp3',
+  voices: { wanita: 'examples/assets/suara/wanita', pria: 'examples/assets/suara/pria' },
   scenes: [
     {
       kicker: 'Bisnis 2026', emoji: '🤖', headline: 'Bisnis kamu masih manual?',

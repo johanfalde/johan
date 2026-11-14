@@ -1,13 +1,13 @@
 import {
   askJSON, SCRIPT_SCHEMA, SCRIPT_SYSTEM, scriptPrompt, SUBTITLE_SCHEMA, subtitlePrompt, OPS_SCHEMA, AGENT_SYSTEM,
-} from './ai.js';
+} from './ai.js?v=1.7';
 import {
   clamp, renderFrame, framePlan, evalProps, localSize, srcTime, fadeLocal, loadFonts, KF_KEYS,
   FONT_OPTIONS, TRANSITIONS, MOTIONS, TEXT_ANIMS,
-} from './render.js';
-import { exportMP4, mixAudio, webCodecsAvailable } from './export.js';
-import { buildSceneClips, DEMO_BISNIS_AI, LAYER, VOICE_DELAY } from './templates.js';
-import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js';
+} from './render.js?v=1.7';
+import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.7';
+import { buildSceneClips, DEMO_BISNIS_AI, LAYER, VOICE_DELAY } from './templates.js?v=1.7';
+import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.7';
 
 // =====================================================================
 // State
@@ -1296,10 +1296,25 @@ async function loadTemplate(tpl) {
       }));
     }
   }
+  const voice = $('#tplVoice').value;
+  if (voice && tpl.voices?.[voice]) await loadTemplateVoice(tpl, voice);
   await loadFonts();
   seek(0);
   commit();
   refreshAll();
+}
+
+// Narasi permanen yang dibuat dengan `python buat_suara.py` (examples/assets/suara/<wanita|pria>/01.mp3, …).
+async function loadTemplateVoice(tpl, voice) {
+  const dir = tpl.voices[voice];
+  const url = (i) => `${dir}/${String(i + 1).padStart(2, '0')}.mp3`;
+  const probe = await fetch(url(0), { method: 'HEAD' }).catch(() => null);
+  if (!probe?.ok) {
+    $('#tplVoiceInfo').textContent = 'File suara belum ada. Jalankan sekali di folder proyek: pip install edge-tts lalu python buat_suara.py — setelah itu muat template lagi.';
+    return;
+  }
+  const n = await voiceOverScenes((text, i) => loadMediaFromUrl(url(i), `${voice}-${String(i + 1).padStart(2, '0')}.mp3`).catch(() => null));
+  $('#tplVoiceInfo').textContent = `✔ ${n} narasi ${voice === 'wanita' ? 'Gadis (wanita)' : 'Ardi (pria)'} dipasang.`;
 }
 
 $('#tplBisnis').addEventListener('click', () => loadTemplate(DEMO_BISNIS_AI).catch((e) => alert(e.message)));

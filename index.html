@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>KanvasCut — Editor Video HTML Canvas + AI</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=1.7">
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">▶ KanvasCut <span class="ver" title="Versi aplikasi">v1.6</span></div>
+    <div class="brand">▶ KanvasCut <span class="ver" title="Versi aplikasi">v1.7</span></div>
     <div class="top-actions">
       <label class="inline">Rasio
         <select id="ratioSelect">
@@ -37,6 +37,14 @@
 
       <section class="tab-body" data-tab="template">
         <p class="hint">Template motion graphics siap pakai. Semua teks, warna, dan waktu bisa diedit setelah dimuat.</p>
+        <label>Narasi template
+          <select id="tplVoice">
+            <option value="">Tanpa suara</option>
+            <option value="wanita" selected>Wanita — Gadis</option>
+            <option value="pria">Pria — Ardi</option>
+          </select>
+        </label>
+        <p class="hint" id="tplVoiceInfo"></p>
         <button class="tpl-card" id="tplBisnis">
           <span class="tpl-thumb">🤖</span>
           <span><strong>Bisnis dengan AI</strong><br><span class="hint">9:16 · 26 dtk · 6 adegan · musik · transisi · subtitle karaoke</span></span>
@@ -280,6 +288,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/app.js?v=1.7"></script>
 </body>
 </html>

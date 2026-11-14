@@ -57,6 +57,12 @@ di samping logo KanvasCut.
 
 ### Suara narasi pria / wanita (tab **Suara**)
 
+- **Narasi permanen untuk template (gratis, tanpa key):** jalankan sekali di folder proyek
+  `pip install edge-tts` lalu `python buat_suara.py`. Skrip membuat `examples/assets/suara/wanita/*.mp3`
+  (Gadis) dan `examples/assets/suara/pria/*.mp3` (Ardi). Di tab **Template** pilih *Narasi template*
+  (Wanita/Pria) lalu muat template — suara langsung terpasang. Commit & push folder itu agar ikut
+  tersedia di GitHub Pages.
+
 - **Gratis tanpa key & tanpa daftar — edge-tts:** tab Suara membuatkan perintah siap salin
   (`pip install edge-tts` + satu baris per adegan) untuk suara **Gadis (wanita)** atau **Ardi (pria)**.
   Jalankan di Command Prompt/Terminal komputermu (perlu Python), lalu klik **Impor file suara** dan
