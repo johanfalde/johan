@@ -10,6 +10,7 @@ Mac/Linux:
     GEMINI_API_KEY=... python3 buat_suara_gemini.py
 
 Opsi:  --wanita Aoede  --pria Puck  --gaya santai|jualan|profesional|cerita  --ulang
+       --hanya pria   (buat suara pria saja, mis. kalau kuota kemarin habis setelah suara wanita)
 Hasil: examples/assets/suara/gemini-wanita/01.wav …  dan  examples/assets/suara/gemini-pria/01.wav …
 Tidak butuh paket tambahan (hanya library standar Python).
 """
@@ -107,13 +108,17 @@ def main():
     ap.add_argument("--pria", default="Puck", help="suara pria: Puck, Charon, Fenrir, Orus")
     ap.add_argument("--gaya", default="santai", choices=STYLES)
     ap.add_argument("--ulang", action="store_true", help="buat ulang file yang sudah ada")
+    ap.add_argument("--hanya", choices=("wanita", "pria"), help="buat satu suara saja (hemat kuota)")
     args = ap.parse_args()
 
     key = os.environ.get("GEMINI_API_KEY") or getpass.getpass("Tempel Gemini API key (tidak ditampilkan): ").strip()
     models = pick_model(key)
     print(f"Model: {models[0].replace('models/', '')}")
     texts = narrations()
-    for folder, voice in (("gemini-wanita", args.wanita), ("gemini-pria", args.pria)):
+    targets = [("gemini-wanita", args.wanita), ("gemini-pria", args.pria)]
+    if args.hanya:
+        targets = [t for t in targets if t[0] == f"gemini-{args.hanya}"]
+    for folder, voice in targets:
         out = ROOT / "examples" / "assets" / "suara" / folder
         out.mkdir(parents=True, exist_ok=True)
         (out / "suara.txt").write_text(f"Gemini {voice} ({args.gaya})\n", encoding="utf-8")

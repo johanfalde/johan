@@ -1,13 +1,13 @@
 import {
   askJSON, SCRIPT_SCHEMA, SCRIPT_SYSTEM, scriptPrompt, SUBTITLE_SCHEMA, subtitlePrompt, OPS_SCHEMA, AGENT_SYSTEM,
-} from './ai.js?v=1.14';
+} from './ai.js?v=1.15';
 import {
   clamp, renderFrame, framePlan, evalProps, localSize, srcTime, fadeLocal, loadFonts, KF_KEYS,
   FONT_OPTIONS, TRANSITIONS, MOTIONS, TEXT_ANIMS,
-} from './render.js?v=1.14';
-import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.14';
-import { buildSceneClips, DEMO_BISNIS_AI, LAYER, VOICE_DELAY } from './templates.js?v=1.14';
-import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.14';
+} from './render.js?v=1.15';
+import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.15';
+import { buildSceneClips, DEMO_BISNIS_AI, LAYER, VOICE_DELAY } from './templates.js?v=1.15';
+import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.15';
 
 // =====================================================================
 // State
@@ -1296,10 +1296,42 @@ async function loadTemplate(tpl) {
       }));
     }
   }
+  state.currentTemplate = tpl;
+  $('#tplVoiceInfo').textContent = '';
+  await applyTemplateNarration(tpl);
+  await loadFonts();
+  seek(0);
+  commit();
+  refreshAll();
+}
+
+async function applyTemplateNarration(tpl) {
   const voice = $('#tplVoice').value;
   if (voice.startsWith('ai:')) await loadTemplateAiVoice();
   else if (voice && tpl.voices?.[voice]) await loadTemplateVoice(tpl, voice);
-  await loadFonts();
+}
+
+// Kembalikan adegan ke durasi semula dan buang narasi lama.
+function clearNarration() {
+  const scenes = state.project.scenes || [];
+  for (const s of scenes) {
+    if (s.base_duration) s.duration = s.base_duration;
+    delete s.voice_media;
+    delete s.voice_dur;
+  }
+  const end = applyScenes(scenes);
+  fitMusic(end, false);
+}
+
+// Ganti suara di dropdown → narasi template yang sedang terbuka langsung ikut berganti.
+async function switchTemplateNarration() {
+  const tpl = state.currentTemplate;
+  if (!tpl || !state.project.scenes?.length) return;
+  pause();
+  $('#tplVoiceInfo').textContent = '';
+  clearNarration();
+  await applyTemplateNarration(tpl);
+  cleanupEls();
   seek(0);
   commit();
   refreshAll();
@@ -1328,10 +1360,19 @@ async function loadTemplateVoice(tpl, voice) {
   const dir = entry.dir || entry;
   const ext = entry.ext || 'mp3';
   const url = (i) => `${dir}/${String(i + 1).padStart(2, '0')}.${ext}`;
-  const probe = await fetch(url(0), { method: 'HEAD' }).catch(() => null);
-  if (!probe?.ok) {
+  const count = tpl.scenes.filter((sc) => sc.narration).length;
+  const found = await Promise.all(Array.from({ length: count }, (_, i) => fetch(url(i), { method: 'HEAD' }).then((r) => r.ok).catch(() => false)));
+  const have = found.filter(Boolean).length;
+  if (have > 0 && have < count) {
+    const who = voice.replace('gemini-', '');
     $('#tplVoiceInfo').textContent = voice.startsWith('gemini')
-      ? 'Narasi Gemini belum dibuat. Jalankan sekali di folder proyek: set GEMINI_API_KEY=key-kamu lalu python buat_suara_gemini.py — setelah itu muat template lagi.'
+      ? `Narasi ${who} baru ${have} dari ${count} file (kemungkinan kuota Gemini habis). Lanjutkan dengan: python buat_suara_gemini.py --hanya ${who} — lalu pilih suara ini lagi.`
+      : `File suara baru ${have} dari ${count}. Jalankan lagi: python buat_suara.py`;
+    return;
+  }
+  if (!have) {
+    $('#tplVoiceInfo').textContent = voice.startsWith('gemini')
+      ? `Narasi Gemini ${voice.replace('gemini-', '')} belum dibuat. Jalankan di folder proyek: set GEMINI_API_KEY=key-kamu lalu python buat_suara_gemini.py --hanya ${voice.replace('gemini-', '')} — lalu pilih suara ini lagi.`
       : 'File suara belum ada. Jalankan sekali di folder proyek: pip install edge-tts lalu python buat_suara.py — setelah itu muat template lagi.';
     return;
   }
@@ -1471,7 +1512,10 @@ try {
 $('#ttsProvider').addEventListener('change', () => { renderVoiceOptions(); saveTtsSettings(); });
 for (const id of ['#ttsKey', '#ttsRegion', '#ttsVoice', '#ttsRate', '#ttsModel', '#ttsVoiceId', '#ttsStyle']) $(id).addEventListener('change', saveTtsSettings);
 buildTplVoiceSelect();
-$('#tplVoice').addEventListener('change', applyTplVoiceChoice);
+$('#tplVoice').addEventListener('change', () => {
+  applyTplVoiceChoice();
+  switchTemplateNarration().catch((e) => { $('#tplVoiceInfo').textContent = `✖ ${e.message}`; });
+});
 $('#tplKey').addEventListener('input', () => { $('#ttsKey').value = $('#tplKey').value.trim(); saveTtsSettings(); });
 $('#tplRegion').addEventListener('input', () => { $('#ttsRegion').value = $('#tplRegion').value.trim(); saveTtsSettings(); });
 $('#tplStyle').addEventListener('change', () => { $('#ttsStyle').value = $('#tplStyle').value; saveTtsSettings(); });
