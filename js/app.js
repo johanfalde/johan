@@ -419,7 +419,9 @@ function loop(now) {
     return;
   }
   if (state.playing) {
+    const prevTime = state.time;
     state.time += dt;
+    browserSpeak(prevTime, state.time);
     const end = projectDuration();
     if (state.time >= end) {
       state.time = end;
@@ -446,11 +448,13 @@ function pause() {
   state.playing = false;
   $('#playBtn').textContent = '▶';
   for (const el of state.els.values()) el.pause();
+  window.speechSynthesis?.cancel();
   renderInspector();
 }
 
 function seek(t) {
   state.time = clamp(t, 0, Math.max(projectDuration(), 0));
+  window.speechSynthesis?.cancel();
   if (!state.playing) renderInspectorValues();
 }
 
@@ -1174,6 +1178,9 @@ async function startExport() {
   const { width, height, fps } = state.project;
   state.exporting = { offline: true, cancelled: false, dur };
   showExportModal(`Menyiapkan ${width}×${height} @ ${fps}fps…`);
+  $('#exportNote').textContent = browserVoiceOn()
+    ? 'Catatan: suara bawaan browser hanya terdengar saat preview dan tidak ikut terekam. Untuk video bersuara, pakai edge-tts (gratis) atau Azure di tab Suara.'
+    : '';
   try {
     for (const el of state.els.values()) el.pause();
     const videoEls = clips().filter((c) => c.type === 'video').map(elFor);
@@ -1544,6 +1551,63 @@ $('#voiceFiles').addEventListener('change', (e) => runVoice($('#voiceFilesBtn'),
   vlog(`✔ ${n} file suara dipasang dan subtitle disinkronkan.`, 'ok');
 }));
 $('#voiceFilesBtn').addEventListener('click', () => $('#voiceFiles').click());
+
+
+// ---------------------------------------------------------------------
+// Suara bawaan browser: subtitle dibacakan saat preview, tanpa key.
+// (Tidak bisa ikut terekam ke file ekspor — itu batasan Web Speech API.)
+// ---------------------------------------------------------------------
+const synth = window.speechSynthesis;
+const LS_BV = 'kanvascut.browserVoice';
+
+function idVoices() {
+  const rank = (v) => (/natural|online/i.test(v.name) ? 0 : /google/i.test(v.name) ? 1 : 2);
+  return (synth ? synth.getVoices() : []).filter((v) => /^id/i.test(v.lang)).sort((a, b) => rank(a) - rank(b));
+}
+
+function browserVoiceOn() {
+  return !!synth && $('#bvEnable').checked && !clips().some((c) => c.role === 'voice');
+}
+
+function renderBrowserVoices() {
+  const sel = $('#bvVoice');
+  let saved = sel.value;
+  try { saved ||= localStorage.getItem(LS_BV) || ''; } catch { /* abaikan */ }
+  const list = idVoices();
+  sel.innerHTML = '';
+  for (const v of list) sel.add(new Option(v.name.replace(/\s*-\s*Indonesian.*$/i, ''), v.name));
+  if (!list.length) sel.add(new Option('Bawaan sistem', ''));
+  if (list.some((v) => v.name === saved)) sel.value = saved;
+  const info = $('#bvInfo');
+  if (!synth) info.textContent = 'Browser ini tidak mendukung suara bawaan.';
+  else if (list.some((v) => /natural|online/i.test(v.name))) info.textContent = '✔ Suara natural Microsoft tersedia di browser ini.';
+  else if (list.length) info.textContent = 'Tips: buka di Microsoft Edge untuk suara natural Gadis (wanita) / Ardi (pria).';
+  else info.textContent = 'Belum ada suara Indonesia di browser ini. Coba buka di Microsoft Edge, atau pasang bahasa Indonesia di pengaturan Windows/Android.';
+}
+
+function speakNow(text) {
+  if (!synth) return;
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'id-ID';
+  const v = idVoices().find((x) => x.name === $('#bvVoice').value) || idVoices()[0];
+  if (v) u.voice = v;
+  u.rate = +$('#bvRate').value;
+  synth.cancel();
+  synth.speak(u);
+}
+
+// Dipanggil tiap frame saat play: bacakan subtitle karaoke yang baru mulai.
+function browserSpeak(prev, now) {
+  if (!browserVoiceOn()) return;
+  for (const c of clips()) {
+    if (c.type === 'text' && c.textStyle === 'karaoke' && c.start > prev && c.start <= now) speakNow(c.text);
+  }
+}
+
+if (synth) synth.addEventListener?.('voiceschanged', renderBrowserVoices);
+renderBrowserVoices();
+$('#bvVoice').addEventListener('change', (e) => { try { localStorage.setItem(LS_BV, e.target.value); } catch { /* abaikan */ } });
+$('#bvTest').addEventListener('click', () => speakNow('Halo! Ini suara bawaan browser untuk video kamu.'));
 
 let recorder = null;
 $('#micBtn').addEventListener('click', async () => {

@@ -74,6 +74,23 @@
 
       <section class="tab-body hidden" data-tab="voice">
         <div class="ai-card">
+          <strong>Suara langsung di browser (tanpa key, tanpa install)</strong>
+          <label class="check"><input type="checkbox" id="bvEnable" checked> Bacakan subtitle saat tombol play ditekan</label>
+          <div class="row2">
+            <label>Suara <select id="bvVoice"></select></label>
+            <label>Kecepatan
+              <select id="bvRate">
+                <option value="0.9">0.9x</option><option value="1">1x</option>
+                <option value="1.1" selected>1.1x</option><option value="1.2">1.2x</option>
+              </select>
+            </label>
+          </div>
+          <p class="hint" id="bvInfo"></p>
+          <button id="bvTest" class="wide">▶ Tes suara browser</button>
+          <p class="hint">Hanya untuk preview: suara browser tidak bisa ikut terekam saat ekspor. Untuk file video yang bersuara, pakai edge-tts (gratis) di bawah.</p>
+        </div>
+
+        <div class="ai-card">
           <strong>Gratis tanpa key: suara Gadis / Ardi via edge-tts</strong>
           <p class="hint">1) Pasang Python di komputer. 2) Salin perintah di bawah, tempel di Command Prompt / Terminal, Enter.
             File <code>suara-01.mp3</code>, <code>suara-02.mp3</code>, … akan dibuat. 3) Klik "Impor file suara" dan pilih semuanya.</p>
@@ -243,6 +260,7 @@
       <p class="hint">Rendering berjalan real-time. Jangan pindah tab sampai selesai.</p>
       <progress id="exportProgress" max="1" value="0"></progress>
       <p id="exportInfo"></p>
+      <p id="exportNote" class="hint"></p>
       <div class="modal-actions">
         <button id="exportCancel">Batal</button>
         <a id="exportDownload" class="button primary hidden" download>Unduh</a>
