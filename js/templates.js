@@ -3,7 +3,7 @@
 
 // Urutan lapisan (track 0 paling atas).
 export const LAYER = {
-  progress: 0, narration: 1, headline: 2, body: 3, card: 4, emoji: 5, kickerText: 6, kickerPill: 7, glow: 8, bg: 9, music: 10, voice: 11,
+  progress: 0, narration: 1, headline: 2, body: 3, card: 4, emoji: 5, kickerText: 6, kickerPill: 7, fx: 8, glow: 9, bg: 10, music: 11, voice: 12,
 };
 
 // Jeda dari awal adegan sampai narasi mulai.
@@ -11,7 +11,7 @@ export const VOICE_DELAY = 0.3;
 
 /**
  * @param scenes  [{ kicker, headline, body, emoji, narration, duration, bg_from, bg_to, accent, transition,
- *                   photo?: { mediaId, w, h }, motion?, voice_dur? }]
+ *                   photo?: { mediaId, w, h, type? }, motion?, steam?: { x, y, w, h }, voice_dur? }]
  * @param base    fungsi pembuat klip dasar dari editor
  * @param opts    { W, H, start, withBackground, progressBar }
  */
@@ -46,12 +46,20 @@ export function buildSceneClips(scenes, base, { W, H, start = 0, withBackground 
 
     if (photo) {
       const cover = Math.max(W / s.photo.w, H / s.photo.h);
+      const isVideo = s.photo.type === 'video';
       out.push(base({
-        type: 'image', role: 'scene', name: 'Foto', mediaId: s.photo.mediaId, w: s.photo.w, h: s.photo.h,
+        type: isVideo ? 'video' : 'image', role: 'scene', sceneIndex: i, name: isVideo ? 'Video adegan' : 'Foto',
+        mediaId: s.photo.mediaId, w: s.photo.w, h: s.photo.h, volume: isVideo ? 0.25 : 1,
         track: LAYER.bg, start: T, dur: D, x: W / 2, y: H / 2, scale: cover, motion: s.motion || (i % 2 ? 'zoom-out' : 'zoom-in'),
         transition: { type: i === 0 ? 'none' : s.transition, dur: 0.5 },
       }));
       out.push(shape({ name: 'Bayangan', shape: 'shade', track: LAYER.glow, start: T, dur: D, x: W / 2, y: H / 2, color: '#000000', top: 0.15, bottom: 0.8 }));
+      if (s.steam && !isVideo) {
+        out.push(shape({
+          name: 'Uap panas', shape: 'steam', track: LAYER.fx, start: T, dur: D, fadeIn: 0.4, fadeOut: 0.3, strength: 1.7,
+          x: W * s.steam.x, y: H * s.steam.y, w: W * s.steam.w, h: H * s.steam.h,
+        }));
+      }
     } else if (withBackground) {
       out.push(shape({
         name: 'Latar', shape: 'gradient', track: LAYER.bg, start: T, dur: D, color: s.bg_from, color2: s.bg_to,
@@ -200,7 +208,7 @@ export const DEMO_CUANKI = {
   voices: voiceSet('examples/assets/suara/cuanki'),
   scenes: [
     {
-      image: MANGKUK, motion: 'zoom-in', kicker: 'Kuliner Bandung', emoji: '🍜', headline: 'Cuanki yang lagi viral!',
+      image: MANGKUK, motion: 'zoom-in', steam: { x: 0.5, y: 0.34, w: 0.75, h: 0.4 }, kicker: 'Kuliner Bandung', emoji: '🍜', headline: 'Cuanki yang lagi viral!',
       body: 'Kuah gurih, bakso, tahu, dan siomay goreng yang renyah.',
       narration: 'Lagi cari cuanki Bandung yang enak dan lagi viral? Ini dia!',
       duration: 4.4, bg_from: '#1c0a00', bg_to: '#c2410c', accent: '#facc15', transition: 'none',
@@ -212,7 +220,13 @@ export const DEMO_CUANKI = {
       duration: 4.6, bg_from: '#1c0a00', bg_to: '#b91c1c', accent: '#fde047', transition: 'whip',
     },
     {
-      image: MANGKUK, motion: 'pan-left', kicker: 'Promo hari ini', emoji: '🔥', headline: 'Cuma 10 ribu!',
+      image: MANGKUK, motion: 'zoom-in', steam: { x: 0.5, y: 0.34, w: 0.75, h: 0.4 }, kicker: 'Paling pas', emoji: '😋', headline: 'Hangat, gurih, nagih!',
+      body: 'Pas buat makan bareng teman dan keluarga, apalagi pas hujan.',
+      narration: 'Kuahnya hangat dan gurih, paling pas dinikmati bareng teman, apalagi pas hujan.',
+      duration: 4.8, bg_from: '#1c0a00', bg_to: '#9a3412', accent: '#fdba74', transition: 'fade',
+    },
+    {
+      image: MANGKUK, motion: 'pan-left', steam: { x: 0.5, y: 0.34, w: 0.75, h: 0.4 }, kicker: 'Promo hari ini', emoji: '🔥', headline: 'Cuma 10 ribu!',
       body: 'Dari Rp15.000 jadi Rp10.000 per porsi. Murah meriah, porsi puas.',
       narration: 'Lagi promo, cuma sepuluh ribu rupiah per porsi!',
       duration: 4.2, bg_from: '#3f0d0d', bg_to: '#dc2626', accent: '#fde047', transition: 'zoom',

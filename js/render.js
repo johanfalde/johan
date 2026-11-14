@@ -221,6 +221,25 @@ function drawText(ctx, c, local) {
 // Bentuk (latar gradien, kotak, lingkaran, progress bar)
 // ---------------------------------------------------------------------
 function drawShape(ctx, c, local, W, H) {
+  if (c.shape === 'steam') {
+    // Uap panas: gumpalan putih lembut yang naik, bergoyang, lalu memudar (berulang).
+    const n = c.count || 8;
+    for (let i = 0; i < n; i++) {
+      const period = 2.4 + (i % 3) * 0.6;
+      const p = ((local + (i * period) / n) % period) / period;
+      const x0 = Math.sin(i * 12.9898) * c.w * 0.3;
+      const x = x0 + Math.sin(local * 1.3 + i * 1.7) * c.w * 0.05 * (1 + p * 2);
+      const y = c.h / 2 - p * c.h;
+      const r = c.w * (0.07 + p * 0.17);
+      const a = Math.sin(Math.PI * p) * 0.2 * (c.strength ?? 1);
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, `rgba(255,255,255,${a.toFixed(3)})`);
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(x - r, y - r, r * 2, r * 2);
+    }
+    return;
+  }
   if (c.shape === 'shade') {
     // Bayangan vertikal (atas tipis → bawah gelap) agar teks terbaca di atas foto.
     const g = ctx.createLinearGradient(0, -H / 2, 0, H / 2);

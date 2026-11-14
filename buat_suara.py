@@ -6,6 +6,7 @@ Jalankan sekali di folder proyek (perlu internet):
     pip install edge-tts
     python buat_suara.py          (hanya membuat file yang belum ada)
     python buat_suara.py --ulang  (buat ulang semua, mis. setelah teks narasi diubah)
+    python buat_suara.py --template cuanki --ulang   (hanya template Cuanki)
 
 Hasil: examples/assets/suara/wanita/01.mp3 … dan examples/assets/suara/pria/01.mp3 …
 Di aplikasi, pilih "Narasi template" lalu muat template. Commit & push folder itu kalau ingin
@@ -55,7 +56,10 @@ def templates():
 
 
 async def main():
+    only = sys.argv[sys.argv.index("--template") + 1].lower() if "--template" in sys.argv else None
     for tpl, base, texts in templates():
+      if only and only not in tpl.lower():
+          continue
       for folder, voice in VOICES.items():
         out = base / folder
         out.mkdir(parents=True, exist_ok=True)

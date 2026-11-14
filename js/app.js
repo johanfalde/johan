@@ -1,13 +1,13 @@
 import {
   askJSON, SCRIPT_SCHEMA, SCRIPT_SYSTEM, scriptPrompt, SUBTITLE_SCHEMA, subtitlePrompt, OPS_SCHEMA, AGENT_SYSTEM,
-} from './ai.js?v=1.16';
+} from './ai.js?v=1.17';
 import {
   clamp, renderFrame, framePlan, evalProps, localSize, srcTime, fadeLocal, loadFonts, KF_KEYS,
   FONT_OPTIONS, TRANSITIONS, MOTIONS, TEXT_ANIMS,
-} from './render.js?v=1.16';
-import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.16';
-import { buildSceneClips, DEMO_BISNIS_AI, DEMO_CUANKI, LAYER, VOICE_DELAY } from './templates.js?v=1.16';
-import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.16';
+} from './render.js?v=1.17';
+import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.17';
+import { buildSceneClips, DEMO_BISNIS_AI, DEMO_CUANKI, LAYER, VOICE_DELAY } from './templates.js?v=1.17';
+import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.17';
 
 // =====================================================================
 // State
@@ -1004,6 +1004,13 @@ function renderInspector() {
         refreshAll();
       };
       g.append(btnRow(button('Pas (contain)', fit('contain')), button('Penuh (cover)', fit('cover'))));
+      g.append(btnRow(button(c.role === 'scene' ? '🔁 Ganti foto/video adegan ini' : '🔁 Ganti foto/video', () => pickReplacement(c))));
+      if (c.role === 'scene') {
+        const tip = document.createElement('p');
+        tip.className = 'hint';
+        tip.textContent = 'Masukkan rekaman asli (mis. pelanggan sedang makan). Teks, narasi, dan waktunya tetap.';
+        g.append(tip);
+      }
     }
 
     // Keyframe
@@ -1063,6 +1070,50 @@ function renderInspector() {
   info.className = 'hint';
   info.textContent = `Mulai ${fmt(c.start)} · Durasi ${c.dur.toFixed(2)} dtk · Track ${c.track + 1}`;
   inspector.append(info);
+}
+
+// Ganti media sebuah klip foto/video dengan file baru; posisi waktu, efek, dan teks tetap.
+function pickReplacement(c) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'video/*,image/*';
+  input.addEventListener('change', async () => {
+    const file = input.files[0];
+    if (!file) return;
+    const m = await importFile(file);
+    if (!m || m.type === 'audio') return;
+    replaceClipMedia(c, m);
+  });
+  input.click();
+}
+
+function replaceClipMedia(c, m) {
+  const { width: W, height: H } = state.project;
+  const old = state.els.get(c.id);
+  if (old) {
+    old.pause();
+    state.els.delete(c.id);
+  }
+  const cover = c.role === 'scene' || c.scale >= fitScale(c.w, c.h, 'cover') - 1e-6;
+  Object.assign(c, {
+    type: m.type, mediaId: m.id, name: m.name, w: m.w, h: m.h, in: 0, speed: 1, keyframes: [],
+    scale: fitScale(m.w, m.h, cover ? 'cover' : 'contain'), x: W / 2, y: H / 2,
+    volume: c.role === 'scene' && m.type === 'video' ? 0.25 : c.volume,
+  });
+  // Ingat di data adegan supaya tetap dipakai saat template dibangun ulang (mis. ganti suara).
+  const scene = c.role === 'scene' && state.project.scenes?.[c.sceneIndex];
+  if (scene) {
+    scene.photo = { mediaId: m.id, w: m.w, h: m.h, type: m.type };
+    delete scene.image;
+    delete scene.steam;
+  }
+  // Uap buatan tidak cocok di atas rekaman asli.
+  if (scene) state.project.clips = clips().filter((x) => !(x.shape === 'steam' && x.start === c.start));
+  commit();
+  refreshAll();
+  if (m.type === 'video' && m.duration < c.dur) {
+    alert(`Video ${m.duration.toFixed(1)} dtk lebih pendek dari adegan (${c.dur.toFixed(1)} dtk); sisanya memakai frame terakhir.`);
+  }
 }
 
 // Kecepatan mengubah durasi di timeline, potongan sumber video tetap sama.
