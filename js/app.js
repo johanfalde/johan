@@ -1,13 +1,13 @@
 import {
   askJSON, SCRIPT_SCHEMA, SCRIPT_SYSTEM, scriptPrompt, SUBTITLE_SCHEMA, subtitlePrompt, OPS_SCHEMA, AGENT_SYSTEM,
-} from './ai.js?v=1.12';
+} from './ai.js?v=1.13';
 import {
   clamp, renderFrame, framePlan, evalProps, localSize, srcTime, fadeLocal, loadFonts, KF_KEYS,
   FONT_OPTIONS, TRANSITIONS, MOTIONS, TEXT_ANIMS,
-} from './render.js?v=1.12';
-import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.12';
-import { buildSceneClips, DEMO_BISNIS_AI, LAYER, VOICE_DELAY } from './templates.js?v=1.12';
-import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.12';
+} from './render.js?v=1.13';
+import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.13';
+import { buildSceneClips, DEMO_BISNIS_AI, LAYER, VOICE_DELAY } from './templates.js?v=1.13';
+import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.13';
 
 // =====================================================================
 // State
@@ -1486,7 +1486,11 @@ $('#elLoad').addEventListener('click', (e) => runVoice(e.currentTarget, async ()
 
 async function ttsMedia(text) {
   const opts = ttsSettings();
-  const blob = await synthesize({ ...opts, text });
+  const onStatus = (msg) => {
+    vlog(msg);
+    $('#tplVoiceInfo').textContent = msg;
+  };
+  const blob = await synthesize({ ...opts, text, onStatus });
   // Nama klip menyebut layanan & suara, supaya jelas suara mana yang terpasang di timeline.
   const label = `${{ gemini: 'Gemini', elevenlabs: 'ElevenLabs', azure: 'Azure', google: 'Google' }[opts.provider]} ${$('#ttsVoice').selectedOptions[0]?.textContent.split(' — ')[0] || opts.voice}`;
   const ext = blob.type.includes('wav') ? 'wav' : 'mp3';

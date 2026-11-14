@@ -138,9 +138,10 @@ export const GEMINI_STYLES = {
   cerita: 'Bacakan dalam bahasa Indonesia dengan gaya bercerita yang lembut dan ekspresif',
 };
 
-const geminiModels = new Map();
+const geminiModels = new Map();   // key -> Promise<[nama model, ...]> urut prioritas
+const geminiWorking = new Map();  // key -> model yang terbukti punya kuota
 
-async function geminiModel(key) {
+async function geminiModelList(key) {
   if (!geminiModels.has(key)) {
     geminiModels.set(key, (async () => {
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000&key=${encodeURIComponent(key)}`);
@@ -148,13 +149,22 @@ async function geminiModel(key) {
       const { models = [] } = await res.json();
       const tts = models.map((m) => m.name).filter((n) => /tts/i.test(n));
       if (!tts.length) throw new Error('Gemini: tidak ada model TTS untuk key ini.');
-      // Pilih versi terbaru; utamakan "flash" (cepat & kuota gratis lebih longgar) daripada "pro".
+      // Versi terbaru dulu; "flash" sebelum "pro" (kuota gratis lebih longgar).
       const ver = (n) => parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/) || [0, 0])[1]);
-      tts.sort((a, b) => ver(b) - ver(a) || (/flash/.test(b) - /flash/.test(a)) || (/lite/.test(a) - /lite/.test(b)));
-      return tts[0];
+      return tts.sort((a, b) => ver(b) - ver(a) || (/flash/.test(b) - /flash/.test(a)) || (/lite/.test(a) - /lite/.test(b)));
     })().catch((e) => { geminiModels.delete(key); throw e; }));
   }
   return geminiModels.get(key);
+}
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Baca alasan 429 dari Google: kuota harian, model tanpa kuota gratis, atau cukup tunggu sebentar.
+function quotaInfo(body) {
+  const text = JSON.stringify(body);
+  const retry = body?.error?.details?.find((d) => /RetryInfo/.test(d['@type']))?.retryDelay;
+  const secs = parseFloat(retry) || parseFloat((text.match(/retry in ([\d.]+)s/i) || [])[1]) || 20;
+  return { perDay: /PerDay/i.test(text), noFreeTier: /limit:\s*0\b/.test(text), wait: Math.min(65, Math.ceil(secs) + 1) };
 }
 
 // PCM 16-bit mono → WAV supaya bisa diputar & didecode browser.
@@ -169,22 +179,42 @@ function pcmToWav(bytes, rate) {
   return new Blob([header, bytes], { type: 'audio/wav' });
 }
 
-async function gemini({ key, voice, text, style }) {
-  const model = await geminiModel(key);
+async function gemini({ key, voice, text, style, onStatus = () => {} }) {
   // Arahan yang sama untuk setiap kalimat supaya nada & tempo antar-adegan tetap konsisten.
   const prompt = `${GEMINI_STYLES[style] || GEMINI_STYLES.santai}. Pertahankan karakter suara, nada, dan tempo yang sama sepanjang video:\n${text}`;
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${encodeURIComponent(key)}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        responseModalities: ['AUDIO'],
-        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } },
-      },
-    }),
+  const body = JSON.stringify({
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      responseModalities: ['AUDIO'],
+      speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } },
+    },
   });
-  if (!res.ok) throw await failure(res, 'Gemini');
+  const all = await geminiModelList(key);
+  const models = geminiWorking.has(key) ? [geminiWorking.get(key), ...all.filter((m) => m !== geminiWorking.get(key))] : all;
+  let res;
+  let lastQuota = null;
+  for (const model of models) {
+    for (let attempt = 1; attempt <= 4; attempt++) {
+      res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${encodeURIComponent(key)}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body,
+      });
+      if (res.status !== 429) break;
+      lastQuota = quotaInfo(await res.json().catch(() => ({})));
+      if (lastQuota.noFreeTier || lastQuota.perDay) break; // coba model lain
+      onStatus(`⏳ Batas per menit Gemini tercapai, menunggu ${lastQuota.wait} detik lalu lanjut…`);
+      await sleep(lastQuota.wait * 1000);
+    }
+    if (res.ok) {
+      geminiWorking.set(key, model);
+      break;
+    }
+    if (res.status !== 429) throw await failure(res, 'Gemini');
+    onStatus(`↪ ${model.replace('models/', '')} tidak punya kuota gratis tersisa, mencoba model lain…`);
+  }
+  if (!res.ok) {
+    if (lastQuota?.perDay) throw new Error('Gemini: kuota gratis HARI INI sudah habis. Coba lagi besok, atau pakai suara bawaan (Ava/Andrew) dulu.');
+    throw new Error('Gemini: kuota gratis habis untuk semua model TTS di key ini. Coba lagi nanti, atau pakai suara bawaan (Ava/Andrew).');
+  }
   const data = await res.json();
   const part = data.candidates?.[0]?.content?.parts?.find((p) => p.inlineData);
   if (!part) throw new Error('Gemini tidak mengirim audio. Coba lagi atau ganti suara.');
