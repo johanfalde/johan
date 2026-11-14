@@ -54,6 +54,12 @@ python3 -m http.server 8000
 
 ### Suara narasi pria / wanita (tab **Suara**)
 
+- **Gratis tanpa key & tanpa daftar — edge-tts:** tab Suara membuatkan perintah siap salin
+  (`pip install edge-tts` + satu baris per adegan) untuk suara **Gadis (wanita)** atau **Ardi (pria)**.
+  Jalankan di Command Prompt/Terminal komputermu (perlu Python), lalu klik **Impor file suara** dan
+  pilih `suara-01.mp3`, `suara-02.mp3`, … — suara otomatis dipasang per adegan dan subtitle disinkronkan.
+  edge-tts adalah alat open-source tidak resmi; untuk konten komersial lebih aman pakai Azure.
+
 - **Microsoft Azure AI Speech** — suara neural Indonesia paling natural: **Ardi (pria)** dan
   **Gadis (wanita)**. Paket gratis F0: 500 ribu karakter per bulan. Di portal Azure buat resource
   *Speech*, salin **Key** dan **Region** (mis. `southeastasia`).

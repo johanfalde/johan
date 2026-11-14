@@ -74,7 +74,34 @@
 
       <section class="tab-body hidden" data-tab="voice">
         <div class="ai-card">
-          <strong>Narasi suara pria / wanita</strong>
+          <strong>Gratis tanpa key: suara Gadis / Ardi via edge-tts</strong>
+          <p class="hint">1) Pasang Python di komputer. 2) Salin perintah di bawah, tempel di Command Prompt / Terminal, Enter.
+            File <code>suara-01.mp3</code>, <code>suara-02.mp3</code>, … akan dibuat. 3) Klik "Impor file suara" dan pilih semuanya.</p>
+          <div class="row2">
+            <label>Suara
+              <select id="edgeVoice">
+                <option value="id-ID-GadisNeural">Gadis — wanita</option>
+                <option value="id-ID-ArdiNeural">Ardi — pria</option>
+              </select>
+            </label>
+            <label>Kecepatan
+              <select id="edgeRate">
+                <option value="-10%">0.9x</option><option value="+0%">1x</option>
+                <option value="+10%" selected>1.1x</option><option value="+20%">1.2x</option>
+              </select>
+            </label>
+          </div>
+          <textarea id="edgeScript" rows="5" readonly spellcheck="false" class="mono"></textarea>
+          <div class="row2">
+            <button id="edgeCopy">📋 Salin perintah</button>
+            <button id="voiceFilesBtn" class="primary">📂 Impor file suara</button>
+          </div>
+          <input type="file" id="voiceFiles" accept="audio/*" multiple hidden>
+          <p class="hint">edge-tts adalah alat open-source tidak resmi yang memakai layanan baca-teks Microsoft Edge. Gratis, tapi bisa berhenti sewaktu-waktu; untuk konten komersial lebih aman pakai Azure di bawah.</p>
+        </div>
+
+        <div class="ai-card">
+          <strong>Dengan API key (Azure / Google)</strong>
           <label>Layanan
             <select id="ttsProvider">
               <option value="azure">Microsoft Azure (Ardi / Gadis)</option>

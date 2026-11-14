@@ -1392,13 +1392,14 @@ function fitMusic(end, duck) {
 }
 
 // Mode adegan (template / video dari AI): durasi adegan menyesuaikan panjang suara.
-async function voiceOverScenes() {
+async function voiceOverScenes(getMedia) {
   const scenes = state.project.scenes;
   for (let i = 0; i < scenes.length; i++) {
     const s = scenes[i];
     if (!s.narration) continue;
     vlog(`⏳ Adegan ${i + 1}/${scenes.length}: "${s.narration}"`);
-    const m = await ttsMedia(s.narration);
+    const m = await getMedia(s.narration, i);
+    if (!m) continue;
     s.base_duration ??= s.duration;
     s.voice_media = m.id;
     s.voice_dur = m.duration;
@@ -1416,20 +1417,33 @@ async function voiceOverScenes() {
 }
 
 // Mode bebas: bacakan setiap subtitle karaoke di posisinya.
-async function voiceOverSubtitles() {
+async function voiceOverSubtitles(getMedia) {
   state.project.clips = clips().filter((c) => c.role !== 'voice');
   const subs = clips().filter((c) => c.type === 'text' && c.textStyle === 'karaoke').sort((a, b) => a.start - b.start);
   if (!subs.length) throw new Error('Belum ada subtitle karaoke. Tambahkan dari tab Teks atau "Subtitle dari naskah" di tab AI.');
   for (let i = 0; i < subs.length; i++) {
     const c = subs[i];
     vlog(`⏳ Subtitle ${i + 1}/${subs.length}: "${c.text}"`);
-    const m = await ttsMedia(c.text);
+    const m = await getMedia(c.text, i);
+    if (!m) continue;
     clips().push(voiceClip(m, c.start));
     c.wordSpan = m.duration;
     c.dur = Math.max(c.dur, m.duration + 0.3);
   }
   if ($('#ttsDuck').checked) for (const c of clips()) if (c.type === 'audio' && c.role !== 'voice') c.volume = Math.min(c.volume, 0.22);
   return subs.length;
+}
+
+function hasScenes() {
+  return !!state.project.scenes?.length && clips().some((c) => c.type === 'text' && c.name === 'Subtitle');
+}
+
+const voiceOverAll = (getMedia) => (hasScenes() ? voiceOverScenes(getMedia) : voiceOverSubtitles(getMedia));
+
+// Teks narasi berurutan: per adegan, atau per subtitle karaoke.
+function narrationTexts() {
+  if (hasScenes()) return state.project.scenes.map((s) => s.narration).filter(Boolean);
+  return clips().filter((c) => c.type === 'text' && c.textStyle === 'karaoke').sort((a, b) => a.start - b.start).map((c) => c.text);
 }
 
 async function runVoice(btn, fn) {
@@ -1448,7 +1462,7 @@ async function runVoice(btn, fn) {
 
 $('#voiceAllBtn').addEventListener('click', (e) => runVoice(e.currentTarget, async () => {
   pause();
-  const n = state.project.scenes?.length ? await voiceOverScenes() : await voiceOverSubtitles();
+  const n = await voiceOverAll(ttsMedia);
   cleanupEls();
   seek(0);
   commit();
@@ -1476,6 +1490,60 @@ $('#ttsAddBtn').addEventListener('click', (e) => runVoice(e.currentTarget, async
   refreshAll();
   vlog(`✔ Suara ${m.duration.toFixed(1)} dtk ditambahkan di ${fmt(start)}.`, 'ok');
 }));
+
+
+// ---------------------------------------------------------------------
+// Gratis tanpa key: buat MP3 dengan edge-tts di komputer, lalu impor.
+// ---------------------------------------------------------------------
+function edgeTtsScript() {
+  const texts = narrationTexts();
+  if (!texts.length) return '# Belum ada subtitle/narasi. Muat template atau tambah subtitle karaoke dulu.';
+  const voice = $('#edgeVoice').value;
+  const rate = $('#edgeRate').value;
+  const lines = ['pip install edge-tts'];
+  texts.forEach((t, i) => {
+    const clean = t.replace(/["`$\\%^&|<>]/g, '').replace(/\s+/g, ' ').trim();
+    lines.push(`edge-tts --voice ${voice} --rate=${rate} --text "${clean}" --write-media suara-${String(i + 1).padStart(2, '0')}.mp3`);
+  });
+  return lines.join('\n');
+}
+
+function refreshEdgeScript() {
+  $('#edgeScript').value = edgeTtsScript();
+}
+for (const id of ['#edgeVoice', '#edgeRate']) $(id).addEventListener('change', refreshEdgeScript);
+document.querySelector('.tabs button[data-tab="voice"]').addEventListener('click', refreshEdgeScript);
+
+$('#edgeCopy').addEventListener('click', async () => {
+  refreshEdgeScript();
+  const ta = $('#edgeScript');
+  try {
+    await navigator.clipboard.writeText(ta.value);
+    vlog('✔ Perintah disalin. Tempel di Command Prompt / Terminal.', 'ok');
+  } catch {
+    ta.select();
+    vlog('Pilih semua teks di kotak lalu salin manual (Ctrl+C).');
+  }
+});
+
+$('#voiceFiles').addEventListener('change', (e) => runVoice($('#voiceFilesBtn'), async () => {
+  const files = [...e.target.files].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+  e.target.value = '';
+  if (!files.length) return;
+  pause();
+  const n = await voiceOverAll(async (text, i) => {
+    const f = files[i];
+    if (!f) return null;
+    vlog(`⏳ ${f.name} → "${text}"`);
+    return importFile(f);
+  });
+  cleanupEls();
+  seek(0);
+  commit();
+  refreshAll();
+  vlog(`✔ ${n} file suara dipasang dan subtitle disinkronkan.`, 'ok');
+}));
+$('#voiceFilesBtn').addEventListener('click', () => $('#voiceFiles').click());
 
 let recorder = null;
 $('#micBtn').addEventListener('click', async () => {

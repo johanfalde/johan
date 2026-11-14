@@ -157,3 +157,5 @@ label.check { display: flex; align-items: center; gap: 6px; }
 
 button.recording { background: var(--danger); border-color: var(--danger); color: #fff; }
 .ai-card strong { display: block; margin-bottom: 4px; }
+textarea.mono { font: 11px/1.4 ui-monospace, Consolas, monospace; white-space: pre; margin-top: 6px; }
+.row2 button { margin-top: 6px; }
