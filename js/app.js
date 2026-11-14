@@ -7,7 +7,7 @@ import {
 } from './render.js';
 import { exportMP4, mixAudio, webCodecsAvailable } from './export.js';
 import { buildSceneClips, DEMO_BISNIS_AI, LAYER, VOICE_DELAY } from './templates.js';
-import { synthesize, TTS_PROVIDERS } from './tts.js';
+import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js';
 
 // =====================================================================
 // State
@@ -1321,7 +1321,7 @@ function vlog(msg, cls = '') {
 function ttsSettings() {
   return {
     provider: $('#ttsProvider').value, key: $('#ttsKey').value.trim(), region: $('#ttsRegion').value.trim(),
-    voice: $('#ttsVoice').value, rate: +$('#ttsRate').value,
+    voice: $('#ttsVoiceId').value.trim() || $('#ttsVoice').value, rate: +$('#ttsRate').value, model: $('#ttsModel').value,
   };
 }
 
@@ -1333,12 +1333,15 @@ function renderVoiceOptions() {
   for (const [v, l] of p.voices) sel.add(new Option(l, v));
   if (p.voices.some(([v]) => v === prev)) sel.value = prev;
   $('#ttsRegionRow').classList.toggle('hidden', !p.needsRegion);
+  $('#elRow').classList.toggle('hidden', $('#ttsProvider').value !== 'elevenlabs');
   $('#ttsHint').textContent = p.hint;
 }
 
 function saveTtsSettings() {
-  const { provider, key, region, voice, rate } = ttsSettings();
-  try { localStorage.setItem(LS_TTS, JSON.stringify({ provider, key, region, voice, rate })); } catch { /* abaikan */ }
+  const { provider, key, region, rate, model } = ttsSettings();
+  const voice = $('#ttsVoice').value;
+  const voiceId = $('#ttsVoiceId').value.trim();
+  try { localStorage.setItem(LS_TTS, JSON.stringify({ provider, key, region, voice, voiceId, rate, model })); } catch { /* abaikan */ }
 }
 
 try {
@@ -1349,11 +1352,22 @@ try {
   if (saved.key) $('#ttsKey').value = saved.key;
   if (saved.region) $('#ttsRegion').value = saved.region;
   if (saved.rate) $('#ttsRate').value = String(saved.rate);
+  if (saved.model) $('#ttsModel').value = saved.model;
+  if (saved.voiceId) $('#ttsVoiceId').value = saved.voiceId;
 } catch {
   renderVoiceOptions();
 }
 $('#ttsProvider').addEventListener('change', () => { renderVoiceOptions(); saveTtsSettings(); });
-for (const id of ['#ttsKey', '#ttsRegion', '#ttsVoice', '#ttsRate']) $(id).addEventListener('change', saveTtsSettings);
+for (const id of ['#ttsKey', '#ttsRegion', '#ttsVoice', '#ttsRate', '#ttsModel', '#ttsVoiceId']) $(id).addEventListener('change', saveTtsSettings);
+
+$('#elLoad').addEventListener('click', (e) => runVoice(e.currentTarget, async () => {
+  const list = await listElevenLabsVoices($('#ttsKey').value.trim());
+  const sel = $('#ttsVoice');
+  sel.innerHTML = '';
+  for (const [v, l] of list) sel.add(new Option(l, v));
+  saveTtsSettings();
+  vlog(`✔ ${list.length} suara dimuat dari akun ElevenLabs.`, 'ok');
+}));
 
 async function ttsMedia(text) {
   const blob = await synthesize({ ...ttsSettings(), text });

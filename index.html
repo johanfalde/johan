@@ -118,15 +118,26 @@
         </div>
 
         <div class="ai-card">
-          <strong>Dengan API key (Azure / Google)</strong>
+          <strong>Suara AI paling natural (pakai API key)</strong>
           <label>Layanan
             <select id="ttsProvider">
+              <option value="elevenlabs">ElevenLabs — paling mirip manusia</option>
+              <option value="google">Google Chirp 3 HD — sangat natural</option>
               <option value="azure">Microsoft Azure (Ardi / Gadis)</option>
-              <option value="google">Google Cloud TTS</option>
             </select>
           </label>
           <label>API key <input type="password" id="ttsKey" autocomplete="off"></label>
           <label id="ttsRegionRow">Region <input id="ttsRegion" placeholder="southeastasia"></label>
+          <div id="elRow">
+            <label>Model
+              <select id="ttsModel">
+                <option value="eleven_multilingual_v2">Multilingual v2 (stabil)</option>
+                <option value="eleven_v3">Eleven v3 (paling ekspresif)</option>
+              </select>
+            </label>
+            <button id="elLoad" class="wide">⟳ Muat suara dari akun</button>
+            <label>ID suara khusus (opsional) <input id="ttsVoiceId" placeholder="tempel Voice ID dari Voice Library"></label>
+          </div>
           <div class="row2">
             <label>Suara <select id="ttsVoice"></select></label>
             <label>Kecepatan

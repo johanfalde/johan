@@ -2,9 +2,20 @@
 // Hasilnya Blob MP3 yang diperlakukan seperti audio impor biasa.
 
 export const TTS_PROVIDERS = {
+  elevenlabs: {
+    label: 'ElevenLabs',
+    hint: 'Suara AI paling ekspresif dan mirip manusia. Daftar di elevenlabs.io (ada paket gratis bulanan), buka Profile → API Keys. Untuk logat Indonesia asli: tambahkan suara Indonesia dari Voice Library ke akunmu, lalu klik "Muat suara dari akun".',
+    needsRegion: false,
+    voices: [
+      ['21m00Tcm4TlvDq8ikWAM', 'Rachel — wanita'],
+      ['EXAVITQu4vr4xnSDxMaL', 'Sarah — wanita'],
+      ['pNInz6obpgDQGcFmaJgB', 'Adam — pria'],
+      ['TX3LPaxmHKxFdv7VOQHJ', 'Liam — pria'],
+    ],
+  },
   azure: {
     label: 'Microsoft Azure AI Speech',
-    hint: 'Suara neural paling natural untuk bahasa Indonesia. Paket gratis F0: 500 ribu karakter/bulan. Buat resource "Speech" di portal Azure, lalu salin Key dan Region (mis. southeastasia).',
+    hint: 'Suara neural Indonesia yang jernih (Gadis/Ardi). Paket gratis F0: 500 ribu karakter/bulan. Buat resource "Speech" di portal Azure, lalu salin Key dan Region (mis. southeastasia).',
     needsRegion: true,
     voices: [
       ['id-ID-GadisNeural', 'Gadis — wanita'],
@@ -16,6 +27,11 @@ export const TTS_PROVIDERS = {
     hint: 'Aktifkan "Cloud Text-to-Speech API" di Google Cloud, lalu buat API key. Ada kuota gratis bulanan.',
     needsRegion: false,
     voices: [
+      ['id-ID-Chirp3-HD-Sulafat', 'Chirp3 HD Sulafat — wanita (paling natural)'],
+      ['id-ID-Chirp3-HD-Vindemiatrix', 'Chirp3 HD Vindemiatrix — wanita'],
+      ['id-ID-Chirp3-HD-Zephyr', 'Chirp3 HD Zephyr — wanita'],
+      ['id-ID-Chirp3-HD-Umbriel', 'Chirp3 HD Umbriel — pria (paling natural)'],
+      ['id-ID-Chirp3-HD-Zubenelgenubi', 'Chirp3 HD Zubenelgenubi — pria'],
       ['id-ID-Wavenet-A', 'Wavenet A — wanita'],
       ['id-ID-Wavenet-D', 'Wavenet D — wanita'],
       ['id-ID-Wavenet-B', 'Wavenet B — pria'],
@@ -59,13 +75,42 @@ async function google({ key, voice, text, rate }) {
     body: JSON.stringify({
       input: { text },
       voice: { languageCode: 'id-ID', name: voice },
-      audioConfig: { audioEncoding: 'MP3', speakingRate: rate },
+      // Chirp 3 HD mengatur tempo sendiri; speakingRate hanya untuk suara lama.
+      audioConfig: voice.includes('Chirp3') ? { audioEncoding: 'MP3' } : { audioEncoding: 'MP3', speakingRate: rate },
     }),
   });
   if (!res.ok) throw await failure(res, 'Google');
   const { audioContent } = await res.json();
   const bytes = Uint8Array.from(atob(audioContent), (c) => c.charCodeAt(0));
   return new Blob([bytes], { type: 'audio/mpeg' });
+}
+
+async function elevenlabs({ key, voice, text, model, rate }) {
+  const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voice)}?output_format=mp3_44100_128`, {
+    method: 'POST',
+    headers: { 'xi-api-key': key, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
+    body: JSON.stringify({
+      text,
+      model_id: model || 'eleven_multilingual_v2',
+      voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.25, use_speaker_boost: true, speed: Math.min(1.2, Math.max(0.7, rate)) },
+    }),
+  });
+  if (!res.ok) throw await failure(res, 'ElevenLabs');
+  return res.blob();
+}
+
+// Daftar suara di akun ElevenLabs (termasuk suara Indonesia yang ditambahkan dari Voice Library).
+export async function listElevenLabsVoices(key) {
+  if (!key) throw new Error('Isi API key ElevenLabs dulu.');
+  const res = await fetch('https://api.elevenlabs.io/v1/voices', { headers: { 'xi-api-key': key } });
+  if (!res.ok) throw await failure(res, 'ElevenLabs');
+  const { voices } = await res.json();
+  return voices.map((v) => {
+    const l = v.labels || {};
+    const gender = l.gender === 'female' ? 'wanita' : l.gender === 'male' ? 'pria' : (l.gender || '');
+    const extra = [gender, l.accent, l.language].filter(Boolean).join(', ');
+    return [v.voice_id, extra ? `${v.name} — ${extra}` : v.name];
+  });
 }
 
 // Cache supaya teks yang sama tidak dibayar dua kali.
@@ -75,9 +120,9 @@ export async function synthesize(opts) {
   if (!opts.key) throw new Error('Isi API key layanan suara dulu.');
   const text = opts.text.trim();
   if (!text) throw new Error('Teks kosong.');
-  const id = JSON.stringify([opts.provider, opts.region, opts.voice, opts.rate, text]);
+  const id = JSON.stringify([opts.provider, opts.region, opts.voice, opts.model, opts.rate, text]);
   if (!cache.has(id)) {
-    const fn = opts.provider === 'google' ? google : azure;
+    const fn = { google, elevenlabs, azure }[opts.provider] || azure;
     cache.set(id, fn({ ...opts, text }).catch((e) => { cache.delete(id); throw e; }));
   }
   return cache.get(id);

@@ -60,7 +60,12 @@ python3 -m http.server 8000
   pilih `suara-01.mp3`, `suara-02.mp3`, … — suara otomatis dipasang per adegan dan subtitle disinkronkan.
   edge-tts adalah alat open-source tidak resmi; untuk konten komersial lebih aman pakai Azure.
 
-- **Microsoft Azure AI Speech** — suara neural Indonesia paling natural: **Ardi (pria)** dan
+- **ElevenLabs** — suara AI paling ekspresif dan mirip manusia (model Multilingual v2 / Eleven v3).
+  Tombol **Muat suara dari akun** menampilkan suara di akunmu, termasuk suara berlogat Indonesia yang
+  ditambahkan dari Voice Library; bisa juga menempel Voice ID langsung.
+- **Google Chirp 3 HD** — suara generasi baru yang sangat natural: Sulafat/Vindemiatrix/Zephyr
+  (wanita), Umbriel/Zubenelgenubi (pria), plus Wavenet lama.
+- **Microsoft Azure AI Speech** — suara neural Indonesia: **Ardi (pria)** dan
   **Gadis (wanita)**. Paket gratis F0: 500 ribu karakter per bulan. Di portal Azure buat resource
   *Speech*, salin **Key** dan **Region** (mis. `southeastasia`).
 - **Google Cloud Text-to-Speech** — suara Wavenet Indonesia A/D (wanita) dan B/C (pria).
