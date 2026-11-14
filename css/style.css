@@ -159,3 +159,4 @@ button.recording { background: var(--danger); border-color: var(--danger); color
 .ai-card strong { display: block; margin-bottom: 4px; }
 textarea.mono { font: 11px/1.4 ui-monospace, Consolas, monospace; white-space: pre; margin-top: 6px; }
 .row2 button { margin-top: 6px; }
+.brand .ver { font-size: 11px; font-weight: 500; color: var(--muted); margin-left: 4px; }
