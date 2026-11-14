@@ -128,6 +128,11 @@ export function textLayout(ctx, c) {
 
 // Waktu mulai tiap kata (kata panjang dapat jatah lebih lama).
 function wordTimes(words, c) {
+  // Waktu kata hasil penyelarasan dengan suara (lihat alignWords di app.js).
+  if (c.wordTimes?.length === words.length) {
+    const last = c.wordTimes[c.wordTimes.length - 1];
+    return { span: Math.min(c.dur, c.wordSpan > last ? c.wordSpan : last + 0.5), starts: c.wordTimes };
+  }
   const span = c.wordSpan > 0 ? Math.min(c.dur, c.wordSpan) : c.dur * 0.92;
   const weights = words.map((w) => w.word.length + 2);
   const total = weights.reduce((a, b) => a + b, 0) || 1;

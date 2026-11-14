@@ -15,6 +15,7 @@ suaranya ikut tersedia di GitHub Pages.
 Catatan: edge-tts adalah alat open-source tidak resmi yang memakai layanan baca-teks Microsoft Edge.
 """
 import asyncio
+import json
 import os
 import pathlib
 import re
@@ -55,6 +56,20 @@ def templates():
     return out
 
 
+async def synth(text, voice, words_mode=True):
+    """Audio MP3 + waktu tiap kata [{"t": detik mulai, "d": durasi, "w": kata}]."""
+    boundary = "WordBoundary" if words_mode else "SentenceBoundary"
+    comm = edge_tts.Communicate(text, voice, rate=RATE, proxy=PROXY, boundary=boundary)
+    audio = bytearray()
+    words = []
+    async for chunk in comm.stream():
+        if chunk["type"] == "audio":
+            audio += chunk["data"]
+        elif chunk["type"] == "WordBoundary":
+            words.append({"t": round(chunk["offset"] / 1e7, 3), "d": round(chunk["duration"] / 1e7, 3), "w": chunk["text"]})
+    return bytes(audio), words
+
+
 async def main():
     only = sys.argv[sys.argv.index("--template") + 1].lower() if "--template" in sys.argv else None
     for tpl, base, texts in templates():
@@ -65,14 +80,21 @@ async def main():
         out.mkdir(parents=True, exist_ok=True)
         for i, text in enumerate(texts, 1):
             path = out / f"{i:02d}.mp3"
-            if path.exists() and path.stat().st_size > MIN_BYTES and "--ulang" not in sys.argv:
+            done = path.exists() and path.stat().st_size > MIN_BYTES and (path.with_suffix(".json").exists() or "--tanpa-waktu" in sys.argv)
+            if done and "--ulang" not in sys.argv:
                 continue  # sudah ada; pakai --ulang untuk membuat ulang semua
             print(f"[{tpl} · {folder}] {path.name}: {text}")
             for attempt in range(1, 4):
                 try:
-                    await edge_tts.Communicate(text, voice, rate=RATE, proxy=PROXY).save(str(path))
-                    if path.stat().st_size <= MIN_BYTES:  # audio terpotong dari server
+                    # Percobaan terakhir tanpa data waktu kata (beberapa suara kadang menolaknya);
+                    # aplikasi lalu menyelaraskan subtitle dari gelombang suaranya.
+                    audio, words = await synth(text, voice, words_mode=attempt < 3)
+                    if len(audio) <= MIN_BYTES:  # audio terpotong dari server
                         raise edge_tts.exceptions.NoAudioReceived("audio terlalu pendek")
+                    path.write_bytes(audio)
+                    # Waktu tiap kata, dipakai aplikasi agar sorotan subtitle pas dengan suara.
+                    if words:
+                        path.with_suffix(".json").write_text(json.dumps(words, ensure_ascii=False), encoding="utf-8")
                     break
                 except edge_tts.exceptions.NoAudioReceived:
                     if attempt == 3:

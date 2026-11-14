@@ -119,7 +119,10 @@ export function buildSceneClips(scenes, base, { W, H, start = 0, withBackground 
     if (s.narration) {
       // Dengan voice-over, subtitle karaoke mengikuti panjang suara.
       const timing = s.voice_dur
-        ? { start: T + VOICE_DELAY, dur: Math.min(D - VOICE_DELAY, s.voice_dur + 0.5), fadeOut: 0.25, wordSpan: s.voice_dur }
+        ? {
+          start: T + VOICE_DELAY, dur: Math.min(D - VOICE_DELAY, s.voice_dur + 0.5), fadeOut: 0.25,
+          wordSpan: s.word_end || s.voice_dur, wordTimes: s.word_times || null,
+        }
         : end(0.2);
       out.push(text({
         name: 'Subtitle', text: s.narration, track: LAYER.narration, ...timing, size: 54 * k, weight: 900,

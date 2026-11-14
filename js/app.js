@@ -1,13 +1,13 @@
 import {
   askJSON, SCRIPT_SCHEMA, SCRIPT_SYSTEM, scriptPrompt, SUBTITLE_SCHEMA, subtitlePrompt, OPS_SCHEMA, AGENT_SYSTEM,
-} from './ai.js?v=1.17';
+} from './ai.js?v=1.18';
 import {
   clamp, renderFrame, framePlan, evalProps, localSize, srcTime, fadeLocal, loadFonts, KF_KEYS,
   FONT_OPTIONS, TRANSITIONS, MOTIONS, TEXT_ANIMS,
-} from './render.js?v=1.17';
-import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.17';
-import { buildSceneClips, DEMO_BISNIS_AI, DEMO_CUANKI, LAYER, VOICE_DELAY } from './templates.js?v=1.17';
-import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.17';
+} from './render.js?v=1.18';
+import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.18';
+import { buildSceneClips, DEMO_BISNIS_AI, DEMO_CUANKI, LAYER, VOICE_DELAY } from './templates.js?v=1.18';
+import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.18';
 
 // =====================================================================
 // State
@@ -1385,6 +1385,8 @@ function clearNarration() {
     if (s.base_duration) s.duration = s.base_duration;
     delete s.voice_media;
     delete s.voice_dur;
+    delete s.word_times;
+    delete s.word_end;
   }
   const end = applyScenes(scenes);
   fitMusic(end, false);
@@ -1446,7 +1448,12 @@ async function loadTemplateVoice(tpl, voice) {
   // suara.txt (opsional) menyebut suara aslinya, mis. "Gemini Aoede (santai)".
   const who = await fetch(`${dir}/suara.txt`).then((r) => (r.ok ? r.text() : '')).catch(() => '');
   const label = who.trim() || $('#tplVoice').selectedOptions[0].textContent;
-  const n = await voiceOverScenes((text, i) => loadMediaFromUrl(url(i), `${label} · ${String(i + 1).padStart(2, '0')}.${ext}`).catch(() => null));
+  const n = await voiceOverScenes(async (text, i) => {
+    const m = await loadMediaFromUrl(url(i), `${label} · ${String(i + 1).padStart(2, '0')}.${ext}`).catch(() => null);
+    // Waktu tiap kata dari layanan suara (dibuat buat_suara.py), bila tersedia.
+    if (m) m.words = await fetch(url(i).replace(/\.\w+$/, '.json')).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+    return m;
+  });
   $('#tplVoiceInfo').textContent = `✔ ${n} narasi ${label} dipasang.`;
 }
 
@@ -1666,6 +1673,9 @@ async function voiceOverScenes(getMedia) {
     s.base_duration ??= s.duration;
     s.voice_media = m.id;
     s.voice_dur = m.duration;
+    const timing = await alignWords(s.narration, m);
+    s.word_times = timing.starts;
+    s.word_end = timing.end;
     s.duration = Math.max(s.base_duration, m.duration + VOICE_DELAY + 0.7);
   }
   const end = applyScenes(scenes);
@@ -1690,7 +1700,9 @@ async function voiceOverSubtitles(getMedia) {
     const m = await getMedia(c.text, i);
     if (!m) continue;
     clips().push(voiceClip(m, c.start));
-    c.wordSpan = m.duration;
+    const timing = await alignWords(c.text, m);
+    c.wordTimes = timing.starts;
+    c.wordSpan = timing.end;
     c.dur = Math.max(c.dur, m.duration + 0.3);
   }
   if ($('#ttsDuck').checked) for (const c of clips()) if (c.type === 'audio' && c.role !== 'voice') c.volume = Math.min(c.volume, 0.22);
@@ -1707,6 +1719,105 @@ const voiceOverAll = (getMedia) => (hasScenes() ? voiceOverScenes(getMedia) : vo
 function narrationTexts() {
   if (hasScenes()) return state.project.scenes.map((s) => s.narration).filter(Boolean);
   return clips().filter((c) => c.type === 'text' && c.textStyle === 'karaoke').sort((a, b) => a.start - b.start).map((c) => c.text);
+}
+
+// ---------------------------------------------------------------------
+// Penyelarasan subtitle karaoke dengan suara.
+// 1) Pakai waktu kata dari layanan suara (edge-tts) bila ada.
+// 2) Kalau tidak ada: analisis gelombang suara — cari awal bicara, jeda (di koma/titik), dan akhir.
+// Hasil: { starts: [detik mulai tiap kata], end: detik akhir bicara }.
+// ---------------------------------------------------------------------
+const normWord = (w) => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+
+function mapBoundaries(text, bounds) {
+  const disp = text.split(/\s+/).filter(Boolean);
+  const b = bounds.filter((x) => normWord(x.w));
+  if (!b.length) return null;
+  const starts = [];
+  let j = 0;
+  for (const w of disp) {
+    const target = normWord(w);
+    if (j >= b.length) {
+      starts.push((starts[starts.length - 1] ?? 0) + 0.25);
+      continue;
+    }
+    starts.push(b[j].t);
+    let acc = normWord(b[j].w);
+    j++;
+    // Satu kata tampilan bisa terdiri dari beberapa token suara (mis. "frozen-nya").
+    while (j < b.length && acc.length < target.length && target.startsWith(acc + normWord(b[j].w))) {
+      acc += normWord(b[j].w);
+      j++;
+    }
+  }
+  const last = b[b.length - 1];
+  return { starts, end: last.t + last.d };
+}
+
+async function speechEnvelope(m) {
+  const data = await (m.blob ? m.blob.arrayBuffer() : fetch(m.url).then((r) => r.arrayBuffer()));
+  const buf = await new OfflineAudioContext(1, 1, 16000).decodeAudioData(data);
+  const ch = buf.getChannelData(0);
+  const hop = Math.round(buf.sampleRate * 0.01); // 10 ms
+  const rms = [];
+  for (let i = 0; i + hop <= ch.length; i += hop) {
+    let sum = 0;
+    for (let k = i; k < i + hop; k++) sum += ch[k] * ch[k];
+    rms.push(Math.sqrt(sum / hop));
+  }
+  return rms;
+}
+
+async function analyzeSpeech(text, m) {
+  const words = text.split(/\s+/).filter(Boolean);
+  const rms = await speechEnvelope(m);
+  const peak = Math.max(...rms, 1e-6);
+  const loud = rms.map((v) => v > peak * 0.08);
+  const first = loud.indexOf(true);
+  const lastIdx = loud.lastIndexOf(true);
+  if (first < 0) return null;
+  // Jeda = diam minimal 120 ms di tengah kalimat.
+  const pauses = [];
+  for (let i = first, run = 0; i <= lastIdx; i++) {
+    if (!loud[i]) run++;
+    else {
+      if (run >= 12) pauses.push({ from: (i - run) / 100, to: i / 100, len: run });
+      run = 0;
+    }
+  }
+  // Kelompok kata per frasa (dipisah tanda baca); jeda terpanjang dipakai sebagai batas frasa.
+  const phrases = [[]];
+  words.forEach((w, i) => {
+    phrases[phrases.length - 1].push(w);
+    if (/[,.;:!?]$/.test(w) && i < words.length - 1) phrases.push([]);
+  });
+  const cuts = pauses.length >= phrases.length - 1
+    ? pauses.sort((a, b) => b.len - a.len).slice(0, phrases.length - 1).sort((a, b) => a.from - b.from)
+    : [];
+  const segs = cuts.length === phrases.length - 1
+    ? phrases.map((p, i) => ({ words: p, from: i ? cuts[i - 1].to : first / 100, to: i < cuts.length ? cuts[i].from : (lastIdx + 1) / 100 }))
+    : [{ words, from: first / 100, to: (lastIdx + 1) / 100 }];
+  const starts = [];
+  for (const seg of segs) {
+    const weights = seg.words.map((w) => normWord(w).length + 1);
+    const total = weights.reduce((a, b) => a + b, 0) || 1;
+    let acc = 0;
+    for (const wt of weights) {
+      starts.push(seg.from + (acc / total) * (seg.to - seg.from));
+      acc += wt;
+    }
+  }
+  return { starts, end: (lastIdx + 1) / 100 };
+}
+
+async function alignWords(text, m) {
+  const fromVoice = m.words && mapBoundaries(text, m.words);
+  if (fromVoice) return fromVoice;
+  try {
+    const res = await analyzeSpeech(text, m);
+    if (res) return res;
+  } catch { /* format audio tak terbaca: pakai perkiraan biasa */ }
+  return { starts: null, end: m.duration };
 }
 
 async function runVoice(btn, fn) {
@@ -1747,7 +1858,8 @@ $('#ttsAddBtn').addEventListener('click', (e) => runVoice(e.currentTarget, async
   const start = state.time;
   clips().push(voiceClip(m, start));
   if ($('#ttsAddSub').checked) {
-    clips().push(makeTextClip(text, { preset: 'subtitle', start, dur: m.duration + 0.3, props: { wordSpan: m.duration } }));
+    const timing = await alignWords(text, m);
+    clips().push(makeTextClip(text, { preset: 'subtitle', start, dur: m.duration + 0.3, props: { wordSpan: timing.end, wordTimes: timing.starts } }));
   }
   commit();
   refreshAll();
