@@ -77,6 +77,11 @@ di samping logo KanvasCut.
   pilih `suara-01.mp3`, `suara-02.mp3`, … — suara otomatis dipasang per adegan dan subtitle disinkronkan.
   edge-tts adalah alat open-source tidak resmi; untuk konten komersial lebih aman pakai Azure.
 
+- **Google Gemini TTS (disarankan)** — suara AI generasi terbaru yang intonasinya paling mirip manusia,
+  dengan pilihan gaya bicara (santai, semangat jualan, profesional, bercerita). Key **gratis** dari
+  aistudio.google.com (login Google → *Get API key*, tanpa kartu kredit; ada batas harian). Model TTS
+  terbaru dipilih otomatis dari akunmu. Suara: Kore, Aoede, Leda, Zephyr (wanita); Puck, Charon,
+  Fenrir, Orus (pria).
 - **ElevenLabs** — suara AI paling ekspresif dan mirip manusia (model Multilingual v2 / Eleven v3).
   Tombol **Muat suara dari akun** menampilkan suara di akunmu, termasuk suara berlogat Indonesia yang
   ditambahkan dari Voice Library; bisa juga menempel Voice ID langsung.

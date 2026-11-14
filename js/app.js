@@ -1,13 +1,13 @@
 import {
   askJSON, SCRIPT_SCHEMA, SCRIPT_SYSTEM, scriptPrompt, SUBTITLE_SCHEMA, subtitlePrompt, OPS_SCHEMA, AGENT_SYSTEM,
-} from './ai.js?v=1.8';
+} from './ai.js?v=1.9';
 import {
   clamp, renderFrame, framePlan, evalProps, localSize, srcTime, fadeLocal, loadFonts, KF_KEYS,
   FONT_OPTIONS, TRANSITIONS, MOTIONS, TEXT_ANIMS,
-} from './render.js?v=1.8';
-import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.8';
-import { buildSceneClips, DEMO_BISNIS_AI, LAYER, VOICE_DELAY } from './templates.js?v=1.8';
-import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.8';
+} from './render.js?v=1.9';
+import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.9';
+import { buildSceneClips, DEMO_BISNIS_AI, LAYER, VOICE_DELAY } from './templates.js?v=1.9';
+import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.9';
 
 // =====================================================================
 // State
@@ -1336,7 +1336,7 @@ function vlog(msg, cls = '') {
 function ttsSettings() {
   return {
     provider: $('#ttsProvider').value, key: $('#ttsKey').value.trim(), region: $('#ttsRegion').value.trim(),
-    voice: $('#ttsVoiceId').value.trim() || $('#ttsVoice').value, rate: +$('#ttsRate').value, model: $('#ttsModel').value,
+    voice: $('#ttsVoiceId').value.trim() || $('#ttsVoice').value, rate: +$('#ttsRate').value, model: $('#ttsModel').value, style: $('#ttsStyle').value,
   };
 }
 
@@ -1349,14 +1349,15 @@ function renderVoiceOptions() {
   if (p.voices.some(([v]) => v === prev)) sel.value = prev;
   $('#ttsRegionRow').classList.toggle('hidden', !p.needsRegion);
   $('#elRow').classList.toggle('hidden', $('#ttsProvider').value !== 'elevenlabs');
+  $('#geminiRow').classList.toggle('hidden', $('#ttsProvider').value !== 'gemini');
   $('#ttsHint').textContent = p.hint;
 }
 
 function saveTtsSettings() {
-  const { provider, key, region, rate, model } = ttsSettings();
+  const { provider, key, region, rate, model, style } = ttsSettings();
   const voice = $('#ttsVoice').value;
   const voiceId = $('#ttsVoiceId').value.trim();
-  try { localStorage.setItem(LS_TTS, JSON.stringify({ provider, key, region, voice, voiceId, rate, model })); } catch { /* abaikan */ }
+  try { localStorage.setItem(LS_TTS, JSON.stringify({ provider, key, region, voice, voiceId, rate, model, style })); } catch { /* abaikan */ }
 }
 
 try {
@@ -1368,12 +1369,13 @@ try {
   if (saved.region) $('#ttsRegion').value = saved.region;
   if (saved.rate) $('#ttsRate').value = String(saved.rate);
   if (saved.model) $('#ttsModel').value = saved.model;
+  if (saved.style) $('#ttsStyle').value = saved.style;
   if (saved.voiceId) $('#ttsVoiceId').value = saved.voiceId;
 } catch {
   renderVoiceOptions();
 }
 $('#ttsProvider').addEventListener('change', () => { renderVoiceOptions(); saveTtsSettings(); });
-for (const id of ['#ttsKey', '#ttsRegion', '#ttsVoice', '#ttsRate', '#ttsModel', '#ttsVoiceId']) $(id).addEventListener('change', saveTtsSettings);
+for (const id of ['#ttsKey', '#ttsRegion', '#ttsVoice', '#ttsRate', '#ttsModel', '#ttsVoiceId', '#ttsStyle']) $(id).addEventListener('change', saveTtsSettings);
 
 $('#elLoad').addEventListener('click', (e) => runVoice(e.currentTarget, async () => {
   const list = await listElevenLabsVoices($('#ttsKey').value.trim());

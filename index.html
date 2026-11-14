@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>KanvasCut — Editor Video HTML Canvas + AI</title>
-  <link rel="stylesheet" href="css/style.css?v=1.8">
+  <link rel="stylesheet" href="css/style.css?v=1.9">
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">▶ KanvasCut <span class="ver" title="Versi aplikasi">v1.8</span></div>
+    <div class="brand">▶ KanvasCut <span class="ver" title="Versi aplikasi">v1.9</span></div>
     <div class="top-actions">
       <label class="inline">Rasio
         <select id="ratioSelect">
@@ -136,13 +136,24 @@
           <strong>Suara AI paling natural (pakai API key)</strong>
           <label>Layanan
             <select id="ttsProvider">
-              <option value="elevenlabs">ElevenLabs — paling mirip manusia</option>
+              <option value="gemini">Google Gemini TTS — paling natural, key gratis</option>
+              <option value="elevenlabs">ElevenLabs — sangat natural (berbayar/kuota gratis)</option>
               <option value="google">Google Chirp 3 HD — sangat natural</option>
               <option value="azure">Microsoft Azure (Ardi / Gadis)</option>
             </select>
           </label>
           <label>API key <input type="password" id="ttsKey" autocomplete="off"></label>
           <label id="ttsRegionRow">Region <input id="ttsRegion" placeholder="southeastasia"></label>
+          <div id="geminiRow">
+            <label>Gaya bicara
+              <select id="ttsStyle">
+                <option value="santai">Santai &amp; antusias (konten)</option>
+                <option value="jualan">Semangat jualan</option>
+                <option value="profesional">Profesional / berita</option>
+                <option value="cerita">Bercerita lembut</option>
+              </select>
+            </label>
+          </div>
           <div id="elRow">
             <label>Model
               <select id="ttsModel">
@@ -294,6 +305,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=1.8"></script>
+  <script type="module" src="js/app.js?v=1.9"></script>
 </body>
 </html>

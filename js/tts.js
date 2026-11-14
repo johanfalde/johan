@@ -2,6 +2,21 @@
 // Hasilnya Blob MP3 yang diperlakukan seperti audio impor biasa.
 
 export const TTS_PROVIDERS = {
+  gemini: {
+    label: 'Google Gemini TTS',
+    hint: 'Suara AI generasi terbaru, intonasi seperti manusia dan gaya bicara bisa diatur. Key GRATIS: buka aistudio.google.com, login akun Google, klik "Get API key" → "Create API key". Tanpa kartu kredit (ada batas pemakaian harian).',
+    needsRegion: false,
+    voices: [
+      ['Kore', 'Kore — wanita, tegas'],
+      ['Aoede', 'Aoede — wanita, ringan'],
+      ['Leda', 'Leda — wanita, muda'],
+      ['Zephyr', 'Zephyr — wanita, cerah'],
+      ['Puck', 'Puck — pria, ceria'],
+      ['Charon', 'Charon — pria, informatif'],
+      ['Fenrir', 'Fenrir — pria, bersemangat'],
+      ['Orus', 'Orus — pria, mantap'],
+    ],
+  },
   elevenlabs: {
     label: 'ElevenLabs',
     hint: 'Suara AI paling ekspresif dan mirip manusia. Daftar di elevenlabs.io (ada paket gratis bulanan), buka Profile → API Keys. Untuk logat Indonesia asli: tambahkan suara Indonesia dari Voice Library ke akunmu, lalu klik "Muat suara dari akun".',
@@ -113,6 +128,72 @@ export async function listElevenLabsVoices(key) {
   });
 }
 
+// ---------------------------------------------------------------------
+// Gemini TTS: model dicari otomatis dari akun (nama model sering berganti).
+// ---------------------------------------------------------------------
+export const GEMINI_STYLES = {
+  santai: 'Bacakan dalam bahasa Indonesia dengan gaya santai, hangat, dan antusias seperti kreator konten TikTok',
+  jualan: 'Bacakan dalam bahasa Indonesia dengan gaya semangat dan meyakinkan seperti host live jualan',
+  profesional: 'Bacakan dalam bahasa Indonesia dengan gaya profesional, tenang, dan jelas seperti presenter berita',
+  cerita: 'Bacakan dalam bahasa Indonesia dengan gaya bercerita yang lembut dan ekspresif',
+};
+
+const geminiModels = new Map();
+
+async function geminiModel(key) {
+  if (!geminiModels.has(key)) {
+    geminiModels.set(key, (async () => {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000&key=${encodeURIComponent(key)}`);
+      if (!res.ok) throw await failure(res, 'Gemini');
+      const { models = [] } = await res.json();
+      const tts = models.map((m) => m.name).filter((n) => /tts/i.test(n));
+      if (!tts.length) throw new Error('Gemini: tidak ada model TTS untuk key ini.');
+      // Pilih versi terbaru; utamakan "flash" (cepat & kuota gratis lebih longgar) daripada "pro".
+      const ver = (n) => parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/) || [0, 0])[1]);
+      tts.sort((a, b) => ver(b) - ver(a) || (/flash/.test(b) - /flash/.test(a)) || (/lite/.test(a) - /lite/.test(b)));
+      return tts[0];
+    })().catch((e) => { geminiModels.delete(key); throw e; }));
+  }
+  return geminiModels.get(key);
+}
+
+// PCM 16-bit mono → WAV supaya bisa diputar & didecode browser.
+function pcmToWav(bytes, rate) {
+  const header = new ArrayBuffer(44);
+  const v = new DataView(header);
+  const str = (o, t) => [...t].forEach((ch, i) => v.setUint8(o + i, ch.charCodeAt(0)));
+  str(0, 'RIFF'); v.setUint32(4, 36 + bytes.length, true); str(8, 'WAVE');
+  str(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  str(36, 'data'); v.setUint32(40, bytes.length, true);
+  return new Blob([header, bytes], { type: 'audio/wav' });
+}
+
+async function gemini({ key, voice, text, style }) {
+  const model = await geminiModel(key);
+  const prompt = `${GEMINI_STYLES[style] || GEMINI_STYLES.santai}:\n${text}`;
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${encodeURIComponent(key)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseModalities: ['AUDIO'],
+        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } },
+      },
+    }),
+  });
+  if (!res.ok) throw await failure(res, 'Gemini');
+  const data = await res.json();
+  const part = data.candidates?.[0]?.content?.parts?.find((p) => p.inlineData);
+  if (!part) throw new Error('Gemini tidak mengirim audio. Coba lagi atau ganti suara.');
+  const { mimeType = '', data: b64 } = part.inlineData;
+  const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  if (/wav|mpeg|mp3/i.test(mimeType)) return new Blob([bytes], { type: mimeType });
+  const rate = +(mimeType.match(/rate=(\d+)/) || [0, 24000])[1];
+  return pcmToWav(bytes, rate);
+}
+
 // Cache supaya teks yang sama tidak dibayar dua kali.
 const cache = new Map();
 
@@ -120,9 +201,9 @@ export async function synthesize(opts) {
   if (!opts.key) throw new Error('Isi API key layanan suara dulu.');
   const text = opts.text.trim();
   if (!text) throw new Error('Teks kosong.');
-  const id = JSON.stringify([opts.provider, opts.region, opts.voice, opts.model, opts.rate, text]);
+  const id = JSON.stringify([opts.provider, opts.region, opts.voice, opts.model, opts.style, opts.rate, text]);
   if (!cache.has(id)) {
-    const fn = { google, elevenlabs, azure }[opts.provider] || azure;
+    const fn = { gemini, google, elevenlabs, azure }[opts.provider] || azure;
     cache.set(id, fn({ ...opts, text }).catch((e) => { cache.delete(id); throw e; }));
   }
   return cache.get(id);
