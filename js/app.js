@@ -1576,7 +1576,9 @@ const LS_BV = 'kanvascut.browserVoice';
 
 function idVoices() {
   const rank = (v) => (/natural|online/i.test(v.name) ? 0 : /google/i.test(v.name) ? 1 : 2);
-  return (synth ? synth.getVoices() : []).filter((v) => /^id/i.test(v.lang)).sort((a, b) => rank(a) - rank(b));
+  // Android memakai kode lama "in-ID"/"in_ID" untuk bahasa Indonesia.
+  const isIndo = (v) => /^(id|in)([-_]|$)/i.test(v.lang) || /indonesia|bahasa/i.test(v.name);
+  return (synth ? synth.getVoices() : []).filter(isIndo).sort((a, b) => rank(a) - rank(b));
 }
 
 function browserVoiceOn() {
