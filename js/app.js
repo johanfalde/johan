@@ -1,13 +1,13 @@
 import {
   askJSON, SCRIPT_SCHEMA, SCRIPT_SYSTEM, scriptPrompt, SUBTITLE_SCHEMA, subtitlePrompt, OPS_SCHEMA, AGENT_SYSTEM,
-} from './ai.js?v=1.7';
+} from './ai.js?v=1.8';
 import {
   clamp, renderFrame, framePlan, evalProps, localSize, srcTime, fadeLocal, loadFonts, KF_KEYS,
   FONT_OPTIONS, TRANSITIONS, MOTIONS, TEXT_ANIMS,
-} from './render.js?v=1.7';
-import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.7';
-import { buildSceneClips, DEMO_BISNIS_AI, LAYER, VOICE_DELAY } from './templates.js?v=1.7';
-import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.7';
+} from './render.js?v=1.8';
+import { exportMP4, mixAudio, webCodecsAvailable } from './export.js?v=1.8';
+import { buildSceneClips, DEMO_BISNIS_AI, LAYER, VOICE_DELAY } from './templates.js?v=1.8';
+import { synthesize, TTS_PROVIDERS, listElevenLabsVoices } from './tts.js?v=1.8';
 
 // =====================================================================
 // State
@@ -1314,7 +1314,7 @@ async function loadTemplateVoice(tpl, voice) {
     return;
   }
   const n = await voiceOverScenes((text, i) => loadMediaFromUrl(url(i), `${voice}-${String(i + 1).padStart(2, '0')}.mp3`).catch(() => null));
-  $('#tplVoiceInfo').textContent = `✔ ${n} narasi ${voice === 'wanita' ? 'Gadis (wanita)' : 'Ardi (pria)'} dipasang.`;
+  $('#tplVoiceInfo').textContent = `✔ ${n} narasi ${$('#tplVoice').selectedOptions[0].textContent} dipasang.`;
 }
 
 $('#tplBisnis').addEventListener('click', () => loadTemplate(DEMO_BISNIS_AI).catch((e) => alert(e.message)));

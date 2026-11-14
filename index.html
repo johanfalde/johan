@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>KanvasCut — Editor Video HTML Canvas + AI</title>
-  <link rel="stylesheet" href="css/style.css?v=1.7">
+  <link rel="stylesheet" href="css/style.css?v=1.8">
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">▶ KanvasCut <span class="ver" title="Versi aplikasi">v1.7</span></div>
+    <div class="brand">▶ KanvasCut <span class="ver" title="Versi aplikasi">v1.8</span></div>
     <div class="top-actions">
       <label class="inline">Rasio
         <select id="ratioSelect">
@@ -40,7 +40,9 @@
         <label>Narasi template
           <select id="tplVoice">
             <option value="">Tanpa suara</option>
-            <option value="wanita" selected>Wanita — Gadis</option>
+            <option value="wanita-ava" selected>Wanita — Ava (ekspresif)</option>
+            <option value="wanita">Wanita — Gadis</option>
+            <option value="pria-andrew">Pria — Andrew (ekspresif)</option>
             <option value="pria">Pria — Ardi</option>
           </select>
         </label>
@@ -105,14 +107,18 @@
           <div class="row2">
             <label>Suara
               <select id="edgeVoice">
+                <option value="en-US-AvaMultilingualNeural">Ava — wanita (ekspresif)</option>
+                <option value="en-US-EmmaMultilingualNeural">Emma — wanita (ceria)</option>
                 <option value="id-ID-GadisNeural">Gadis — wanita</option>
+                <option value="en-US-AndrewMultilingualNeural">Andrew — pria (hangat)</option>
+                <option value="en-US-BrianMultilingualNeural">Brian — pria (santai)</option>
                 <option value="id-ID-ArdiNeural">Ardi — pria</option>
               </select>
             </label>
             <label>Kecepatan
               <select id="edgeRate">
-                <option value="-10%">0.9x</option><option value="+0%">1x</option>
-                <option value="+10%" selected>1.1x</option><option value="+20%">1.2x</option>
+                <option value="-10%">0.9x</option><option value="+0%" selected>1x</option>
+                <option value="+10%">1.1x</option><option value="+20%">1.2x</option>
               </select>
             </label>
           </div>
@@ -288,6 +294,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=1.7"></script>
+  <script type="module" src="js/app.js?v=1.8"></script>
 </body>
 </html>

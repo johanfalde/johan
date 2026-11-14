@@ -121,42 +121,45 @@ export function buildSceneClips(scenes, base, { W, H, start = 0, withBackground 
 export const DEMO_BISNIS_AI = {
   title: 'Bisnis dengan AI',
   music: 'examples/assets/musik-bisnis.mp3',
-  voices: { wanita: 'examples/assets/suara/wanita', pria: 'examples/assets/suara/pria' },
+  voices: {
+    wanita: 'examples/assets/suara/wanita', 'wanita-ava': 'examples/assets/suara/wanita-ava',
+    pria: 'examples/assets/suara/pria', 'pria-andrew': 'examples/assets/suara/pria-andrew',
+  },
   scenes: [
     {
       kicker: 'Bisnis 2026', emoji: '🤖', headline: 'Bisnis kamu masih manual?',
       body: 'Saatnya AI jadi asisten yang kerja 24 jam tanpa lelah.',
-      narration: 'Ini 3 cara pakai AI biar bisnismu naik level',
+      narration: 'Ini tiga cara pakai AI, biar bisnismu naik level!',
       duration: 4.2, bg_from: '#0f172a', bg_to: '#1d4ed8', accent: '#facc15', transition: 'none',
     },
     {
       kicker: 'Cara #1', emoji: '💬', headline: 'Admin chat 24/7',
       body: 'Chatbot AI membalas pertanyaan pelanggan dalam hitungan detik, bahkan saat kamu tidur.',
-      narration: 'Pelanggan dibalas cepat closing makin banyak',
+      narration: 'Pelanggan dibalas cepat, closing pun makin banyak.',
       duration: 4.4, bg_from: '#042f2e', bg_to: '#0f766e', accent: '#5eead4', transition: 'zoom',
     },
     {
       kicker: 'Cara #2', emoji: '🎬', headline: 'Konten jalan otomatis',
       body: 'AI menulis naskah, caption, sampai subtitle. Kamu tinggal posting.',
-      narration: 'Satu ide jadi puluhan konten',
+      narration: 'Satu ide, bisa jadi puluhan konten.',
       duration: 4.4, bg_from: '#2e1065', bg_to: '#7c3aed', accent: '#f0abfc', transition: 'slide-up',
     },
     {
       kicker: 'Cara #3', emoji: '📊', headline: 'Baca data penjualan',
       body: 'AI merangkum laporan dan memberi saran stok serta promo yang paling laku.',
-      narration: 'Keputusan pakai data bukan tebakan',
+      narration: 'Keputusan pakai data, bukan tebakan.',
       duration: 4.4, bg_from: '#431407', bg_to: '#ea580c', accent: '#fde68a', transition: 'circle',
     },
     {
       kicker: 'Mulai sekarang', emoji: '🚀', headline: 'Mulai dari yang kecil',
       body: 'Pilih satu pekerjaan yang paling menyita waktu, lalu otomatiskan dengan AI.',
-      narration: 'Langkah kecil hari ini hasil besar besok',
+      narration: 'Langkah kecil hari ini, hasil besar besok.',
       duration: 4.4, bg_from: '#0c1427', bg_to: '#0369a1', accent: '#38bdf8', transition: 'whip',
     },
     {
       kicker: 'Bagikan', emoji: '👉', headline: 'Follow untuk tips bisnis AI',
       body: 'Simpan video ini dan kirim ke teman yang punya usaha.',
-      narration: 'Follow dan simpan biar nggak lupa',
+      narration: 'Follow dan simpan, biar nggak lupa ya!',
       duration: 4.2, bg_from: '#1e1b4b', bg_to: '#be123c', accent: '#fb7185', transition: 'wipe',
     },
   ],

@@ -1,10 +1,11 @@
 """Buat narasi permanen (MP3) untuk template KanvasCut dengan suara natural Indonesia.
 
-Suara: Gadis (wanita) dan Ardi (pria) lewat edge-tts — gratis, tanpa API key, tanpa daftar.
+Suara: Gadis & Ava (wanita), Ardi & Andrew (pria) lewat edge-tts — gratis, tanpa API key, tanpa daftar.
 Jalankan sekali di folder proyek (perlu internet):
 
     pip install edge-tts
-    python buat_suara.py
+    python buat_suara.py          (hanya membuat file yang belum ada)
+    python buat_suara.py --ulang  (buat ulang semua, mis. setelah teks narasi diubah)
 
 Hasil: examples/assets/suara/wanita/01.mp3 … dan examples/assets/suara/pria/01.mp3 …
 Di aplikasi, pilih "Narasi template" lalu muat template. Commit & push folder itu kalau ingin
@@ -24,8 +25,15 @@ except ImportError:
     sys.exit("edge-tts belum terpasang. Jalankan dulu:  pip install edge-tts")
 
 ROOT = pathlib.Path(__file__).resolve().parent
-VOICES = {"wanita": "id-ID-GadisNeural", "pria": "id-ID-ArdiNeural"}
-RATE = "+10%"
+# Folder -> suara. Gadis/Ardi = suara Indonesia asli; Ava/Andrew = suara Multilingual generasi baru
+# (lebih ekspresif dan mengalir, otomatis berbahasa Indonesia mengikuti teks).
+VOICES = {
+    "wanita": "id-ID-GadisNeural",
+    "wanita-ava": "en-US-AvaMultilingualNeural",
+    "pria": "id-ID-ArdiNeural",
+    "pria-andrew": "en-US-AndrewMultilingualNeural",
+}
+RATE = "+0%"
 # Ikuti proxy sistem bila ada (mis. jaringan kantor).
 PROXY = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy") or None
 
@@ -46,8 +54,18 @@ async def main():
         out.mkdir(parents=True, exist_ok=True)
         for i, text in enumerate(texts, 1):
             path = out / f"{i:02d}.mp3"
+            if path.exists() and path.stat().st_size > 0 and "--ulang" not in sys.argv:
+                continue  # sudah ada; pakai --ulang untuk membuat ulang semua
             print(f"[{folder}] {path.name}: {text}")
-            await edge_tts.Communicate(text, voice, rate=RATE, proxy=PROXY).save(str(path))
+            for attempt in range(1, 4):
+                try:
+                    await edge_tts.Communicate(text, voice, rate=RATE, proxy=PROXY).save(str(path))
+                    break
+                except edge_tts.exceptions.NoAudioReceived:
+                    if attempt == 3:
+                        raise
+                    print("  server tidak mengirim audio, coba lagi...")
+                    await asyncio.sleep(2 * attempt)
     print(f"\nSelesai: {len(texts)} narasi x {len(VOICES)} suara di examples/assets/suara/")
 
 

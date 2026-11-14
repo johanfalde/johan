@@ -9,8 +9,9 @@ fitur AI memakai **Claude API** langsung dari browser.
 Video 9:16 tema "Bisnis dengan AI", dirender oleh editor ini dari template bawaan (tab **Template**),
 lengkap dengan narasi dan subtitle karaoke yang sinkron:
 
-- [`examples/bisnis-ai-wanita.mp4`](examples/bisnis-ai-wanita.mp4) — narasi Gadis (wanita)
-- [`examples/bisnis-ai-pria.mp4`](examples/bisnis-ai-pria.mp4) — narasi Ardi (pria)
+- [`examples/bisnis-ai-wanita.mp4`](examples/bisnis-ai-wanita.mp4) — narasi Ava (wanita, ekspresif)
+- [`examples/bisnis-ai-pria.mp4`](examples/bisnis-ai-pria.mp4) — narasi Andrew (pria, ekspresif)
+- [`examples/contoh-6-suara.mp3`](examples/contoh-6-suara.mp3) — perbandingan suara: Ava, Emma, Gadis, Andrew, Brian, Ardi
 
 Narasi ada di `examples/assets/suara/` (dibuat dengan `buat_suara.py`); musik latar disintesis
 sendiri (`examples/assets/musik-bisnis.mp3`), jadi bebas hak cipta.
@@ -62,9 +63,10 @@ di samping logo KanvasCut.
 
 ### Suara narasi pria / wanita (tab **Suara**)
 
-- **Narasi permanen untuk template (gratis, tanpa key):** file suara Gadis & Ardi untuk template
-  sudah disertakan, tinggal pilih di tab Template. Kalau teks narasi template diubah, buat ulang dengan
-  `pip install edge-tts` lalu `python buat_suara.py`. Skrip membuat `examples/assets/suara/wanita/*.mp3`
+- **Narasi permanen untuk template (gratis, tanpa key):** file suara Ava, Gadis (wanita) dan Andrew, Ardi (pria) untuk
+  template sudah disertakan, tinggal pilih di tab Template. Kalau teks narasi template diubah, buat ulang dengan
+  `pip install edge-tts` lalu `python buat_suara.py --ulang`. Tulis narasi dengan tanda baca (koma, titik, tanda seru)
+  supaya intonasinya mengalir. Skrip membuat `examples/assets/suara/wanita/*.mp3`
   (Gadis) dan `examples/assets/suara/pria/*.mp3` (Ardi). Di tab **Template** pilih *Narasi template*
   (Wanita/Pria) lalu muat template — suara langsung terpasang. Commit & push folder itu agar ikut
   tersedia di GitHub Pages.
