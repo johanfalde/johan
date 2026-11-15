@@ -36,6 +36,20 @@ Alternatif: upload `dstools.py` sebagai **Utility Script** (File → Add utility
 
 ## 2. Di laptop
 
+**Windows, cara termudah:** download ZIP repo, ekstrak, buka folder `datasains`, lalu klik dua kali
+**`jalankan.bat`**. Atau lewat Command Prompt:
+
+```bat
+cd %USERPROFILE%\Downloads
+curl -L -o johan.zip https://github.com/johanfalde/johan/archive/refs/heads/ccr-63ef3894-amvzh3.zip
+tar -xf johan.zip
+cd johan-ccr-63ef3894-amvzh3\datasains
+python -m pip install -r requirements.txt
+python -m streamlit run app.py
+```
+
+Mac/Linux:
+
 ```bash
 cd datasains
 pip install -r requirements.txt
