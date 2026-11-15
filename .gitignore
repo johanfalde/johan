@@ -1,2 +1,8 @@
 __pycache__/
 *.pyc
+
+# keluaran dstools
+datasains/submission.csv
+datasains/laporan_*.html
+datasains/leaderboard.json
+datasains/*.joblib

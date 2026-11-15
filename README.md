@@ -4,6 +4,8 @@ Editor video mirip CapCut yang berjalan 100% di browser: preview dan render mema
 **HTML Canvas**, ekspor memakai **WebCodecs → MP4 H.264** (tanpa server, tanpa biaya render), dan
 fitur AI memakai **Claude API** langsung dari browser.
 
+> **Juga di repo ini:** [`datasains/`](datasains/) — toolkit data science (EDA → AutoML → submission) untuk laptop dan Kaggle.
+
 ## Contoh hasil
 
 Video 9:16 tema "Bisnis dengan AI", dirender oleh editor ini dari template bawaan (tab **Template**),

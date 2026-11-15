@@ -1,0 +1,11 @@
+numpy
+pandas
+scikit-learn>=1.2
+joblib
+lightgbm
+streamlit>=1.40
+# opsional (otomatis dipakai bila terpasang, sudah ada di Kaggle):
+# xgboost
+# catboost
+# pyarrow   # untuk file .parquet
+# openpyxl  # untuk file .xlsx
