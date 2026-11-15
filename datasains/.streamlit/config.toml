@@ -1,0 +1,41 @@
+# Tema dstools: palet terang & gelap dipilih sendiri-sendiri (bukan dibalik otomatis).
+[theme]
+font = "system-ui, -apple-system, 'Segoe UI', sans-serif"
+headingFont = "system-ui, -apple-system, 'Segoe UI', sans-serif"
+baseRadius = "6px"
+showWidgetBorder = true
+headingFontWeights = [600, 600, 600, 600, 600, 600]
+headingFontSizes = ["2rem", "1.25rem", "1.0625rem", "1rem", "0.9375rem", "0.875rem"]
+
+[theme.light]
+primaryColor = "#2a78d6"
+backgroundColor = "#f9f9f7"
+secondaryBackgroundColor = "#f0efec"
+textColor = "#0b0b0b"
+borderColor = "#e1e0d9"
+dataframeBorderColor = "#e1e0d9"
+linkColor = "#256abf"
+blueColor = "#2a78d6"
+greenColor = "#0ca30c"
+yellowColor = "#fab219"
+orangeColor = "#ec835a"
+redColor = "#d03b3b"
+chartCategoricalColors = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948"]
+
+[theme.dark]
+primaryColor = "#3987e5"
+backgroundColor = "#0d0d0d"
+secondaryBackgroundColor = "#1a1a19"
+textColor = "#f0efec"
+borderColor = "#2c2c2a"
+dataframeBorderColor = "#2c2c2a"
+linkColor = "#5598e7"
+blueColor = "#3987e5"
+greenColor = "#0ca30c"
+yellowColor = "#fab219"
+orangeColor = "#ec835a"
+redColor = "#d03b3b"
+chartCategoricalColors = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#0ca30c", "#9085e9", "#e66767"]
+
+[client]
+toolbarMode = "minimal"

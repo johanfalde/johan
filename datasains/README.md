@@ -15,7 +15,8 @@ Satu toolkit untuk alur data science lengkap, dengan **kode yang sama** di lapto
 | Tuning | hyperparameter tuning dengan **Optuna** (TPE + pruning percobaan jelek); tanpa Optuna otomatis random search. Hasil masuk leaderboard sebagai `<model>_tuned` |
 | Ensemble | rata-rata top-k model; dipilih otomatis bila lebih baik dari model tunggal |
 | Asisten AI | chatbot (Claude) di aplikasi: menjelaskan data & hasil model Anda, membantu kode, Kaggle, LLM — `asisten.py` |
-| Panduan | ebook pemula 16 bab di tab **📖 Panduan** aplikasi (`PANDUAN_PEMULA.md`) |
+| Dashboard | tampilan tenang & konsisten: palet warna tervalidasi buta warna, mode terang & gelap, satu angka utama per tampilan, setiap grafik punya tooltip & tampilan tabel (`viz.py`, `.streamlit/config.toml`) |
+| Panduan | ebook pemula 16 bab di tab **Panduan** aplikasi (`PANDUAN_PEMULA.md`) |
 | Hasil | `submission.csv` (format mengikuti `sample_submission`), feature importance, laporan model HTML, model `.joblib` |
 
 Task dideteksi otomatis: **binary**, **multiclass**, atau **regression**.
@@ -54,7 +55,7 @@ Opsi `train` lain: `--models lightgbm,catboost`, `--folds 10`, `--top-k 2`, `--l
 ### Asisten AI (chatbot)
 
 Butuh API key dari [platform.claude.com](https://platform.claude.com) (berbayar per pemakaian).
-Isi di tab **💬 Asisten AI → ⚙️ Pengaturan**, atau set sekali saja:
+Isi di tab **Asisten AI → Pengaturan asisten**, atau set sekali saja:
 
 ```bash
 export ANTHROPIC_API_KEY="sk-ant-..."                      # Mac/Linux

@@ -261,7 +261,7 @@ TUNE = ["lightgbm"]     # atau "auto" = tuning model terbaik, None = tanpa tunin
 N_TRIALS = 50           # makin banyak makin teliti, makin lama
 TUNE_TIMEOUT = 600      # berhenti setelah 10 menit per model walau percobaan belum habis
 ```
-**Di aplikasi web**: tab *Latih model* → buka **🎛 Hyperparameter tuning** → centang *Aktifkan tuning*.
+**Di aplikasi web**: tab *Latih model* → buka **Hyperparameter tuning** → nyalakan *Aktifkan tuning*.
 **Di terminal**: `python dstools.py train ... --tune lightgbm --trials 50 --tune-timeout 600`
 
 Hasilnya:
@@ -295,16 +295,22 @@ Kalau ingin mengolah data sendiri tanpa menulis kode:
    ```
 4. Browser terbuka otomatis. Alurnya:
    - **Sidebar**: upload `train.csv` (dan `test.csv` bila ada), pilih **kolom target** dan **kolom ID**.
-   - Tab **Data**: lihat isi tabel.
-   - Tab **EDA**: peringatan, grafik target, korelasi, ringkasan kolom.
-   - Tab **Latih model**: pilih metrik & model → **🚀 Latih** → leaderboard + feature importance.
-   - Tab **Prediksi & download**: download `submission.csv` dan file model.
-   - Tab **💬 Asisten AI**: chatbot untuk bertanya tentang data & hasil Anda (lihat bab 12).
-   - Tab **📖 Panduan**: panduan ini dalam bentuk ebook per bab, bisa dibaca langsung di aplikasi.
+   - Tab **Ringkasan**: angka utama (baris, kolom, jenis tugas, sel kosong, duplikat), peringatan, dan isi tabel.
+   - Tab **EDA**: distribusi target, hubungan kolom dengan target (biru = searah, merah = berlawanan),
+     nilai kosong, dan grafik per kolom. Setiap grafik punya tombol **Lihat sebagai tabel**, dan angka
+     detail muncul saat kursor diarahkan ke grafik.
+   - Tab **Latih model**: pilih metrik & model → **Latih model** → skor terbaik (angka besar),
+     perbandingan model (titik = skor, garis = sebaran antar fold), fitur paling berpengaruh,
+     dan grafik proses tuning bila tuning dinyalakan.
+   - Tab **Prediksi & download**: download `submission.csv` dan file model, plus sebaran prediksi
+     untuk dicek kewajarannya.
+   - Tab **Asisten AI**: chatbot untuk bertanya tentang data & hasil Anda (lihat bab 12).
+   - Tab **Panduan**: panduan ini dalam bentuk ebook per bab, bisa dibaca langsung di aplikasi.
 
-Belum upload data pun, tab **Panduan** dan **Asisten AI** sudah bisa dipakai.
+Belum upload data pun, tab **Panduan** dan **Asisten AI** sudah bisa dipakai. Tampilan otomatis
+mengikuti mode terang/gelap perangkat (bisa diganti lewat menu ⋮ → Settings).
 
-Belum punya data? Centang **Pakai data contoh** (data pelanggan fiktif: siapa yang akan membeli).
+Belum punya data? Nyalakan **Pakai data contoh** (data pelanggan fiktif: siapa yang akan membeli).
 
 ---
 
@@ -405,7 +411,7 @@ print("Terbesar:", max(angka), "| Rata-rata:", sum(angka) / len(angka))
 - **Fork notebook orang lain** (tombol *Copy & Edit*) di kompetisi yang Anda ikuti. Jalankan sel
   satu per satu, ubah sedikit, lihat apa yang berubah.
 - **Baca `dstools.py`** setelah kursus Python & Pandas. Sebagian besar sudah akan bisa Anda pahami.
-- **Error itu normal.** Baca baris terakhir pesan error dulu, lalu tanyakan ke tab **💬 Asisten AI**:
+- **Error itu normal.** Baca baris terakhir pesan error dulu, lalu tanyakan ke tab **Asisten AI**:
   tempel kode dan pesan error-nya, minta dijelaskan *kenapa* salah, bukan hanya perbaikannya.
 - **1 jam setiap hari** lebih baik daripada 7 jam sekali seminggu.
 
@@ -430,12 +436,12 @@ merangkum dokumen, mengklasifikasi teks, dan menjawab pertanyaan.
 | **Fine-tuning** | Melatih ulang model agar ahli di bidang tertentu |
 
 ### Memakai Asisten AI di aplikasi
-Aplikasi ini punya tab **💬 Asisten AI**: chatbot yang paham data science dan bisa melihat
+Aplikasi ini punya tab **Asisten AI**: chatbot yang paham data science dan bisa melihat
 **ringkasan data & hasil model Anda**.
 
 1. Buat akun di **platform.claude.com** → isi saldo kredit → menu **API Keys** → **Create Key**.
    Pemakaian API dibayar per token; harga terbaru ada di halaman pricing situs tersebut.
-2. Di aplikasi buka tab **💬 Asisten AI** → **⚙️ Pengaturan asisten** → tempel API key.
+2. Di aplikasi buka tab **Asisten AI** → **Pengaturan asisten** → tempel API key.
    (Supaya tidak mengetik ulang: set environment `ANTHROPIC_API_KEY`, atau buat file
    `.streamlit/secrets.toml` berisi `ANTHROPIC_API_KEY = "..."` — jangan di-commit ke GitHub!)
 3. Pilih model:
@@ -671,4 +677,4 @@ Data Analyst  ──►  Data Scientist  ──►  Senior DS / ML Engineer
 ---
 
 **Langkah selanjutnya:** kerjakan bab 4 sekarang juga. Data science dipelajari dengan mengerjakan,
-bukan hanya membaca. Selamat belajar! 🚀
+bukan hanya membaca. Selamat belajar!

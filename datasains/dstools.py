@@ -121,8 +121,8 @@ def detect_task(y: pd.Series) -> str:
     n = y.nunique()
     if n == 2:
         return "binary"
-    if y.dtype == object or str(y.dtype) in ("category", "bool", "string"):
-        return "multiclass"
+    if not pd.api.types.is_numeric_dtype(y) or pd.api.types.is_bool_dtype(y):
+        return "multiclass"  # teks/kategori (termasuk tipe 'str' di pandas 3)
     if pd.api.types.is_integer_dtype(y) and n <= 20:
         return "multiclass"
     if pd.api.types.is_float_dtype(y) and n <= 20 and np.allclose(y, y.round()):
@@ -555,8 +555,9 @@ class AutoML:
 
         y_raw = df[self.target]
         if clf:
-            self.label_encoder_ = LabelEncoder().fit(y_raw.astype(str) if y_raw.dtype == object else y_raw)
-            y = self.label_encoder_.transform(y_raw.astype(str) if y_raw.dtype == object else y_raw)
+            y_lab = y_raw if pd.api.types.is_numeric_dtype(y_raw) else y_raw.astype(str)
+            self.label_encoder_ = LabelEncoder().fit(y_lab)
+            y = self.label_encoder_.transform(y_lab)
             self.n_classes_ = len(self.label_encoder_.classes_)
             cv = StratifiedKFold(self.folds, shuffle=True, random_state=self.seed)
         else:
