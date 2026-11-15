@@ -105,13 +105,25 @@ with tab_train:
     top_k = c3.slider("Ensemble top-k", 1, len(all_models), min(3, len(all_models)))
     models = st.multiselect("Model", all_models, default=all_models)
     log_target = st.checkbox("Latih pada log(target) — cocok untuk harga/penjualan", disabled=clf)
+    with st.expander("🎛 Hyperparameter tuning (opsional — lebih lama, biasanya skor naik sedikit)"):
+        do_tune = st.checkbox("Aktifkan tuning")
+        tunable = [m for m in models if m in ds.SEARCH_SPACES]
+        t1, t2, t3 = st.columns(3)
+        tune_models = t1.multiselect("Model yang di-tuning", tunable,
+                                     default=[m for m in ("lightgbm",) if m in tunable] or tunable[:1],
+                                     disabled=not do_tune, help="Kosongkan = otomatis pilih model terbaik")
+        n_trials = t2.slider("Jumlah percobaan", 5, 200, 30, disabled=not do_tune)
+        timeout = t3.number_input("Batas waktu per model (detik, 0 = tanpa batas)", 0, 36000, 300,
+                                  disabled=not do_tune)
     if st.button("🚀 Latih", type="primary", disabled=not models):
         with st.spinner("Melatih model dengan cross-validation…"):
             log = io.StringIO()
             import contextlib
             with contextlib.redirect_stdout(log):
                 auto = ds.AutoML(target=target, id_col=id_col, metric=metric, models=models, folds=folds,
-                                 top_k=top_k, drop=drop, log_target=log_target).fit(train)
+                                 top_k=top_k, drop=drop, log_target=log_target,
+                                 tune=(tune_models or "auto") if do_tune else None, n_trials=n_trials,
+                                 tune_timeout=timeout or None).fit(train)
         st.session_state["auto"] = auto
         st.session_state["log"] = log.getvalue()
     auto = st.session_state.get("auto")
@@ -119,6 +131,13 @@ with tab_train:
         st.success(f"Selesai. Dipakai untuk prediksi: {', '.join(auto.selected_)}")
         st.subheader("Leaderboard")
         st.dataframe(auto.leaderboard, width="stretch")
+        for name, params in getattr(auto, "best_params_", {}).items():
+            st.subheader(f"Hyperparameter terbaik — {name}")
+            st.json(params)
+        hist = getattr(auto, "tuning_history_", None)
+        if hist is not None and len(hist):
+            st.caption("Skor tiap percobaan tuning (yang selesai)")
+            st.line_chart(hist.reset_index(), x="index", y=auto.metric, color="model")
         fi = auto.feature_importance(top=25)
         if len(fi):
             st.subheader("Feature importance")

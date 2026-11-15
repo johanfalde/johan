@@ -12,6 +12,7 @@ Satu toolkit untuk alur data science lengkap, dengan **kode yang sama** di lapto
 | Preprocessing | imputasi, scaling, one-hot (kategori kecil) / ordinal (kategori besar) — otomatis |
 | Model | Logistic/Ridge, Random Forest, Extra Trees, HistGradientBoosting, **LightGBM, XGBoost, CatBoost** (dipakai bila terpasang — di Kaggle sudah ada) |
 | Validasi | K-Fold / Stratified K-Fold, prediksi out-of-fold, leaderboard dengan skor ± std per fold |
+| Tuning | hyperparameter tuning dengan **Optuna** (TPE + pruning percobaan jelek); tanpa Optuna otomatis random search. Hasil masuk leaderboard sebagai `<model>_tuned` |
 | Ensemble | rata-rata top-k model; dipilih otomatis bila lebih baik dari model tunggal |
 | Hasil | `submission.csv` (format mengikuti `sample_submission`), feature importance, laporan model HTML, model `.joblib` |
 
@@ -44,7 +45,8 @@ python dstools.py train --train train.csv --test test.csv --sample sample_submis
 ```
 
 Opsi `train` lain: `--models lightgbm,catboost`, `--folds 10`, `--top-k 2`, `--log-target` (regresi harga),
-`--proba yes|no` (paksa isi submission probabilitas/label).
+`--proba yes|no` (paksa isi submission probabilitas/label),
+`--tune auto` atau `--tune lightgbm,xgboost` + `--trials 50 --tune-timeout 600` (hyperparameter tuning).
 
 ## 3. Dari Python
 
@@ -56,6 +58,12 @@ ds.eda(train, target="Survived")                 # -> laporan_eda.html
 auto = ds.AutoML(target="Survived", id_col="PassengerId", metric="accuracy",
                  drop=["Name", "Ticket"], folds=5).fit(train)
 auto.leaderboard                                 # tabel skor semua model
+
+# dengan hyperparameter tuning
+auto = ds.AutoML(target="Survived", id_col="PassengerId", metric="accuracy", drop=["Name", "Ticket"],
+                 tune=["lightgbm"], n_trials=50, tune_timeout=600).fit(train)
+auto.best_params_                                # hyperparameter terbaik
+auto.tuning_history_                             # skor setiap percobaan
 auto.feature_importance()                        # fitur paling berpengaruh
 auto.oof_["lightgbm"]                            # prediksi out-of-fold (untuk stacking)
 ds.save_submission(auto, test, sample)           # -> submission.csv
@@ -66,7 +74,8 @@ auto.save("model.joblib");  ds.AutoML.load("model.joblib").predict(test)
 
 - Untuk data **tabel**. Gambar, teks panjang (NLP), audio, dan time series khusus butuh pendekatan lain
   (mis. PyTorch/transformers di Kaggle dengan GPU).
-- Hyperparameter memakai nilai default yang wajar; belum ada tuning otomatis (bisa ditambah dengan Optuna).
+- Tuning memakai ruang pencarian bawaan (`ds.SEARCH_SPACES`, bisa diubah). Kenaikan skor dari tuning
+  biasanya kecil dibanding feature engineering yang bagus.
 - Feature engineering yang paling menaikkan skor biasanya tetap berasal dari pemahaman data Anda sendiri.
 
 Bila `dstools.py` diubah, jalankan `python buat_notebook.py` agar `kaggle_notebook.ipynb` ikut diperbarui.

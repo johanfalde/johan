@@ -14,6 +14,7 @@ Pakai di Python / Kaggle:
 
 Pakai dari terminal:
     python dstools.py demo
+    python dstools.py demo --tune                      # dengan hyperparameter tuning
     python dstools.py eda   --train train.csv --target Survived
     python dstools.py train --train train.csv --test test.csv --target Survived --id PassengerId
 """
@@ -42,7 +43,7 @@ from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, OrdinalEncoder, StandardScaler
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 warnings.filterwarnings("ignore", category=UserWarning)
 
 # --------------------------------------------------------------------------- lingkungan
@@ -311,6 +312,66 @@ def available_models(task: str, seed: int = 42, n_jobs: int = -1) -> dict:
     return m
 
 
+# --------------------------------------------------------------------------- tuning
+
+# ruang pencarian hyperparameter: nama -> ("int"|"float", rendah, tinggi, log) atau ("pilih", [opsi])
+SEARCH_SPACES = {
+    "lightgbm": {
+        "n_estimators": ("int", 200, 2000, True), "learning_rate": ("float", 0.005, 0.2, True),
+        "num_leaves": ("int", 8, 256, True), "min_child_samples": ("int", 5, 100, True),
+        "subsample": ("float", 0.5, 1.0, False), "colsample_bytree": ("float", 0.3, 1.0, False),
+        "reg_alpha": ("float", 1e-8, 10.0, True), "reg_lambda": ("float", 1e-8, 10.0, True),
+    },
+    "xgboost": {
+        "n_estimators": ("int", 200, 2000, True), "learning_rate": ("float", 0.005, 0.2, True),
+        "max_depth": ("int", 3, 10, False), "min_child_weight": ("float", 1.0, 20.0, True),
+        "subsample": ("float", 0.5, 1.0, False), "colsample_bytree": ("float", 0.3, 1.0, False),
+        "reg_alpha": ("float", 1e-8, 10.0, True), "reg_lambda": ("float", 1e-8, 10.0, True),
+    },
+    "catboost": {
+        "iterations": ("int", 300, 2000, True), "learning_rate": ("float", 0.01, 0.2, True),
+        "depth": ("int", 4, 10, False), "l2_leaf_reg": ("float", 1.0, 10.0, True),
+    },
+    "hist_gb": {
+        "max_iter": ("int", 100, 1000, True), "learning_rate": ("float", 0.01, 0.3, True),
+        "max_leaf_nodes": ("int", 15, 127, True), "min_samples_leaf": ("int", 5, 100, True),
+        "l2_regularization": ("float", 1e-8, 10.0, True),
+    },
+    "random_forest": {
+        "n_estimators": ("int", 200, 800, False), "max_depth": ("pilih", [None, 6, 10, 16, 24]),
+        "min_samples_leaf": ("int", 1, 10, False), "max_features": ("pilih", ["sqrt", "log2", 0.5, 1.0]),
+    },
+    "logreg": {"C": ("float", 1e-3, 100.0, True)},
+    "ridge": {"alpha": ("float", 1e-3, 100.0, True)},
+}
+SEARCH_SPACES["extra_trees"] = SEARCH_SPACES["random_forest"]
+
+
+def _in_space(spec, v) -> bool:
+    if spec[0] == "pilih":
+        return v in spec[1]
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and spec[1] <= v <= spec[2]
+
+
+def _sample_params(space: dict, trial=None, rng=None) -> dict:
+    """Ambil satu set hyperparameter: lewat Optuna (trial) atau acak biasa (rng)."""
+    out = {}
+    for k, spec in space.items():
+        kind = spec[0]
+        if kind == "pilih":
+            out[k] = (trial.suggest_categorical(k, spec[1]) if trial is not None
+                      else spec[1][rng.integers(len(spec[1]))])
+            continue
+        lo, hi, log = spec[1], spec[2], spec[3]
+        if trial is not None:
+            fn = trial.suggest_int if kind == "int" else trial.suggest_float
+            out[k] = fn(k, lo, hi, log=log)
+        else:
+            v = np.exp(rng.uniform(np.log(lo), np.log(hi))) if log else rng.uniform(lo, hi)
+            out[k] = int(round(v)) if kind == "int" else float(v)
+    return out
+
+
 # nama metrik -> (fungsi(y, pred, proba), lebih_besar_lebih_baik, butuh_proba)
 METRICS = {
     "accuracy": (lambda y, p, pr: accuracy_score(y, p), True),
@@ -338,14 +399,21 @@ class AutoML:
         folds    : jumlah fold CV
         top_k    : jumlah model terbaik yang dirata-rata untuk ensemble
         log_target : latih regresi pada log1p(y) (bagus untuk harga/penjualan)
+        tune     : hyperparameter tuning. None = tidak; "auto" = tuning model terbaik;
+                   "lightgbm" atau ["lightgbm", "xgboost"] = model tertentu.
+                   Hasilnya ditambahkan ke leaderboard sebagai "<model>_tuned".
+        n_trials : jumlah percobaan kombinasi hyperparameter per model
+        tune_timeout : batas waktu tuning per model (detik), None = tanpa batas
     """
 
     def __init__(self, target, id_col=None, metric=None, models=None, folds=5, top_k=3,
-                 drop=None, seed=42, log_target=False, feature_engineering=True, verbose=True):
+                 drop=None, seed=42, log_target=False, feature_engineering=True, verbose=True,
+                 tune=None, n_trials=30, tune_timeout=None):
         self.target, self.id_col, self.metric = target, id_col, metric
         self.model_names, self.folds, self.top_k = models, folds, top_k
         self.drop, self.seed, self.log_target = list(drop or []), seed, log_target
         self.fe, self.verbose = feature_engineering, verbose
+        self.tune, self.n_trials, self.tune_timeout = tune, n_trials, tune_timeout
 
     # ---- helper
     def _log(self, *a):
@@ -364,6 +432,101 @@ class AutoML:
 
     def _better(self, a, b):
         return a > b if METRICS[self.metric][1] else a < b
+
+    def _cv(self, name, estimator, X, y, y_fit, splits, on_fold=None):
+        """Cross-validation satu model. on_fold(i, skor) bisa melempar exception untuk berhenti (pruning)."""
+        clf = self.task_ != "regression"
+        base = name.removesuffix("_tuned")
+        pipe = Pipeline([("prep", build_preprocessor(X, scale=base in LINEAR)), ("model", estimator)])
+        oof = np.zeros((len(X), self.n_classes_)) if clf else np.zeros(len(X))
+        fold_scores, fold_models = [], []
+        for i, (tr, va) in enumerate(splits):
+            m = clone(pipe).fit(X.iloc[tr], y_fit[tr])
+            if clf:
+                oof[va] = m.predict_proba(X.iloc[va])
+                fold_scores.append(self._score(y[va], oof[va].argmax(1), oof[va]))
+            else:
+                p = m.predict(X.iloc[va])
+                oof[va] = np.expm1(p) if self.log_target else p
+                fold_scores.append(self._score(y[va], oof[va], None))
+            fold_models.append(m)
+            if on_fold is not None:
+                on_fold(i, float(np.mean(fold_scores)))
+        score = self._score(y, oof.argmax(1), oof) if clf else self._score(y, oof, None)
+        return score, fold_scores, oof, fold_models
+
+    def _tune_one(self, name, base_est, X, y, y_fit, splits):
+        """Cari hyperparameter terbaik untuk satu model. Optuna bila ada, random search bila tidak."""
+        space = SEARCH_SPACES.get(name)
+        if not space:
+            self._log(f"  [tuning] {name}: tidak ada ruang pencarian, dilewati")
+            return None
+        greater = METRICS[self.metric][1]
+        history = []
+
+        def evaluate(params, on_fold=None):
+            est = clone(base_est).set_params(**params)
+            score = self._cv(name, est, X, y, y_fit, splits, on_fold)[0]
+            history.append({"model": name, self.metric: score, **params})
+            return score
+
+        t0, engine = time.time(), None
+        try:
+            import optuna
+            optuna.logging.set_verbosity(optuna.logging.WARNING)
+            study = optuna.create_study(direction="maximize" if greater else "minimize",
+                                        sampler=optuna.samplers.TPESampler(seed=self.seed),
+                                        pruner=optuna.pruners.MedianPruner(n_startup_trials=5))
+
+            def objective(trial):
+                def on_fold(i, mean_score):  # hentikan percobaan yang jelas jelek lebih awal
+                    trial.report(mean_score, i)
+                    if trial.should_prune():
+                        raise optuna.TrialPruned()
+                return evaluate(_sample_params(space, trial=trial), on_fold)
+
+            def progress(study, trial):
+                done = [t for t in study.trials if t.state == optuna.trial.TrialState.COMPLETE]
+                if done and (trial.number % 5 == 4 or trial.number == 0):
+                    self._log(f"  [tuning] {name}: percobaan {trial.number + 1}/{self.n_trials} "
+                              f"terbaik={study.best_value:.5f}")
+
+            # percobaan pertama = setelan bawaan, supaya hasil tuning minimal sama bagusnya
+            start = {k: v for k, v in base_est.get_params().items() if k in space and _in_space(space[k], v)}
+            if start:
+                study.enqueue_trial(start, skip_if_exists=True)
+            study.optimize(objective, n_trials=self.n_trials, timeout=self.tune_timeout,
+                           callbacks=[progress], catch=(ValueError, ArithmeticError))
+            if not any(t.state == optuna.trial.TrialState.COMPLETE for t in study.trials):
+                self._log(f"  [tuning] {name}: semua percobaan gagal")
+                return None
+            n_pruned = sum(t.state == optuna.trial.TrialState.PRUNED for t in study.trials)
+            best_params, best_score = study.best_params, study.best_value
+            engine = f"optuna, {len(study.trials)} percobaan, {n_pruned} dihentikan dini"
+        except ImportError:  # tanpa optuna: random search
+            rng = np.random.default_rng(self.seed)
+            best_params, best_score = None, None
+            for i in range(self.n_trials):
+                if self.tune_timeout and time.time() - t0 > self.tune_timeout:
+                    break
+                params = _sample_params(space, rng=rng)
+                try:
+                    sc = evaluate(params)
+                except (ValueError, ArithmeticError):
+                    continue
+                if best_score is None or (sc > best_score if greater else sc < best_score):
+                    best_params, best_score = params, sc
+                if i % 5 == 4:
+                    self._log(f"  [tuning] {name}: percobaan {i + 1}/{self.n_trials} terbaik={best_score:.5f}")
+        self.tuning_history_ = pd.concat([getattr(self, "tuning_history_", pd.DataFrame()),
+                                          pd.DataFrame(history)], ignore_index=True)
+        if best_params is None:
+            return None
+        if engine is None:
+            engine = f"random search, {len(history)} percobaan"
+        self._log(f"  [tuning] {name}: selesai ({engine}, "
+                  f"{time.time() - t0:.0f}s) terbaik {self.metric}={best_score:.5f} params={best_params}")
+        return best_params
 
     # ---- latih
     def fit(self, df: pd.DataFrame):
@@ -412,39 +575,50 @@ class AutoML:
                   f"fitur={X.shape[1]} baris={len(X)} model={names}")
         self.results_, self.oof_ = [], {}
         self.fitted_ = {}
-        for name in names:
+        def run(name, est):
             t = time.time()
-            pipe = Pipeline([("prep", build_preprocessor(X, scale=name in LINEAR)),
-                             ("model", candidates[name])])
-            oof = np.zeros((len(X), self.n_classes_)) if clf else np.zeros(len(X))
-            fold_scores, fold_models = [], []
             try:
-                for tr, va in splits:
-                    m = clone(pipe).fit(X.iloc[tr], y_fit[tr])
-                    if clf:
-                        oof[va] = m.predict_proba(X.iloc[va])
-                        pr = oof[va]
-                        fold_scores.append(self._score(y[va], pr.argmax(1), pr))
-                    else:
-                        p = m.predict(X.iloc[va])
-                        oof[va] = np.expm1(p) if self.log_target else p
-                        fold_scores.append(self._score(y[va], oof[va], None))
-                    fold_models.append(m)
+                score, fold_scores, oof, fold_models = self._cv(name, est, X, y, y_fit, splits)
             except Exception as e:  # satu model gagal tidak menghentikan semuanya
                 self._log(f"  - {name:14s} GAGAL: {type(e).__name__}: {e}")
-                continue
-            score = self._score(y, oof.argmax(1), oof) if clf else self._score(y, oof, None)
+                return
             self.oof_[name], self.fitted_[name] = oof, fold_models
             self.results_.append({"model": name, self.metric: round(score, 5),
                                   "std_fold": round(float(np.std(fold_scores)), 5),
                                   "detik": round(time.time() - t, 1)})
             self._log(f"  - {name:14s} {self.metric}={score:.5f} ± {np.std(fold_scores):.5f} "
                       f"({time.time() - t:.1f}s)")
+
+        for name in names:
+            run(name, candidates[name])
+
+        # ---- hyperparameter tuning
+        self.best_params_ = {}
+        if self.tune and self.results_:
+            greater = METRICS[self.metric][1]
+            done = sorted(self.results_, key=lambda r: r[self.metric], reverse=greater)
+            if self.tune in ("auto", True):
+                to_tune = [next((r["model"] for r in done if r["model"] in SEARCH_SPACES), done[0]["model"])]
+            else:
+                to_tune = [self.tune] if isinstance(self.tune, str) else list(self.tune)
+            bad = [n for n in to_tune if n not in candidates]
+            if bad:
+                raise ValueError(f"Model untuk tuning tidak tersedia: {bad}. Tersedia: {list(candidates)}")
+            self._log(f"[AutoML] tuning {to_tune} — {self.n_trials} percobaan per model"
+                      + (f", maks {self.tune_timeout}s" if self.tune_timeout else ""))
+            for name in to_tune:
+                params = self._tune_one(name, candidates[name], X, y, y_fit, splits)
+                if params is not None:
+                    self.best_params_[name] = params
+                    run(f"{name}_tuned", clone(candidates[name]).set_params(**params))
+
         if not self.results_:
             raise RuntimeError("Semua model gagal dilatih.")
 
         lb = pd.DataFrame(self.results_).sort_values(self.metric, ascending=not METRICS[self.metric][1])
-        best = list(lb["model"].head(self.top_k))
+        # model asli yang sudah punya versi _tuned tidak ikut ensemble (isinya hampir sama)
+        pool = [n for n in lb["model"] if f"{n}_tuned" not in self.fitted_]
+        best = pool[:self.top_k]
         ens = np.mean([self.oof_[n] for n in best], axis=0)
         ens_score = self._score(y, ens.argmax(1), ens) if clf else self._score(y, ens, None)
         lb = pd.concat([lb, pd.DataFrame([{"model": f"ensemble({'+'.join(best)})",
@@ -476,7 +650,8 @@ class AutoML:
     # ---- interpretasi
     def feature_importance(self, model=None, top: int = 30) -> pd.Series:
         """Importance dari model pohon (rata-rata fold). Default: model pohon terbaik."""
-        tree_models = [n for n in self.leaderboard["model"] if n in self.fitted_ and n not in LINEAR]
+        tree_models = [n for n in self.leaderboard["model"]
+                       if n in self.fitted_ and n.removesuffix("_tuned") not in LINEAR]
         model = model or (tree_models[0] if tree_models else None)
         if model is None:
             return pd.Series(dtype=float)
@@ -499,6 +674,9 @@ class AutoML:
         body = (f"<h1>Laporan Model</h1><p>task <b>{self.task_}</b> · metrik <b>{self.metric}</b> · "
                 f"{self.folds}-fold CV · dipakai: <code>{', '.join(self.selected_)}</code></p>"
                 f"<h2>Leaderboard</h2>{self.leaderboard.to_html(index=False, na_rep='')}")
+        for name, params in getattr(self, "best_params_", {}).items():
+            body += (f"<h2>Hyperparameter terbaik: {html.escape(name)}</h2>"
+                     + pd.Series(params, name="nilai").to_frame().to_html())
         if len(fi):
             body += f"<h2>Feature importance</h2>{_bars(fi)}"
         out.write_text(_page("Laporan Model", body), encoding="utf-8")
@@ -600,6 +778,7 @@ def main(argv=None):
 
     d = sub.add_parser("demo", help="buat data contoh lalu jalankan EDA + AutoML")
     d.add_argument("--task", choices=["binary", "regression"], default="binary")
+    d.add_argument("--tune", action="store_true", help="sertakan hyperparameter tuning (model terbaik)")
 
     e = sub.add_parser("eda", help="laporan EDA HTML")
     e.add_argument("--train")
@@ -620,6 +799,9 @@ def main(argv=None):
     t.add_argument("--log-target", action="store_true")
     t.add_argument("--proba", choices=["auto", "yes", "no"], default="auto")
     t.add_argument("--seed", type=int, default=42)
+    t.add_argument("--tune", help="hyperparameter tuning: auto, atau nama model dipisah koma (lightgbm,xgboost)")
+    t.add_argument("--trials", type=int, default=30, help="jumlah percobaan tuning per model")
+    t.add_argument("--tune-timeout", type=float, help="batas waktu tuning per model (detik)")
     a = ap.parse_args(argv)
 
     if a.cmd == "demo":
@@ -627,7 +809,8 @@ def main(argv=None):
         target = "belanja" if a.task == "regression" else "beli"
         train, test = df.iloc[:2400], df.iloc[2400:].drop(columns=target)
         eda(train, target=target)
-        auto = AutoML(target=target, id_col="id", folds=3, log_target=a.task == "regression").fit(train)
+        auto = AutoML(target=target, id_col="id", folds=3, log_target=a.task == "regression",
+                      tune="auto" if a.tune else None, n_trials=15).fit(train)
         print(auto.feature_importance(top=10).to_string())
         auto.report()
         save_submission(auto, test)
@@ -639,7 +822,9 @@ def main(argv=None):
     train, test, sample = load(a.train, a.test, a.sample)
     auto = AutoML(target=a.target, id_col=a.id, metric=a.metric,
                   models=a.models.split(",") if a.models else None, folds=a.folds, top_k=a.top_k,
-                  drop=a.drop.split(",") if a.drop else None, seed=a.seed, log_target=a.log_target).fit(train)
+                  drop=a.drop.split(",") if a.drop else None, seed=a.seed, log_target=a.log_target,
+                  tune=(a.tune if a.tune in (None, "auto") else a.tune.split(",")), n_trials=a.trials,
+                  tune_timeout=a.tune_timeout).fit(train)
     auto.report()
     auto.save()
     if test is not None:

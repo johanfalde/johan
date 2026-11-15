@@ -11,12 +11,13 @@ pemrograman untuk mulai. Ikuti bab demi bab; di akhir Anda sudah mengirim predik
 4. [Proyek pertama: Titanic di Kaggle (tanpa install apa pun)](#4-proyek-pertama-titanic-di-kaggle)
 5. [Membaca hasil](#5-membaca-hasil)
 6. [Menaikkan skor: feature engineering](#6-menaikkan-skor-feature-engineering)
-7. [Memakai aplikasi web di laptop](#7-memakai-aplikasi-web-di-laptop)
-8. [Untuk pekerjaan: memakai data sendiri](#8-untuk-pekerjaan-memakai-data-sendiri)
-9. [Kesalahan umum pemula](#9-kesalahan-umum-pemula)
-10. [Rencana belajar 12 minggu](#10-rencana-belajar-12-minggu)
-11. [Karier data science](#11-karier-data-science)
-12. [Glosarium](#12-glosarium)
+7. [Tuning hyperparameter](#7-tuning-hyperparameter)
+8. [Memakai aplikasi web di laptop](#8-memakai-aplikasi-web-di-laptop)
+9. [Untuk pekerjaan: memakai data sendiri](#9-untuk-pekerjaan-memakai-data-sendiri)
+10. [Kesalahan umum pemula](#10-kesalahan-umum-pemula)
+11. [Rencana belajar 12 minggu](#11-rencana-belajar-12-minggu)
+12. [Karier data science](#12-karier-data-science)
+13. [Glosarium](#13-glosarium)
 
 ---
 
@@ -45,7 +46,7 @@ Alur kerja seorang data scientist hampir selalu sama:
  8. Sampaikan hasil  →  laporan/presentasi/dipakai di sistem
 ```
 
-**dstools mengotomatiskan langkah 3–7** supaya Anda bisa fokus ke langkah 1, 5, dan 8
+**dstools mengotomatiskan langkah 3–7 (termasuk tuning)** supaya Anda bisa fokus ke langkah 1, 5, dan 8
 (yang paling butuh otak manusia).
 
 ---
@@ -99,6 +100,9 @@ train.csv
    │     logreg · random_forest · extra_trees · hist_gb · lightgbm · (xgboost · catboost)
    ▼
 [5] Leaderboard ──── urutkan model dari skor CV terbaik
+   │
+   ▼
+[5b] Tuning (opsional) ─ cari hyperparameter terbaik dengan Optuna → model "<nama>_tuned"
    │
    ▼
 [6] Ensemble ─────── rata-rata 3 model terbaik; dipakai kalau skornya lebih tinggi
@@ -219,7 +223,62 @@ Ide lain yang bisa dicoba: kelompok umur (anak/dewasa/lansia), harga tiket per o
 
 ---
 
-## 7. Memakai aplikasi web di laptop
+## 7. Tuning hyperparameter
+
+### Apa itu hyperparameter?
+Setiap model punya **"tombol pengaturan"** yang ditentukan *sebelum* belajar. Contoh di LightGBM:
+
+| Hyperparameter | Arti sehari-hari |
+|---|---|
+| `n_estimators` | berapa banyak "pohon keputusan" yang dibuat |
+| `learning_rate` | seberapa besar langkah belajar tiap pohon (kecil = pelan tapi teliti) |
+| `num_leaves` | seberapa rumit tiap pohon (besar = lebih detail, rawan menghafal) |
+| `min_child_samples` | minimal data di tiap ujung pohon (besar = lebih hati-hati) |
+| `subsample`, `colsample_bytree` | pakai sebagian baris/kolom secara acak (mengurangi menghafal) |
+| `reg_alpha`, `reg_lambda` | "rem" agar model tidak terlalu rumit |
+
+Bedanya dengan *parameter* biasa: parameter dipelajari model dari data, sedangkan hyperparameter
+**dipilih oleh kita**. **Tuning** = mencari kombinasi tombol yang memberi skor CV terbaik.
+
+### Cara dstools melakukan tuning
+1. Latih semua model dengan setelan bawaan seperti biasa.
+2. Untuk model yang dipilih, coba banyak kombinasi hyperparameter (`N_TRIALS` kali). Percobaan
+   pertama selalu memakai setelan bawaan, jadi hasil tuning **tidak akan lebih buruk** di CV.
+3. Pemilihan kombinasi berikutnya memakai **Optuna**: ia "belajar" dari percobaan sebelumnya dan
+   mencoba daerah yang menjanjikan — jauh lebih efisien daripada menebak acak.
+4. Percobaan yang sudah kelihatan jelek di fold-fold awal **dihentikan dini** (*pruning*) supaya hemat waktu.
+5. Kombinasi terbaik dilatih ulang dengan cross-validation dan masuk leaderboard sebagai
+   `lightgbm_tuned`. Ia ikut bersaing — dan bisa ikut ensemble — dengan model lain.
+
+### Cara memakai
+**Di Kaggle** (sel konfigurasi notebook):
+```python
+TUNE = ["lightgbm"]     # atau "auto" = tuning model terbaik, None = tanpa tuning
+N_TRIALS = 50           # makin banyak makin teliti, makin lama
+TUNE_TIMEOUT = 600      # berhenti setelah 10 menit per model walau percobaan belum habis
+```
+**Di aplikasi web**: tab *Latih model* → buka **🎛 Hyperparameter tuning** → centang *Aktifkan tuning*.
+**Di terminal**: `python dstools.py train ... --tune lightgbm --trials 50 --tune-timeout 600`
+
+Hasilnya:
+- `auto.best_params_` → kombinasi terbaik (juga ada di `laporan_model.html`),
+- grafik skor tiap percobaan → kalau garisnya sudah datar, menambah percobaan tidak banyak gunanya.
+
+Contoh nyata (Titanic, 25 percobaan, ±1 menit): LightGBM naik dari **0,799 → 0,816** (skor CV).
+
+### Tips tuning
+- **Feature engineering dulu, tuning belakangan.** Fitur yang bagus biasanya menaikkan skor jauh
+  lebih banyak daripada tuning. Tuning adalah "polesan terakhir".
+- Tuning **model boosting** (`lightgbm`, `xgboost`, `catboost`) paling sering memberi hasil.
+  Logistic regression hampir tidak berubah.
+- Mulai dari `N_TRIALS = 30`; naikkan ke 100+ hanya bila waktu tersedia. Sesi notebook Kaggle punya
+  batas waktu (beberapa jam, cek di halaman kompetisi), jadi selalu pasang `TUNE_TIMEOUT`.
+- Kenaikan yang lebih kecil dari `std_fold` bisa jadi hanya kebetulan. Jangan tuning berulang-ulang
+  sampai "pas" dengan data — itu overfitting juga (ke data validasi).
+
+---
+
+## 8. Memakai aplikasi web di laptop
 
 Kalau ingin mengolah data sendiri tanpa menulis kode:
 
@@ -241,7 +300,7 @@ Belum punya data? Centang **Pakai data contoh** (data pelanggan fiktif: siapa ya
 
 ---
 
-## 8. Untuk pekerjaan: memakai data sendiri
+## 9. Untuk pekerjaan: memakai data sendiri
 
 **Bisakah dstools dipakai untuk kerjaan sungguhan?** Bisa, untuk **masalah prediksi pada data tabel**
 (churn pelanggan, prediksi penjualan, skor risiko kredit, lead mana yang akan closing, dsb.).
@@ -269,7 +328,7 @@ cepat jadi — lalu diperbaiki. Tapi alat hanyalah separuh pekerjaan; separuh la
   model tidak berguna di dunia nyata. **Skor yang terlalu bagus = curigai dulu.**
 - **Data waktu**: kalau memprediksi masa depan (penjualan bulan depan), cross-validation acak
   terlalu optimis. Uji dengan cara: latih di data lama, uji di data paling baru.
-- **Privasi**: jangan upload data pelanggan/pasien ke Kaggle publik. Pakai aplikasi lokal (bab 7).
+- **Privasi**: jangan upload data pelanggan/pasien ke Kaggle publik. Pakai aplikasi lokal (bab 8).
 - **Keadilan**: hati-hati memakai fitur seperti jenis kelamin, suku, agama untuk keputusan tentang orang.
 
 ### Batasan dstools
@@ -279,7 +338,7 @@ setelah dasar-dasar di panduan ini dikuasai.
 
 ---
 
-## 9. Kesalahan umum pemula
+## 10. Kesalahan umum pemula
 
 | Gejala | Penyebab & solusi |
 |---|---|
@@ -288,12 +347,12 @@ setelah dasar-dasar di panduan ini dikuasai.
 | Skor Kaggle 0,0 / error saat submit | Format submission salah: cek nama kolom & jumlah baris sama dengan `sample_submission.csv`. |
 | Skor CV 0,99+ di masalah sulit | Hampir pasti **data leakage**. Lihat feature importance; kolom teratas yang "terlalu pintar" biasanya pelakunya. |
 | Kolom ID / nama ada di feature importance teratas | Masukkan ke `DROP`. Nomor/teks unik per baris tidak bisa digeneralisasi. |
-| Latihan sangat lama | Kurangi model (`MODELS=["lightgbm"]`) atau fold (`FOLDS=3`), atau ambil sampel data dulu. |
+| Latihan sangat lama | Matikan tuning atau pasang `TUNE_TIMEOUT`, kurangi model (`MODELS=["lightgbm"]`) atau fold (`FOLDS=3`), atau ambil sampel data dulu. |
 | Mengejar leaderboard publik Kaggle terus | Overfitting ke leaderboard. Pilih model berdasarkan skor CV. |
 
 ---
 
-## 10. Rencana belajar 12 minggu
+## 11. Rencana belajar 12 minggu
 
 Sisihkan ±1 jam per hari. Semua sumber di bawah **gratis**.
 
@@ -306,7 +365,7 @@ Sisihkan ±1 jam per hari. Semua sumber di bawah **gratis**.
 | 6 | Statistik dasar: rata-rata, median, sebaran, korelasi, peluang | Khan Academy (Statistics) | paham arti std, korelasi |
 | 7 | Machine learning dasar | Kaggle Learn: *Intro to Machine Learning* | melatih model tanpa dstools |
 | 8 | ML lanjut: validasi, data kosong, kategori, leakage | Kaggle Learn: *Intermediate ML* | paham setiap langkah di bab 3 |
-| 9 | Feature engineering | Kaggle Learn: *Feature Engineering* | menaikkan skor Titanic |
+| 9 | Feature engineering + tuning (bab 6–7) | Kaggle Learn: *Feature Engineering* | menaikkan skor Titanic |
 | 10 | Regresi: **House Prices** (Kaggle) | `LOG_TARGET=True`, `METRIC="rmse"` | submission House Prices |
 | 11 | SQL (wajib di hampir semua pekerjaan data) | Kaggle Learn: *Intro to SQL* | query join & group by |
 | 12 | **Proyek portofolio** dengan data Indonesia | data.go.id, BPS, Kaggle Datasets | notebook publik + tulisan singkat |
@@ -316,7 +375,7 @@ dan **Playground Series** (kompetisi bulanan, data tabel — sangat cocok untuk 
 
 ---
 
-## 11. Karier data science
+## 12. Karier data science
 
 Jalur umum untuk pemula:
 
@@ -338,7 +397,7 @@ Data Analyst  ──►  Data Scientist  ──►  Senior DS / ML Engineer
 
 ---
 
-## 12. Glosarium
+## 13. Glosarium
 
 | Istilah | Arti singkat |
 |---|---|
@@ -350,6 +409,7 @@ Data Analyst  ──►  Data Scientist  ──►  Senior DS / ML Engineer
 | Feature engineering | Membuat kolom baru yang membantu model |
 | Feature importance | Seberapa banyak model memakai suatu fitur |
 | Fold | Satu bagian data dalam cross-validation |
+| Hyperparameter | Pengaturan model yang dipilih sebelum belajar (mis. jumlah pohon) |
 | Imbalanced | Satu kelas target jauh lebih jarang dari kelas lain |
 | Imputasi | Mengisi nilai yang kosong |
 | Leakage | Fitur yang membocorkan jawaban / informasi masa depan |
@@ -357,7 +417,9 @@ Data Analyst  ──►  Data Scientist  ──►  Senior DS / ML Engineer
 | Logloss | Metrik untuk probabilitas; makin kecil makin baik; menghukum tebakan yakin yang salah |
 | OOF (out-of-fold) | Prediksi untuk data latih yang dibuat model yang tidak melihat baris itu |
 | One-hot encoding | Mengubah kategori jadi kolom 0/1 |
+| Optuna | Library pencari hyperparameter terbaik secara cerdas |
 | Overfitting | Model menghafal data latih, buruk di data baru |
+| Pruning | Menghentikan dini percobaan tuning yang jelas jelek |
 | RMSE / MAE | Rata-rata besar kesalahan tebakan angka; makin kecil makin baik |
 | Submission | File jawaban yang dikirim ke Kaggle |
 

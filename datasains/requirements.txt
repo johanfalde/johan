@@ -4,6 +4,7 @@ scikit-learn>=1.2
 joblib
 lightgbm
 streamlit>=1.40
+optuna        # hyperparameter tuning (tanpa optuna: otomatis random search)
 # opsional (otomatis dipakai bila terpasang, sudah ada di Kaggle):
 # xgboost
 # catboost

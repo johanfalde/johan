@@ -46,6 +46,11 @@ MODELS = None              # None = semua; mis. ["lightgbm", "catboost", "xgboos
 FOLDS = 5
 DROP = ["Name", "Ticket"]  # kolom yang dibuang (teks unik per baris biasanya cuma noise)
 LOG_TARGET = False         # True untuk regresi harga/penjualan
+
+# Hyperparameter tuning (Optuna sudah terpasang di Kaggle)
+TUNE = None                # None = tidak; "auto" = model terbaik; atau ["lightgbm", "catboost"]
+N_TRIALS = 50              # jumlah percobaan per model
+TUNE_TIMEOUT = 600         # batas waktu per model (detik); None = tanpa batas
 """),
     code("""
 train, test, sample = ds.load()     # cari otomatis train/test/sample_submission di /kaggle/input
@@ -66,13 +71,24 @@ train[TARGET].hist(bins=30, figsize=(6, 3)); plt.title(TARGET); plt.show()
     md("## Latih banyak model + cross-validation"),
     code("""
 auto = ds.AutoML(target=TARGET, id_col=ID_COL, metric=METRIC, models=MODELS, folds=FOLDS,
-                 drop=DROP, log_target=LOG_TARGET).fit(train)
+                 drop=DROP, log_target=LOG_TARGET,
+                 tune=TUNE, n_trials=N_TRIALS, tune_timeout=TUNE_TIMEOUT).fit(train)
 auto.leaderboard
 """),
     code("""
 fi = auto.feature_importance(top=25)
 if len(fi):
     fi.iloc[::-1].plot.barh(figsize=(7, 7), title=fi.name); plt.show()
+"""),
+    code("""
+# hasil tuning (kosong bila TUNE = None)
+for name, params in auto.best_params_.items():
+    print(name, params)
+if hasattr(auto, "tuning_history_"):
+    h = auto.tuning_history_
+    for name, g in h.groupby("model"):
+        g[auto.metric].reset_index(drop=True).plot(marker="o", label=name)
+    plt.title(f"Skor tiap percobaan tuning ({auto.metric})"); plt.xlabel("percobaan"); plt.legend(); plt.show()
 """),
     md("## Submission"),
     code("""
