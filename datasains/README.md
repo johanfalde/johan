@@ -14,6 +14,8 @@ Satu toolkit untuk alur data science lengkap, dengan **kode yang sama** di lapto
 | Validasi | K-Fold / Stratified K-Fold, prediksi out-of-fold, leaderboard dengan skor ± std per fold |
 | Tuning | hyperparameter tuning dengan **Optuna** (TPE + pruning percobaan jelek); tanpa Optuna otomatis random search. Hasil masuk leaderboard sebagai `<model>_tuned` |
 | Ensemble | rata-rata top-k model; dipilih otomatis bila lebih baik dari model tunggal |
+| Asisten AI | chatbot (Claude) di aplikasi: menjelaskan data & hasil model Anda, membantu kode, Kaggle, LLM — `asisten.py` |
+| Panduan | ebook pemula 16 bab di tab **📖 Panduan** aplikasi (`PANDUAN_PEMULA.md`) |
 | Hasil | `submission.csv` (format mengikuti `sample_submission`), feature importance, laporan model HTML, model `.joblib` |
 
 Task dideteksi otomatis: **binary**, **multiclass**, atau **regression**.
@@ -38,7 +40,8 @@ cd datasains
 pip install -r requirements.txt
 
 python dstools.py demo                       # coba dengan data contoh
-streamlit run app.py                         # aplikasi web: upload → EDA → latih → download
+streamlit run app.py                         # aplikasi web: upload → EDA → latih → download + chatbot + panduan
+python asisten.py                            # ngobrol dengan asisten AI di terminal
 python dstools.py eda   --train train.csv --target Survived
 python dstools.py train --train train.csv --test test.csv --sample sample_submission.csv \
                         --target Survived --id PassengerId --metric accuracy --drop Name,Ticket
@@ -47,6 +50,21 @@ python dstools.py train --train train.csv --test test.csv --sample sample_submis
 Opsi `train` lain: `--models lightgbm,catboost`, `--folds 10`, `--top-k 2`, `--log-target` (regresi harga),
 `--proba yes|no` (paksa isi submission probabilitas/label),
 `--tune auto` atau `--tune lightgbm,xgboost` + `--trials 50 --tune-timeout 600` (hyperparameter tuning).
+
+### Asisten AI (chatbot)
+
+Butuh API key dari [platform.claude.com](https://platform.claude.com) (berbayar per pemakaian).
+Isi di tab **💬 Asisten AI → ⚙️ Pengaturan**, atau set sekali saja:
+
+```bash
+export ANTHROPIC_API_KEY="sk-ant-..."                      # Mac/Linux
+setx ANTHROPIC_API_KEY "sk-ant-..."                        # Windows (buka terminal baru setelahnya)
+# atau buat datasains/.streamlit/secrets.toml berisi:  ANTHROPIC_API_KEY = "sk-ant-..."
+```
+
+Secara bawaan yang dikirim ke API hanya **ringkasan** data (nama kolom, statistik, leaderboard),
+bukan isi datanya. Penjelasan lengkap & contoh proyek LLM (klasifikasi ulasan, chatbot dokumen/RAG):
+bab 12 panduan.
 
 ## 3. Dari Python
 

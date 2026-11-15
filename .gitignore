@@ -6,3 +6,5 @@ datasains/submission.csv
 datasains/laporan_*.html
 datasains/leaderboard.json
 datasains/*.joblib
+datasains/.streamlit/secrets.toml
+.streamlit/secrets.toml

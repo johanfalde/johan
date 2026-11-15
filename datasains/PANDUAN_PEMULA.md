@@ -15,9 +15,12 @@ pemrograman untuk mulai. Ikuti bab demi bab; di akhir Anda sudah mengirim predik
 8. [Memakai aplikasi web di laptop](#8-memakai-aplikasi-web-di-laptop)
 9. [Untuk pekerjaan: memakai data sendiri](#9-untuk-pekerjaan-memakai-data-sendiri)
 10. [Kesalahan umum pemula](#10-kesalahan-umum-pemula)
-11. [Rencana belajar 12 minggu](#11-rencana-belajar-12-minggu)
-12. [Karier data science](#12-karier-data-science)
-13. [Glosarium](#13-glosarium)
+11. [Belajar Python & coding di Kaggle](#11-belajar-python--coding-di-kaggle)
+12. [LLM, chatbot & Asisten AI](#12-llm-chatbot--asisten-ai)
+13. [Menghasilkan uang dari data science](#13-menghasilkan-uang-dari-data-science)
+14. [Rencana belajar 12 minggu](#14-rencana-belajar-12-minggu)
+15. [Karier data science](#15-karier-data-science)
+16. [Glosarium](#16-glosarium)
 
 ---
 
@@ -228,6 +231,7 @@ Ide lain yang bisa dicoba: kelompok umur (anak/dewasa/lansia), harga tiket per o
 ### Apa itu hyperparameter?
 Setiap model punya **"tombol pengaturan"** yang ditentukan *sebelum* belajar. Contoh di LightGBM:
 
+| Halusinasi | LLM menjawab dengan yakin tapi salah/mengarang |
 | Hyperparameter | Arti sehari-hari |
 |---|---|
 | `n_estimators` | berapa banyak "pohon keputusan" yang dibuat |
@@ -295,6 +299,10 @@ Kalau ingin mengolah data sendiri tanpa menulis kode:
    - Tab **EDA**: peringatan, grafik target, korelasi, ringkasan kolom.
    - Tab **Latih model**: pilih metrik & model → **🚀 Latih** → leaderboard + feature importance.
    - Tab **Prediksi & download**: download `submission.csv` dan file model.
+   - Tab **💬 Asisten AI**: chatbot untuk bertanya tentang data & hasil Anda (lihat bab 12).
+   - Tab **📖 Panduan**: panduan ini dalam bentuk ebook per bab, bisa dibaca langsung di aplikasi.
+
+Belum upload data pun, tab **Panduan** dan **Asisten AI** sudah bisa dipakai.
 
 Belum punya data? Centang **Pakai data contoh** (data pelanggan fiktif: siapa yang akan membeli).
 
@@ -352,7 +360,238 @@ setelah dasar-dasar di panduan ini dikuasai.
 
 ---
 
-## 11. Rencana belajar 12 minggu
+## 11. Belajar Python & coding di Kaggle
+
+Kaggle cocok untuk belajar coding: semuanya jalan di browser, gratis, dan tidak perlu install apa pun.
+
+### Langkah 1 — Kursus gratis Kaggle Learn
+Buka menu **Learn** di kaggle.com. Setiap kursus singkat (beberapa jam), berisi latihan yang dicek
+otomatis, dan memberi sertifikat. Urutan yang disarankan:
+
+1. **Python** → variabel, list, if, for, fungsi
+2. **Pandas** → mengolah tabel
+3. **Data Visualization** → grafik
+4. **Intro to Machine Learning** → **Intermediate Machine Learning**
+5. **Feature Engineering**
+6. **Intro to SQL**
+7. **Intro to Deep Learning** (persiapan sebelum masuk ke LLM)
+
+### Langkah 2 — Mengenal notebook
+
+| Yang dilakukan | Caranya |
+|---|---|
+| Membuat notebook baru | **Code → New Notebook** |
+| Menjalankan satu sel | klik sel → **Shift + Enter** |
+| Menambah sel kode / catatan | tombol **+ Code** / **+ Markdown** |
+| Memasang data | panel kanan → **Add Input** |
+| Menyalakan GPU / internet | panel kanan → **Session options** (internet butuh verifikasi nomor HP) |
+| Memasang library tambahan | `!pip install nama_library` di sebuah sel |
+| Menyimpan | **Save Version** (bisa dibuat publik sebagai portofolio) |
+| Menyimpan rahasia (API key) | menu **Add-ons → Secrets** (lihat bab 12) |
+
+Coba sel pertama Anda:
+
+```python
+nama = "Budi"
+umur = 25
+print(f"Halo, saya {nama}, umur {umur} tahun, sedang belajar data science!")
+
+angka = [3, 7, 1, 9]
+print("Terbesar:", max(angka), "| Rata-rata:", sum(angka) / len(angka))
+```
+
+### Langkah 3 — Cara belajar yang efektif
+- **Ketik ulang, jangan hanya membaca.** Kode yang Anda ketik sendiri jauh lebih melekat.
+- **Fork notebook orang lain** (tombol *Copy & Edit*) di kompetisi yang Anda ikuti. Jalankan sel
+  satu per satu, ubah sedikit, lihat apa yang berubah.
+- **Baca `dstools.py`** setelah kursus Python & Pandas. Sebagian besar sudah akan bisa Anda pahami.
+- **Error itu normal.** Baca baris terakhir pesan error dulu, lalu tanyakan ke tab **💬 Asisten AI**:
+  tempel kode dan pesan error-nya, minta dijelaskan *kenapa* salah, bukan hanya perbaikannya.
+- **1 jam setiap hari** lebih baik daripada 7 jam sekali seminggu.
+
+---
+
+## 12. LLM, chatbot & Asisten AI
+
+### Apa itu LLM?
+**LLM (Large Language Model)** adalah AI yang dilatih dengan sangat banyak teks sehingga bisa
+memahami dan menulis bahasa manusia. Contohnya Claude. LLM bisa menjelaskan konsep, menulis kode,
+merangkum dokumen, mengklasifikasi teks, dan menjawab pertanyaan.
+
+| Istilah | Arti sehari-hari |
+|---|---|
+| **Prompt** | Pertanyaan/perintah yang Anda kirim ke LLM |
+| **System prompt** | "Peran & aturan" untuk LLM, mis. "Kamu CS toko, jawab sopan" |
+| **Token** | Potongan kata. Biaya & batas panjang dihitung dalam token |
+| **Konteks** | Semua teks yang dilihat LLM sekaligus (prompt + riwayat + dokumen) |
+| **Halusinasi** | LLM menjawab dengan yakin tapi salah/mengarang. **Selalu cek fakta penting** |
+| **API** | Cara program Anda "menelepon" LLM lewat internet |
+| **RAG** | LLM menjawab berdasarkan dokumen Anda sendiri (lihat di bawah) |
+| **Fine-tuning** | Melatih ulang model agar ahli di bidang tertentu |
+
+### Memakai Asisten AI di aplikasi
+Aplikasi ini punya tab **💬 Asisten AI**: chatbot yang paham data science dan bisa melihat
+**ringkasan data & hasil model Anda**.
+
+1. Buat akun di **platform.claude.com** → isi saldo kredit → menu **API Keys** → **Create Key**.
+   Pemakaian API dibayar per token; harga terbaru ada di halaman pricing situs tersebut.
+2. Di aplikasi buka tab **💬 Asisten AI** → **⚙️ Pengaturan asisten** → tempel API key.
+   (Supaya tidak mengetik ulang: set environment `ANTHROPIC_API_KEY`, atau buat file
+   `.streamlit/secrets.toml` berisi `ANTHROPIC_API_KEY = "..."` — jangan di-commit ke GitHub!)
+3. Pilih model:
+   - **Opus 5.5**: paling pintar, untuk analisis & penjelasan yang penting,
+   - **Sonnet 5.5**: lebih cepat & murah,
+   - **Haiku 5.5**: paling murah, untuk pertanyaan ringan.
+4. Klik salah satu **contoh pertanyaan** atau ketik sendiri, misalnya:
+   - *"Jelaskan hasil leaderboard saya dengan bahasa sederhana"*
+   - *"Apakah ada tanda data leakage di data saya?"*
+   - *"Buatkan kode fitur baru dari kolom tanggal_daftar"*
+   - *"Bagaimana cara menjelaskan hasil ini ke klien?"*
+
+**Privasi:** secara bawaan yang dikirim hanya **ringkasan** (nama kolom, statistik, leaderboard),
+bukan isi data. Opsi *contoh baris* mengirim sebagian isi data — jangan aktifkan untuk data rahasia
+klien atau data pribadi.
+
+Asisten juga bisa dipakai di Kaggle atau terminal:
+```python
+import asisten
+bot = asisten.Asisten()                       # pakai ANTHROPIC_API_KEY
+bot.set_konteks(asisten.ringkas_data(train, target="Survived", auto=auto))
+for potongan in bot.tanya("Kenapa skor saya segini? Apa yang bisa diperbaiki?"):
+    print(potongan, end="")
+```
+atau langsung mengobrol di terminal: `python asisten.py`.
+
+### Memanggil LLM dari Python (tingkat 1)
+Inilah dasar dari semua aplikasi LLM. Di Kaggle, simpan API key di **Add-ons → Secrets** dengan
+nama `ANTHROPIC_API_KEY`, nyalakan **Internet**, lalu:
+
+```python
+!pip install -q anthropic
+import os, anthropic
+from kaggle_secrets import UserSecretsClient          # khusus Kaggle
+os.environ["ANTHROPIC_API_KEY"] = UserSecretsClient().get_secret("ANTHROPIC_API_KEY")
+
+client = anthropic.Anthropic()
+jawaban = client.messages.create(
+    model="claude-opus-5-5",
+    max_tokens=2000,
+    messages=[{"role": "user", "content": "Jelaskan apa itu overfitting dalam 3 kalimat."}],
+)
+print(jawaban.content[-1].text)
+```
+
+### Contoh proyek 1 — klasifikasi ulasan pelanggan
+LLM bisa jadi "model" tanpa perlu data latih. Cocok untuk ulasan marketplace, komentar media sosial,
+atau tiket keluhan:
+
+```python
+import pandas as pd
+
+ulasan = pd.DataFrame({"teks": [
+    "Pengiriman cepat, barang sesuai foto!",
+    "Kemasan rusak dan penjual tidak membalas chat.",
+    "Lumayan, harga sesuai kualitas.",
+]})
+
+def sentimen(teks):
+    r = client.messages.create(
+        model="claude-haiku-5-5",           # model murah untuk tugas sederhana & banyak data
+        max_tokens=10,
+        system="Balas HANYA dengan satu kata: positif, negatif, atau netral.",
+        messages=[{"role": "user", "content": teks}],
+    )
+    return r.content[-1].text.strip().lower()
+
+ulasan["sentimen"] = ulasan["teks"].apply(sentimen)
+ulasan
+```
+Untuk ribuan baris: coba dulu di 20–50 baris, cek hasilnya secara manual, baru jalankan semua.
+Hasil LLM tetap perlu dicek seperti model lain — hitung akurasinya pada sampel yang Anda beri label sendiri.
+
+### Contoh proyek 2 — chatbot dokumen sendiri (RAG mini)
+**RAG** = (1) cari bagian dokumen yang relevan dengan pertanyaan, (2) kirim bagian itu ke LLM
+bersama pertanyaannya. Hasilnya chatbot yang menjawab sesuai info **Anda**, bukan mengarang:
+
+```python
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+dokumen = [
+    "Jam buka toko: Senin-Sabtu pukul 08.00-20.00. Minggu tutup.",
+    "Pengembalian barang maksimal 7 hari setelah diterima, dengan nota pembelian.",
+    "Ongkos kirim gratis untuk belanja di atas Rp200.000 ke seluruh Jawa.",
+    "Pembayaran bisa lewat transfer bank, QRIS, atau bayar di tempat (COD).",
+]
+# potongan huruf (bukan kata utuh): "dikembalikan" tetap cocok dengan "pengembalian"
+vektorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5)).fit(dokumen)
+matriks = vektorizer.transform(dokumen)
+
+def tanya_toko(pertanyaan, k=2):
+    skor = cosine_similarity(vektorizer.transform([pertanyaan]), matriks)[0]
+    relevan = [dokumen[i] for i in skor.argsort()[::-1][:k]]          # 1. cari dokumen
+    konteks = "\n".join(f"- {d}" for d in relevan)
+    r = client.messages.create(                                         # 2. tanya LLM + dokumen
+        model="claude-opus-5-5",
+        max_tokens=1000,
+        system="Kamu CS toko. Jawab HANYA berdasarkan informasi berikut. "
+               "Jika tidak ada jawabannya, bilang belum tahu dan sarankan hubungi admin.\n" + konteks,
+        messages=[{"role": "user", "content": pertanyaan}],
+    )
+    return r.content[-1].text
+
+print(tanya_toko("Kalau barangnya rusak bisa dikembalikan?"))
+```
+Ganti `dokumen` dengan SOP, katalog produk, atau FAQ milik klien — inilah jasa chatbot yang banyak
+dicari UMKM. Untuk dokumen besar, versi lanjutnya memakai *embedding* dan *vector database*.
+
+### Tingkat 3 — fine-tuning (lanjutan)
+Fine-tuning = melatih ulang model open-source kecil (mis. Llama, Gemma, Qwen) dengan contoh Anda
+sendiri, memakai teknik hemat memori **LoRA** dan GPU gratis Kaggle. Pelajari setelah paham deep
+learning dasar; sumber terbaik: **Hugging Face LLM Course** (huggingface.co/learn). Untuk kebanyakan
+kebutuhan bisnis, tingkat 1–2 (API + RAG) sudah cukup dan jauh lebih cepat jadi.
+
+### Bidang lain setelah dasar kuat
+- **Computer vision**: gambar (rontgen, foto produk, deteksi cacat).
+- **NLP**: teks (sentimen, ringkasan, ekstraksi data dari dokumen).
+- **Time series**: peramalan penjualan/stok.
+- **MLOps**: memasang model agar dipakai aplikasi sungguhan.
+- **Data engineering**: SQL & pipeline data — banyak lowongan, sering dilupakan pemula.
+
+---
+
+## 13. Menghasilkan uang dari data science
+
+**Bisa**, tapi realistis: uang biasanya datang dari **pekerjaan & proyek**, bukan hadiah Kaggle.
+Kaggle adalah tempat latihan dan etalase portofolio.
+
+| Jalur | Contoh pekerjaan | Kapan mulai |
+|---|---|---|
+| **Freelance analisis data** | merapikan data Excel, dashboard (Looker Studio/Power BI), laporan penjualan UMKM | setelah ±2–3 bulan (pandas + visualisasi) |
+| **Data analyst** (full/part-time) | SQL, laporan rutin, dashboard | setelah ±3–6 bulan + portofolio |
+| **Proyek machine learning** | prediksi penjualan, churn, segmentasi pelanggan — dstools untuk baseline | setelah paham bab 6–9 |
+| **Otomasi dengan LLM** | chatbot toko (RAG), klasifikasi ulasan, ekstraksi data faktur/PDF | setelah bab 12 |
+| **Mengajar / konten** | tutorial YouTube/TikTok, kelas privat, artikel | setelah bisa menjelaskan dengan sederhana |
+| **Hadiah kompetisi Kaggle** | hadiah besar, pesaing para ahli dunia | jadikan latihan, bukan sumber uang |
+
+**Tempat mencari klien:** Upwork, Fiverr, Freelancer (internasional); Sribulancer, Projects.co.id
+(lokal); LinkedIn; dan UMKM di sekitar Anda. Tarif sangat bervariasi tergantung portofolio.
+
+**Tips mendapatkan klien pertama:**
+1. Buat **3 proyek portofolio** yang menjawab masalah bisnis nyata, mis. *"Produk mana yang harus
+   distok lebih banyak?"* — lebih menjual daripada *"Titanic akurasi 0,8"*.
+2. Tawarkan proyek kecil yang jelas hasilnya: satu dashboard, satu laporan, satu chatbot FAQ.
+3. Sampaikan hasil dalam **bahasa bisnis** (uang, waktu, pelanggan), bukan istilah teknis.
+4. **Jujur soal batasan.** Jangan menjanjikan akurasi tertentu sebelum melihat datanya.
+
+**Bekerja bersama AI** (Asisten AI atau Claude): AI bisa mengerjakan banyak bagian teknis dengan
+cepat, tapi **Anda** tetap yang memahami masalah klien, memeriksa apakah hasilnya masuk akal, dan
+bertanggung jawab atas hasilnya. AI bisa salah; pemahaman dasar dari panduan ini yang membuat Anda
+bisa menangkap kesalahan itu — dan yang membuat klien percaya kepada Anda.
+
+---
+
+## 14. Rencana belajar 12 minggu
 
 Sisihkan ±1 jam per hari. Semua sumber di bawah **gratis**.
 
@@ -369,13 +608,14 @@ Sisihkan ±1 jam per hari. Semua sumber di bawah **gratis**.
 | 10 | Regresi: **House Prices** (Kaggle) | `LOG_TARGET=True`, `METRIC="rmse"` | submission House Prices |
 | 11 | SQL (wajib di hampir semua pekerjaan data) | Kaggle Learn: *Intro to SQL* | query join & group by |
 | 12 | **Proyek portofolio** dengan data Indonesia | data.go.id, BPS, Kaggle Datasets | notebook publik + tulisan singkat |
+| 13+ | LLM: API, klasifikasi teks, RAG (bab 12) | Hugging Face LLM Course, docs.claude.com | chatbot dokumen pertama |
 
 Kompetisi latihan yang ramah pemula di Kaggle: **Titanic**, **House Prices**, **Spaceship Titanic**,
 dan **Playground Series** (kompetisi bulanan, data tabel — sangat cocok untuk dstools).
 
 ---
 
-## 12. Karier data science
+## 15. Karier data science
 
 Jalur umum untuk pemula:
 
@@ -397,7 +637,7 @@ Data Analyst  ──►  Data Scientist  ──►  Senior DS / ML Engineer
 
 ---
 
-## 13. Glosarium
+## 16. Glosarium
 
 | Istilah | Arti singkat |
 |---|---|
@@ -409,9 +649,11 @@ Data Analyst  ──►  Data Scientist  ──►  Senior DS / ML Engineer
 | Feature engineering | Membuat kolom baru yang membantu model |
 | Feature importance | Seberapa banyak model memakai suatu fitur |
 | Fold | Satu bagian data dalam cross-validation |
+| Halusinasi | LLM menjawab dengan yakin tapi salah/mengarang |
 | Hyperparameter | Pengaturan model yang dipilih sebelum belajar (mis. jumlah pohon) |
 | Imbalanced | Satu kelas target jauh lebih jarang dari kelas lain |
 | Imputasi | Mengisi nilai yang kosong |
+| LLM | Large Language Model — AI yang memahami & menulis teks |
 | Leakage | Fitur yang membocorkan jawaban / informasi masa depan |
 | LightGBM / XGBoost / CatBoost | Model "gradient boosting", juara banyak kompetisi data tabel |
 | Logloss | Metrik untuk probabilitas; makin kecil makin baik; menghukum tebakan yakin yang salah |
@@ -419,9 +661,12 @@ Data Analyst  ──►  Data Scientist  ──►  Senior DS / ML Engineer
 | One-hot encoding | Mengubah kategori jadi kolom 0/1 |
 | Optuna | Library pencari hyperparameter terbaik secara cerdas |
 | Overfitting | Model menghafal data latih, buruk di data baru |
+| Prompt | Perintah/pertanyaan untuk LLM |
 | Pruning | Menghentikan dini percobaan tuning yang jelas jelek |
+| RAG | LLM menjawab berdasarkan dokumen yang dicari lebih dulu |
 | RMSE / MAE | Rata-rata besar kesalahan tebakan angka; makin kecil makin baik |
 | Submission | File jawaban yang dikirim ke Kaggle |
+| Token | Potongan kata; satuan biaya & panjang teks LLM |
 
 ---
 

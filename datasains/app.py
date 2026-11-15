@@ -1,15 +1,114 @@
 """Aplikasi web dstools — jalankan:  streamlit run app.py"""
 import io
+import os
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
 
+import asisten
 import dstools as ds
 
 st.set_page_config(page_title="dstools — Data Science Studio", layout="wide")
 st.title("📊 dstools — Data Science Studio")
 st.caption("Upload data → EDA → latih banyak model dengan cross-validation → download submission & model. "
-           "Kode yang sama bisa dijalankan di Kaggle Notebook (lihat kaggle_notebook.ipynb).")
+           "Ada 📖 panduan belajar dan 💬 asisten AI. Kode yang sama bisa dijalankan di Kaggle "
+           "(lihat kaggle_notebook.ipynb).")
+
+PANDUAN = Path(__file__).with_name("PANDUAN_PEMULA.md")
+
+
+def render_panduan():
+    """Tab ebook: panduan pemula per bab."""
+    if not PANDUAN.exists():
+        st.warning("File PANDUAN_PEMULA.md tidak ditemukan di folder aplikasi.")
+        return
+    teks = PANDUAN.read_text(encoding="utf-8")
+    judul, *bab = teks.split("\n## ")
+    bab = ["## " + b for b in bab]
+    nama = [b.splitlines()[0].removeprefix("## ") for b in bab]
+    c1, c2 = st.columns([3, 1])
+    pilih = c1.selectbox("Pilih bab", ["Daftar isi"] + nama, key="bab")
+    c2.download_button("⬇️ Download ebook (.md)", teks, "Panduan_Data_Science_Pemula.md", "text/markdown")
+    if pilih == "Daftar isi":
+        st.markdown(judul.split("**Daftar isi**")[0])
+        for i, n in enumerate(nama):
+            st.markdown(f"- {n}")
+        st.info("Pilih bab di atas. Ada pertanyaan? Tanyakan ke tab **💬 Asisten AI**.")
+    else:
+        i = nama.index(pilih)
+        st.markdown(bab[i].replace("\n---\n", "\n"))
+        def ke(bab_baru):
+            st.session_state["bab"] = bab_baru
+
+        a, _, b = st.columns([1, 2, 1])
+        if i > 0:
+            a.button(f"← {nama[i - 1]}", key="prev", on_click=ke, args=(nama[i - 1],))
+        if i < len(nama) - 1:
+            b.button(f"{nama[i + 1]} →", key="next", on_click=ke, args=(nama[i + 1],))
+
+
+def _api_key_bawaan():
+    try:
+        return st.secrets.get("ANTHROPIC_API_KEY", "")
+    except Exception:  # tidak ada secrets.toml
+        return os.environ.get("ANTHROPIC_API_KEY", "")
+
+
+def render_asisten(train=None, target=None, auto=None):
+    """Tab chatbot: tanya apa saja tentang data science, data Anda, Python, Kaggle, LLM."""
+    with st.expander("⚙️ Pengaturan asisten", expanded=not st.session_state.get("api_key")):
+        st.markdown("Butuh **API key Claude** dari [platform.claude.com](https://platform.claude.com) "
+                    "(berbayar sesuai pemakaian). Key hanya disimpan selama aplikasi dibuka.")
+        key = st.text_input("API key", value=st.session_state.get("api_key") or _api_key_bawaan(),
+                            type="password")
+        st.session_state["api_key"] = key
+        c1, c2 = st.columns(2)
+        model = c1.selectbox("Model", list(asisten.MODEL_PILIHAN), format_func=asisten.MODEL_PILIHAN.get)
+        effort = c2.select_slider("Ketelitian berpikir", ["low", "medium", "high"], value="medium",
+                                  help="Lebih tinggi = jawaban lebih matang, tapi lebih lama & lebih mahal")
+        ada_data = train is not None
+        kirim_ringkasan = st.checkbox("Sertakan ringkasan data & hasil model", value=ada_data,
+                                      disabled=not ada_data,
+                                      help="Yang dikirim: nama kolom, statistik, leaderboard — bukan isi data")
+        contoh = st.slider("Sertakan contoh baris data (0 = tidak)", 0, 20, 0, disabled=not ada_data,
+                           help="Jangan kirim data rahasia/pribadi")
+        if st.button("🗑 Mulai percakapan baru"):
+            st.session_state.pop("bot", None)
+    if not key:
+        st.info("Isi API key di pengaturan di atas untuk mulai mengobrol.")
+        return
+    bot = st.session_state.get("bot")
+    if bot is None or (bot.model, bot.effort, st.session_state.get("bot_key")) != (model, effort, key):
+        lama = bot.riwayat if bot is not None else []
+        try:
+            bot = asisten.Asisten(api_key=key, model=model, effort=effort)
+        except Exception as e:  # noqa: BLE001
+            st.error(asisten.pesan_error(e))
+            return
+        bot.riwayat = lama
+        st.session_state["bot"], st.session_state["bot_key"] = bot, key
+    bot.set_konteks(asisten.ringkas_data(train, target, auto, contoh_baris=contoh) if kirim_ringkasan else "")
+
+    if not bot.riwayat:
+        st.markdown("**Contoh pertanyaan:**")
+        cols = st.columns(3)
+        for i, q in enumerate(asisten.SARAN_PERTANYAAN):
+            if cols[i % 3].button(q, key=f"saran{i}"):
+                st.session_state["saran"] = q
+    for m in bot.riwayat:
+        with st.chat_message("user" if m["role"] == "user" else "assistant"):
+            st.markdown(m["content"])
+    q = st.chat_input("Tanya apa saja tentang data science, data Anda, Python, Kaggle, LLM…")
+    q = q or st.session_state.pop("saran", None)
+    if q:
+        with st.chat_message("user"):
+            st.markdown(q)
+        with st.chat_message("assistant"):
+            try:
+                st.write_stream(bot.tanya(q))
+            except Exception as e:  # noqa: BLE001
+                st.error(asisten.pesan_error(e))
 
 with st.sidebar:
     st.header("1. Data")
@@ -37,7 +136,13 @@ elif pakai_demo:
     df = ds.demo_data()
     train, test, sample = df.iloc[:2400], df.iloc[2400:].drop(columns="beli"), None
 else:
-    st.info("Upload data latih di sidebar, atau centang **Pakai data contoh**.")
+    st.info("Upload data latih di sidebar, atau centang **Pakai data contoh**. "
+            "Sambil menunggu, baca panduan atau tanya asisten AI.")
+    t_panduan, t_asisten = st.tabs(["📖 Panduan", "💬 Asisten AI"])
+    with t_panduan:
+        render_panduan()
+    with t_asisten:
+        render_asisten()
     st.stop()
 
 cols = list(train.columns)
@@ -52,7 +157,8 @@ with st.sidebar:
     drop = st.multiselect("Kolom yang dibuang", [c for c in cols if c not in (target, id_col)])
 
 task = ds.detect_task(train[target])
-tab_data, tab_eda, tab_train, tab_pred = st.tabs(["🗂 Data", "🔍 EDA", "🤖 Latih model", "📤 Prediksi & download"])
+tab_data, tab_eda, tab_train, tab_pred, tab_chat, tab_guide = st.tabs(
+    ["🗂 Data", "🔍 EDA", "🤖 Latih model", "📤 Prediksi & download", "💬 Asisten AI", "📖 Panduan"])
 
 with tab_data:
     c1, c2, c3, c4 = st.columns(4)
@@ -164,3 +270,10 @@ with tab_pred:
             st.dataframe(sub.head(50), width="stretch")
             st.download_button("📤 Download submission.csv", sub.to_csv(index=False), "submission.csv", "text/csv",
                                type="primary")
+
+with tab_chat:
+    a = st.session_state.get("auto")
+    render_asisten(train, target, a if a is not None and a.target == target else None)
+
+with tab_guide:
+    render_panduan()

@@ -5,6 +5,7 @@ joblib
 lightgbm
 streamlit>=1.40
 optuna        # hyperparameter tuning (tanpa optuna: otomatis random search)
+anthropic     # chatbot Asisten AI (butuh API key)
 # opsional (otomatis dipakai bila terpasang, sudah ada di Kaggle):
 # xgboost
 # catboost
