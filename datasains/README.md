@@ -1,5 +1,7 @@
 # dstools — toolkit data science (lokal & Kaggle)
 
+> **Baru belajar data science?** Mulai dari [PANDUAN_PEMULA.md](PANDUAN_PEMULA.md) — dari nol sampai submit ke Kaggle.
+
 Satu toolkit untuk alur data science lengkap, dengan **kode yang sama** di laptop dan di Kaggle Notebook:
 
 | Tahap | Yang dikerjakan |
