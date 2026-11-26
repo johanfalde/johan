@@ -44,7 +44,7 @@ Generator ada di `jersey-futsal/` (`generate.js` + `config.json`). Jalankan `cd 
 - **LOGO RESMI SEKOLAH** = bingkai hijau + "TK ISLAM PLUS" + kaligrafi "المهاجر" + "AL - MUHAAJIR"
   (sumber: `assets/logo-resmi-sumber.jpg`). `trace_logo.py` (potracer) men-trace kaligrafi & "AL - MUHAAJIR" ke vektor,
   bingkai dibangun ulang (sumber terpotong kiri-kanan), "TK ISLAM PLUS" pakai font Bebas (hasil trace bergerigi).
-  `LOGO.officialLogo()` / `officialLogoInline()`. Di jersey dada kiri (sebelah nomor) & celana: PERISAI putih bertepi emas berisi logo ASLI (warna asli) + bintang emas kecil (permintaan klien).
+  `LOGO.officialLogo()` / `officialLogoInline()`. Di jersey dada kiri (sebelah nomor) & celana: PERISAI GAYA DESAIN AWAL: gelap senada baju (c3), tepi emas, bulan sabit+bintang emas di atas, logo resmi (bingkai emas, kaligrafi putih) di tengah, bola di bawah. BUKAN perisai putih.
 - (Lama, tidak dipakai lagi) `logo.js` fullLogo: logo bulat (kubah+menara, kitab, bulan sabit-bintang, BOLA, sinar, untaian daun; font Cinzel),
   versi perisai untuk jersey (`crestShield`, ada bola kecil), dan `ball()`.
 - Nama sekolah lengkap: "TK ISLAM PLUS" + "AL MUHAAJIR" (bukan "TK IP").
