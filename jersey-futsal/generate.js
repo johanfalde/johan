@@ -133,14 +133,14 @@ function commonDefs(d, id) {
 function flameSide(d, id, fill, tongue, edge = '', inner = true, innerFill = fill, edgeFromY = 0) {
   const CURVE = 'M128 236 C148 290 148 360 152 420 C160 478 210 506 220 570 C226 612 212 642 198 660';
   // garis emas meruncing (seperti lidah api) mengikuti lengkung panel: tipis di ketiak -> tebal ke bawah
-  const segs = [[[128, 236], [148, 290], [148, 360], [152, 420]], [[152, 420], [160, 478], [210, 506], [220, 570]], [[220, 570], [226, 612], [212, 642], [198, 660]]];
+  const segs = [[[118, 352], [134, 382], [148, 398], [154, 424]], [[152, 420], [160, 478], [210, 506], [220, 570]], [[220, 570], [226, 612], [212, 642], [198, 660]]];
   const bz = (p, t) => { const u = 1 - t; return [0, 1].map((k) => u * u * u * p[0][k] + 3 * u * u * t * p[1][k] + 3 * u * t * t * p[2][k] + t * t * t * p[3][k]); };
   const pts = []; segs.forEach((s, i) => { for (let k = i ? 1 : 0; k <= 30; k++) pts.push(bz(s, k / 30)); });
   const W = 8, outer = [], innerPts = [];
   pts.forEach((p, i) => {
     const q = pts[Math.min(i + 1, pts.length - 1)], r = pts[Math.max(i - 1, 0)];
     let dx = q[0] - r[0], dy = q[1] - r[1]; const L = Math.hypot(dx, dy) || 1; dx /= L; dy /= L;
-    const t = i / (pts.length - 1), T0 = 0.15, w = t < T0 ? 0 : W * Math.min(1, Math.pow((t - T0) / 0.22, 1.2));
+    const t = i / (pts.length - 1), w = W;
     const nx = dy, ny = -dx; // normal ke arah dalam badan
     outer.push(`${(p[0] + nx * w * 0.08).toFixed(1)},${(p[1] + ny * w * 0.08).toFixed(1)}`);
     innerPts.unshift(`${(p[0] - nx * w * 0.92).toFixed(1)},${(p[1] - ny * w * 0.92).toFixed(1)}`);
