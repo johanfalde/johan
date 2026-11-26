@@ -268,7 +268,7 @@ function shorts(d, id, player, view) {
         ${view === 'front'
           ? `<text class="chk" x="222" y="372" text-anchor="middle" font-family="Anton" font-size="56" fill="#FFFFFF" stroke="url(#${id}-gold)" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
              ${crest(d, id, 392, 150, 0.62)}`
-          : `<text class="chk" data-fit="180" x="300" y="170" text-anchor="middle" font-family="Bebas" font-size="32" letter-spacing="6" fill="url(#${id}-gold)">${esc(cfg.sekolah_baris2)}</text>`}
+          : ''}
         <g filter="url(#${id}-blur)">
           <path d="M200 120 Q240 250 215 380" stroke="#fff" stroke-opacity=".12" stroke-width="30" fill="none"/>
           <path d="M300 268 L290 440" stroke="#000" stroke-opacity=".35" stroke-width="14"/>

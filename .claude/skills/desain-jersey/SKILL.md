@@ -31,7 +31,7 @@ Generator ada di `jersey-futsal/` (`generate.js` + `config.json`). Jalankan `cd 
   (data-fit) agar tidak kena list samping.
 - Belakang: nama melengkung di area bersih ANTARA jahitan raglan (arc 176–424, data-fit 226) supaya tidak menabrak
   jahitan/panel samping; nomor besar ±215px; motif bawah digeser turun agar tidak kena nomor.
-- Celana: nomor di kaki kiri depan, logo kecil kanan, list samping + list bawah.
+- Celana: nomor di kaki kiri depan, logo kecil kanan, list samping + list bawah. Celana BELAKANG POLOS (tanpa tulisan).
 - Nama panjang otomatis diperkecil; jangan pakai textLength yang memampatkan huruf.
 
 ## Anti-tabrakan (WAJIB)
