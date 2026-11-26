@@ -78,6 +78,18 @@
       </g>
       <text class="chk" x="300" y="106" text-anchor="middle" font-family="Bebas" font-size="14.6" letter-spacing="2" fill="#fff" opacity=".7">TK ISLAM PLUS AL MUHAAJIR</text>
         
+    <g class="chk" transform="translate(486 170) rotate(-34.5) scale(.78)" opacity=".34">
+      <rect x="-19" y="-19" width="38" height="38" fill="url(#b-gold)" fill-opacity=".18" stroke="url(#b-gold)" stroke-width="2.2"></rect>
+      <rect x="-19" y="-19" width="38" height="38" transform="rotate(45)" fill="url(#b-gold)" fill-opacity=".18" stroke="url(#b-gold)" stroke-width="2.2"></rect>
+      <circle r="9" fill="none" stroke="url(#b-gold)" stroke-width="2.2"></circle>
+      <circle r="3" fill="url(#b-gold)"></circle>
+    </g>
+    <g class="chk" transform="translate(114 170) rotate(34.5) scale(.78)" opacity=".34">
+      <rect x="-19" y="-19" width="38" height="38" fill="url(#b-gold)" fill-opacity=".18" stroke="url(#b-gold)" stroke-width="2.2"></rect>
+      <rect x="-19" y="-19" width="38" height="38" transform="rotate(45)" fill="url(#b-gold)" fill-opacity=".18" stroke="url(#b-gold)" stroke-width="2.2"></rect>
+      <circle r="9" fill="none" stroke="url(#b-gold)" stroke-width="2.2"></circle>
+      <circle r="3" fill="url(#b-gold)"></circle>
+    </g>
         <g filter="url(#b-blur)">
           <path d="M150 250 Q210 300 190 420" stroke="#000" stroke-opacity=".28" stroke-width="16" fill="none"></path>
           <path d="M450 250 Q395 310 412 430" stroke="#000" stroke-opacity=".25" stroke-width="16" fill="none"></path>

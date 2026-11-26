@@ -163,14 +163,19 @@ function crest(d, id, x, y, s = 1) {
   <g class="chk" transform="translate(${x} ${y}) scale(${s})" filter="url(#${id}-tshadow)">${LOGO.crestShield(id, d.c3, `url(#${id}-gold)`)}</g>`;
 }
 
-// ---------- detail lengan: bendera Merah Putih (kanan) & logo mini (kiri) ----------
-function sleeveBadges(d, id) {
+// ---------- detail lengan: bintang segi-8 islami (Rub el Hizb) transparan / tonal ----------
+function rubElHizb(d, id, x, y, rot) {
+  const c = d.art === 'crescent' ? '#FFFFFF' : `url(#${id}-gold)`;
   return `
-    <g class="chk" transform="translate(494 176) rotate(-57) scale(.9)" filter="url(#${id}-tshadow)">
-      <rect x="-17" y="-11" width="34" height="11" fill="#E70011"/><rect x="-17" y="0" width="34" height="11" fill="#FFFFFF"/>
-      <rect x="-17" y="-11" width="34" height="22" fill="none" stroke="#000" stroke-opacity=".25" stroke-width="1"/>
-    </g>
-    <g class="chk" transform="translate(108 172) rotate(57) scale(.38)" filter="url(#${id}-tshadow)">${LOGO.crestShield(id, d.c3, `url(#${id}-gold)`)}</g>`;
+    <g class="chk" transform="translate(${x} ${y}) rotate(${rot}) scale(.78)" opacity=".34">
+      <rect x="-19" y="-19" width="38" height="38" fill="${c}" fill-opacity=".18" stroke="${c}" stroke-width="2.2"/>
+      <rect x="-19" y="-19" width="38" height="38" transform="rotate(45)" fill="${c}" fill-opacity=".18" stroke="${c}" stroke-width="2.2"/>
+      <circle r="9" fill="none" stroke="${c}" stroke-width="2.2"/>
+      <circle r="3" fill="${c}"/>
+    </g>`;
+}
+function sleeveBadges(d, id) {
+  return rubElHizb(d, id, 486, 170, -57 + 22.5) + rubElHizb(d, id, 114, 170, 57 - 22.5);
 }
 
 function shirt(d, id, view, player) {
@@ -211,7 +216,7 @@ function shirt(d, id, view, player) {
           <path d="${RAGLAN}" transform="translate(-9 3)" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.3" stroke-dasharray="5 4"/>
         </g>`).join('')}
         ${deco}
-        ${view === 'front' ? sleeveBadges(d, id) : ''}
+        ${sleeveBadges(d, id)}
         <g filter="url(#${id}-blur)">
           <path d="M150 250 Q210 300 190 420" stroke="#000" stroke-opacity=".28" stroke-width="16" fill="none"/>
           <path d="M450 250 Q395 310 412 430" stroke="#000" stroke-opacity=".25" stroke-width="16" fill="none"/>

@@ -44,7 +44,7 @@ Generator ada di `jersey-futsal/` (`generate.js` + `config.json`). Jalankan `cd 
 - `logo.js`: logo bulat resmi (kubah+menara, kitab, bulan sabit-bintang, BOLA, sinar, untaian daun; font Cinzel),
   versi perisai untuk jersey (`crestShield`, ada bola kecil), dan `ball()`.
 - Nama sekolah lengkap: "TK ISLAM PLUS" + "AL MUHAAJIR" (bukan "TK IP").
-- Lengan depan: bendera Merah Putih (kanan) + logo mini (kiri).
+- Lengan (depan & belakang): bintang segi-8 islami (Rub el Hizb) transparan ±34%. Klien TIDAK mau bendera/logo di lengan.
 
 ## Presentasi ke konsumen
 Lembar "kit launch" 1920×1200 (render @2x = 3840×2400 JPG): latar gelap senada + sorot lampu,

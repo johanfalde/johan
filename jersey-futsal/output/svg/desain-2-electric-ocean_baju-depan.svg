@@ -108,40 +108,18 @@
         <path d="M222 380.5 l7 -6 7 6 -7 6 Z M364 380.5 l7 -6 7 6 -7 6 Z" fill="url(#f-gold)"></path>
       </g>
         
-    <g class="chk" transform="translate(494 176) rotate(-57) scale(.9)" filter="url(#f-tshadow)">
-      <rect x="-17" y="-11" width="34" height="11" fill="#E70011"></rect><rect x="-17" y="0" width="34" height="11" fill="#FFFFFF"></rect>
-      <rect x="-17" y="-11" width="34" height="22" fill="none" stroke="#000" stroke-opacity=".25" stroke-width="1"></rect>
+    <g class="chk" transform="translate(486 170) rotate(-34.5) scale(.78)" opacity=".34">
+      <rect x="-19" y="-19" width="38" height="38" fill="url(#f-gold)" fill-opacity=".18" stroke="url(#f-gold)" stroke-width="2.2"></rect>
+      <rect x="-19" y="-19" width="38" height="38" transform="rotate(45)" fill="url(#f-gold)" fill-opacity=".18" stroke="url(#f-gold)" stroke-width="2.2"></rect>
+      <circle r="9" fill="none" stroke="url(#f-gold)" stroke-width="2.2"></circle>
+      <circle r="3" fill="url(#f-gold)"></circle>
     </g>
-    <g class="chk" transform="translate(108 172) rotate(57) scale(.38)" filter="url(#f-tshadow)">
-    <path d="M0 -40 L32 -29 L32 6 Q32 30 0 44 Q-32 30 -32 6 L-32 -29 Z" fill="#07134A" stroke="url(#f-gold)" stroke-width="4"></path>
-    <path d="M0 -33 L26 -24 L26 5 Q26 25 0 37 Q-26 25 -26 5 L-26 -24 Z" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.2"></path>
-    <path d="M-4.5 -32 l1.2 2.6 2.8.3 -2.1 1.9.6 2.8 -2.5 -1.5 -2.5 1.5.6 -2.8 -2.1 -1.9 2.8 -.3 Z" transform="translate(4.5 0)" fill="url(#f-gold)"></path>
-    <g transform="translate(0 3) scale(.64)">
-    <g transform="scale(1 1)">
-      <path d="M-34 12 L-34 -14 L-31 -23 L-28 -14 L-28 12 Z" fill="url(#f-gold)" stroke="none" stroke-width="1"></path>
-      <rect x="-35.5" y="-9" width="9" height="2.6" rx="1" fill="url(#f-gold)"></rect>
-      <circle cx="-31" cy="-25" r="1.4" fill="url(#f-gold)"></circle></g><g transform="scale(-1 1)">
-      <path d="M-34 12 L-34 -14 L-31 -23 L-28 -14 L-28 12 Z" fill="url(#f-gold)" stroke="none" stroke-width="1"></path>
-      <rect x="-35.5" y="-9" width="9" height="2.6" rx="1" fill="url(#f-gold)"></rect>
-      <circle cx="-31" cy="-25" r="1.4" fill="url(#f-gold)"></circle></g>
-    <path d="M-21 12 L-21 -2 C-21 -16 -8 -20 0 -31 C8 -20 21 -16 21 -2 L21 12 Z" fill="url(#f-gold)" stroke="none" stroke-width="1"></path>
-    <path d="M-21 -3 L21 -3" stroke="url(#f-gold)" stroke-width="1.6"></path>
-    <path d="M0 -31 L0 -36" stroke="url(#f-gold)" stroke-width="1.6"></path>
-    <path d="M-2.2 -43.5 A4.6 4.6 0 1 0 3.6 -37 A3.6 3.6 0 1 1 -2.2 -43.5 Z" fill="url(#f-gold)"></path>
-    <g stroke="url(#f-gold)" stroke-width="1.6" stroke-linejoin="round">
-      <path d="M0 9 C-9 4 -22 4 -33 8 L-33 27 C-22 23 -9 23 0 28 Z" fill="#FFFFFF"></path>
-      <path d="M0 9 C9 4 22 4 33 8 L33 27 C22 23 9 23 0 28 Z" fill="#FFFFFF"></path>
+    <g class="chk" transform="translate(114 170) rotate(34.5) scale(.78)" opacity=".34">
+      <rect x="-19" y="-19" width="38" height="38" fill="url(#f-gold)" fill-opacity=".18" stroke="url(#f-gold)" stroke-width="2.2"></rect>
+      <rect x="-19" y="-19" width="38" height="38" transform="rotate(45)" fill="url(#f-gold)" fill-opacity=".18" stroke="url(#f-gold)" stroke-width="2.2"></rect>
+      <circle r="9" fill="none" stroke="url(#f-gold)" stroke-width="2.2"></circle>
+      <circle r="3" fill="url(#f-gold)"></circle>
     </g>
-    <g stroke="#07134A" stroke-width="1.1" fill="none" stroke-linecap="round" opacity=".75">
-      <path d="M-27 13 C-20 11 -12 11 -5 14"></path><path d="M-27 18 C-20 16 -12 16 -5 19"></path><path d="M-27 23 C-20 21 -12 21 -5 24"></path>
-      <path d="M27 13 C20 11 12 11 5 14"></path><path d="M27 18 C20 16 12 16 5 19"></path><path d="M27 23 C20 21 12 21 5 24"></path>
-    </g></g>
-    <g transform="translate(0 30)">
-    <defs><clipPath id="bc7_2030"><circle r="7.2"></circle></clipPath></defs>
-    <circle r="7.2" fill="#FFFFFF"></circle>
-    <g clip-path="url(#bc7_2030)"><polygon points="0.00,-2.59 2.47,-0.80 1.52,2.10 -1.52,2.10 -2.47,-0.80" fill="#111"></polygon><polygon points="1.27,-8.80 2.05,-6.39 0.00,-4.90 -2.05,-6.39 -1.27,-8.80" fill="#111"></polygon><polygon points="8.76,-1.51 6.71,-0.02 4.66,-1.51 5.44,-3.93 7.98,-3.93" fill="#111"></polygon><polygon points="4.15,7.87 2.09,6.38 2.88,3.96 5.42,3.96 6.20,6.38" fill="#111"></polygon><polygon points="-6.20,6.38 -5.42,3.96 -2.88,3.96 -2.09,6.38 -4.15,7.87" fill="#111"></polygon><polygon points="-7.98,-3.93 -5.44,-3.93 -4.66,-1.51 -6.71,-0.02 -8.76,-1.51" fill="#111"></polygon><path d="M0.00 -2.59 L0.00 -5.62 M2.47 -0.80 L5.34 -1.74 M1.52 2.10 L3.30 4.54 M-1.52 2.10 L-3.30 4.54 M-2.47 -0.80 L-5.34 -1.74" stroke="#111" stroke-width="0.43"></path></g>
-    <circle r="7.2" fill="none" stroke="#111" stroke-width="0.50"></circle>
-  </g></g>
         <g filter="url(#f-blur)">
           <path d="M150 250 Q210 300 190 420" stroke="#000" stroke-opacity=".28" stroke-width="16" fill="none"></path>
           <path d="M450 250 Q395 310 412 430" stroke="#000" stroke-opacity=".25" stroke-width="16" fill="none"></path>
