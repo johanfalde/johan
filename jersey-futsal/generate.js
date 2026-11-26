@@ -11,6 +11,7 @@ const font = (f) => 'data:font/woff2;base64,' + fs.readFileSync(path.join(ROOT, 
 const FONT_CSS = `
 @font-face{font-family:'Anton';src:url(${font('Anton.woff2')}) format('woff2');}
 @font-face{font-family:'Bebas';src:url(${font('BebasNeue.woff2')}) format('woff2');}
+@font-face{font-family:'Fredoka';src:url(${font('Fredoka-Bold.woff2')}) format('woff2');font-weight:700;}
 @font-face{font-family:'Teko';src:url(${font('Teko-Bold.woff2')}) format('woff2');font-weight:700;}`;
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const SCHOOL = `${cfg.sekolah_baris1} ${cfg.sekolah_baris2}`;
@@ -107,7 +108,7 @@ function commonDefs(d, id) {
 
 // ---------- motif badan ----------
 function artBody(d, id, view) {
-  const o = view === 'front' ? 0 : 50; // geser motif bawah sedikit di tampak belakang
+  const o = view === 'front' ? 0 : 100; // geser motif bawah sedikit di tampak belakang
   if (d.art === 'royale') {
     return `
       <rect width="600" height="660" fill="url(#${id}-pat)"/>
@@ -174,24 +175,25 @@ function shirt(d, id, view, player) {
   let deco;
   if (view === 'front') {
     deco = `
-      ${crest(d, id, 300, 180, 0.8)}
+      ${crest(d, id, 212, 168, 0.85)}
+      <text x="390" y="168" dominant-baseline="central" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="54" fill="${d.art === 'crescent' ? d.c3 : '#FFFFFF'}" stroke="url(#${id}-gold)" stroke-width="5" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
       <g>
-        <text x="300" y="253" text-anchor="middle" font-family="Anton" font-size="30" letter-spacing="9" fill="url(#${id}-gold)" stroke="${d.art === 'crescent' ? '#FFFFFF' : d.c3}" stroke-width="4" paint-order="stroke" filter="url(#${id}-tshadow)">${esc(cfg.sekolah_baris1)}</text>
-        <rect x="100" y="264" width="400" height="60" fill="${d.c3}"/>
-        <rect x="100" y="264" width="400" height="60" fill="url(#${id}-pat)" opacity=".8"/>
-        <rect x="100" y="260" width="400" height="4" fill="url(#${id}-gold)"/>
-        <rect x="100" y="324" width="400" height="4" fill="url(#${id}-gold)"/>
-        <text data-fit="280" x="300" y="295" dominant-baseline="central" text-anchor="middle" font-family="Anton" font-size="46" letter-spacing="3" fill="#FFFFFF" filter="url(#${id}-tshadow)">${esc(cfg.sekolah_baris2)}</text>
+        <text x="300" y="272" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="30" letter-spacing="8" fill="url(#${id}-gold)" stroke="${d.art === 'crescent' ? '#FFFFFF' : d.c3}" stroke-width="4" paint-order="stroke" filter="url(#${id}-tshadow)">${esc(cfg.sekolah_baris1)}</text>
+        <rect x="100" y="284" width="400" height="62" fill="${d.c3}"/>
+        <rect x="100" y="284" width="400" height="62" fill="url(#${id}-pat)" opacity=".8"/>
+        <rect x="100" y="280" width="400" height="4" fill="url(#${id}-gold)"/>
+        <rect x="100" y="346" width="400" height="4" fill="url(#${id}-gold)"/>
+        <text data-fit="276" x="300" y="317" dominant-baseline="central" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="46" letter-spacing="2" fill="#FFFFFF" filter="url(#${id}-tshadow)">${esc(cfg.sekolah_baris2)}</text>
       </g>`;
   } else {
     deco = `
-      <path id="${id}-arc" d="M150 196 Q300 140 450 196" fill="none"/>
+      <path id="${id}-arc" d="M176 222 Q300 196 424 222" fill="none"/>
       <g filter="url(#${id}-tshadow)">
-        <text data-fit="292" font-family="Bebas" font-size="58" letter-spacing="3" text-anchor="middle" fill="${d.text}" stroke="${d.outline}" stroke-width="7" paint-order="stroke" stroke-linejoin="round"><textPath href="#${id}-arc" startOffset="50%">${esc(nm)}</textPath></text>
-        <text x="300" y="430" text-anchor="middle" font-family="Anton" font-size="232" letter-spacing="-2" fill="${d.text}" stroke="url(#${id}-gold)" stroke-width="16" paint-order="stroke" stroke-linejoin="round">${esc(player.nomor)}</text>
-        <text x="300" y="430" text-anchor="middle" font-family="Anton" font-size="232" letter-spacing="-2" fill="none" stroke="${d.outline}" stroke-width="3.5">${esc(player.nomor)}</text>
+        <text data-fit="226" font-family="Fredoka" font-weight="700" font-size="48" letter-spacing="2" text-anchor="middle" fill="${d.text}" stroke="${d.outline}" stroke-width="7" paint-order="stroke" stroke-linejoin="round"><textPath href="#${id}-arc" startOffset="50%">${esc(nm)}</textPath></text>
+        <text x="300" y="478" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="215" letter-spacing="-4" fill="${d.text}" stroke="url(#${id}-gold)" stroke-width="16" paint-order="stroke" stroke-linejoin="round">${esc(player.nomor)}</text>
+        <text x="300" y="478" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="215" letter-spacing="-4" fill="none" stroke="${d.outline}" stroke-width="3.5">${esc(player.nomor)}</text>
       </g>
-      <text x="300" y="104" text-anchor="middle" font-family="Bebas" font-size="17" letter-spacing="6" fill="#fff" opacity=".7">${esc(SCHOOL)}</text>`;
+      <text data-fit="160" x="300" y="112" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="15" letter-spacing="3" fill="${d.art === 'crescent' ? d.c3 : '#fff'}" opacity=".7">${esc(SCHOOL)}</text>`;
   }
   return `
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 660" width="100%" height="100%">
@@ -249,9 +251,9 @@ function shorts(d, id, player, view) {
         <path d="M60 396 L300 424 L540 396 L540 470 L60 470 Z" fill="url(#${id}-gold)"/>
         <path d="M60 388 L300 416 L540 388 L540 394 L300 422 L60 394 Z" fill="${d.line2}"/>
         ${view === 'front'
-          ? `<text x="222" y="372" text-anchor="middle" font-family="Anton" font-size="56" fill="#FFFFFF" stroke="url(#${id}-gold)" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
+          ? `<text x="222" y="372" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="56" fill="#FFFFFF" stroke="url(#${id}-gold)" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
              ${crest(d, id, 392, 150, 0.62)}`
-          : `<text x="300" y="170" text-anchor="middle" font-family="Bebas" font-size="30" letter-spacing="7" fill="url(#${id}-gold)">${esc(cfg.sekolah_baris2)}</text>`}
+          : `<text data-fit="180" x="300" y="170" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="28" letter-spacing="3" fill="url(#${id}-gold)">${esc(cfg.sekolah_baris2)}</text>`}
         <g filter="url(#${id}-blur)">
           <path d="M200 120 Q240 250 215 380" stroke="#fff" stroke-opacity=".12" stroke-width="30" fill="none"/>
           <path d="M300 268 L290 440" stroke="#000" stroke-opacity=".35" stroke-width="14"/>
@@ -333,7 +335,7 @@ function sheet(d, player) {
     <div class="chips">${d.chips.map(([c, n]) => `<div class="chip"><i style="background:${c}"></i><div>${n}<br><small>${c}</small></div></div>`).join('')}</div>
     <div class="spec">
       <div><b>BAHAN</b>Dryfit / Milano</div><div><b>PRINTING</b>Full Sublimasi</div><div><b>UKURAN</b>Anak 4–6 Th (S–M–L)</div>
-      <div><b>CONTOH NAMA</b>${esc(player.nama)}</div><div><b>NOMOR</b>${esc(player.nomor)}</div><div><b>FONT</b>Anton · Bebas Neue</div>
+      <div><b>CONTOH NAMA</b>${esc(player.nama)}</div><div><b>NOMOR</b>${esc(player.nomor)}</div><div><b>FONT JERSEY</b>Fredoka Bold</div>
     </div>
   </footer>
   </body></html>`;

@@ -24,8 +24,11 @@ Generator ada di `jersey-futsal/` (`generate.js` + `config.json`). Jalankan `cd 
 - Anak usia dini: warna cerah & bersahabat, hindari motif agresif; bahan dryfit/milano.
 
 ## Tata letak & tipografi
-- Depan: logo dada kiri, nomor kecil dada kanan, nama sekolah/tim di tengah dada (font Anton, ≤ 290px lebar di viewBox 600).
-- Belakang: nama melengkung di atas (Bebas Neue, auto-kecil lewat `data-fit`), nomor besar Anton ±230px dengan outline 2 lapis.
+- Font di jersey: **Fredoka Bold** (membulat, lembut, cocok anak). Anton/Bebas hanya untuk judul lembar presentasi.
+- Depan (disetujui klien): logo dada kiri + nomor dada kanan sejajar; di tengah dada "TK IP" (emas) dan di bawahnya
+  "AL MUHAAJIR" di dalam pita dada bergaris emas — satu susunan, bukan terpisah.
+- Belakang: nama melengkung di area bersih ANTARA jahitan raglan (arc 176–424, data-fit 226) supaya tidak menabrak
+  jahitan/panel samping; nomor besar ±215px; motif bawah digeser turun agar tidak kena nomor.
 - Celana: nomor di kaki kiri depan, logo kecil kanan, list samping + list bawah.
 - Nama panjang otomatis diperkecil; jangan pakai textLength yang memampatkan huruf.
 

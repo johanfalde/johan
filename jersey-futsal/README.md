@@ -14,5 +14,6 @@
 3. Jalankan: `node generate.js` (butuh Node.js + Playwright)
 
 ## Font (gratis, Google Fonts — install di komputer konveksi bila edit SVG)
-- **Anton** — nomor & nama sekolah
+- **Fredoka Bold** — semua tulisan di jersey (nama, nomor, sekolah)
+- **Anton** — judul lembar presentasi
 - **Bebas Neue** — nama punggung
