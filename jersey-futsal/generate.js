@@ -14,6 +14,7 @@ const FONT_CSS = `
 @font-face{font-family:'Bebas';src:url(${font('BebasNeue.woff2')}) format('woff2');}
 @font-face{font-family:'Fredoka';src:url(${font('Fredoka-Bold.woff2')}) format('woff2');font-weight:700;}
 @font-face{font-family:'Cinzel';src:url(${font('Cinzel-ExtraBold.woff2')}) format('woff2');font-weight:800;}
+@font-face{font-family:'Lobster';src:url(${font('Lobster.woff2')}) format('woff2');}
 @font-face{font-family:'Teko';src:url(${font('Teko-Bold.woff2')}) format('woff2');font-weight:700;}`;
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const SCHOOL = `${cfg.sekolah_baris1} ${cfg.sekolah_baris2}`;
@@ -140,6 +141,13 @@ function commonDefs(d, id) {
       <feColorMatrix type="matrix" values="0 0 0 0 0.04  0 0 0 0 0.09  0 0 0 0 0.24  1 0 0 0 0"/>
       <feComponentTransfer><feFuncA type="table" tableValues="0 .9 0 .9 0 .9 0 .9 0 .9 0 .9 0"/></feComponentTransfer>
     </filter>
+    <pattern id="${id}-big" width="150" height="150" patternUnits="userSpaceOnUse" x="75" y="20">
+      <g fill="none" stroke="${d.ink || '#000'}" stroke-width="3" stroke-opacity=".32">
+        <path d="M75 4 L146 75 L75 146 L4 75 Z"/><path d="M75 22 L128 75 L75 128 L22 75 Z" stroke-opacity=".2"/>
+        <path d="M75 48 C88 60 88 66 75 75 C62 66 62 60 75 48 Z M75 102 C88 90 88 84 75 75 C62 84 62 90 75 102 Z M48 75 C60 62 66 62 75 75 C66 88 60 88 48 75 Z M102 75 C90 62 84 62 75 75 C84 88 90 88 102 75 Z" fill="${d.ink || '#000'}" fill-opacity=".14"/>
+        <circle cx="75" cy="75" r="6"/><path d="M0 0 L20 20 M150 0 L130 20 M0 150 L20 130 M150 150 L130 130"/>
+      </g>
+    </pattern>
     <clipPath id="${id}-clip"><path d="${BODY}"/></clipPath>
     <clipPath id="${id}-top"><rect x="0" y="0" width="600" height="118"/></clipPath>`;
 }
@@ -189,9 +197,7 @@ function artBody(d, id, view) {
       </g>`;
   }
   if (d.art === 'marble') {
-    return `
-      <rect width="600" height="660" fill="url(#${id}-pat)"/><rect width="600" height="660" fill="url(#${id}-pat)" opacity=".9"/>
-      ${(() => { const s = flameSide(d, id, d.sleeve, d.c2, ` stroke="${d.accent}" stroke-width="7"`, false); return s + `<g transform="${MIRROR}">${s}</g>`; })()}`;
+    return `<rect width="600" height="660" fill="url(#${id}-big)"/><rect width="600" height="660" fill="url(#${id}-big)"/>`;
   }
   if (d.art === 'curve') {
     const side = flameSide(d, id, `url(#${id}-gold)`, d.c2, ` stroke="${process.env.FLAME_EDGE || d.flameEdge || '#D6A531'}" stroke-width="7" stroke-linecap="round"`, false, '', 340);
@@ -300,7 +306,7 @@ function swirl(id, seed, view) {
 const d4gold = (id) => `url(#${id}-gold)`;
 
 function tigerMark(d) {
-  if (d.art === 'curve') return ''; // Navy Flame: tanpa harimau
+  if (d.art === 'curve' || d.art === 'marble') return ''; // tanpa harimau
   if (d.art === 'tiger')
     return `<image href="${TIGER_PNG}" x="140" y="392" width="320" height="268" preserveAspectRatio="xMidYMid meet"/>`;
   const white = d.art === 'crescent';
@@ -312,7 +318,24 @@ function shirt(d, id, view, player) {
   const neck = NECK[d.neck];
   const nm = String(player.nama).toUpperCase();
   let deco;
-  if (view === 'front') {
+  if (d.art === 'marble' && view === 'front') {
+    deco = `
+      <text class="chk" x="262" y="214" text-anchor="middle" font-family="Anton" font-size="44" fill="${d.text}" stroke="${d.outline}" stroke-width="5" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
+      ${crest(d, id, 370, 192, 0.95)}
+      <g transform="rotate(-6 300 330)" filter="url(#${id}-tshadow)">
+        <text class="chk" data-fit="200" x="300" y="268" text-anchor="middle" font-family="Bebas" font-size="30" letter-spacing="6" fill="url(#${id}-gold)">${esc(cfg.sekolah_baris1)}</text>
+        <text class="chk" data-fit="292" x="300" y="336" text-anchor="middle" font-family="Lobster" font-size="78" fill="#FFFFFF" stroke="${d.outline}" stroke-width="9" paint-order="stroke" stroke-linejoin="round">Al Muhaajir</text>
+        <path d="M170 356 C252 366 344 352 440 322 C352 372 250 384 170 356 Z" fill="url(#${id}-gold)"/>
+      </g>`;
+  } else if (d.art === 'marble') {
+    deco = `
+      <g filter="url(#${id}-tshadow)">
+        <text class="chk" data-fit="192" x="300" y="196" text-anchor="middle" font-family="Bebas" font-size="58" letter-spacing="3" fill="${d.text}" stroke="${d.outline}" stroke-width="6" paint-order="stroke" stroke-linejoin="round">${esc(nm)}</text>
+        <text class="chk" x="300" y="438" text-anchor="middle" font-family="Anton" font-size="225" letter-spacing="-2" fill="${d.text}" stroke="url(#${id}-gold)" stroke-width="14" paint-order="stroke" stroke-linejoin="round">${esc(player.nomor)}</text>
+        <text x="300" y="438" text-anchor="middle" font-family="Anton" font-size="225" letter-spacing="-2" fill="none" stroke="${d.c2}" stroke-width="3.5">${esc(player.nomor)}</text>
+        <text class="chk" data-fit="230" x="300" y="500" text-anchor="middle" font-family="Bebas" font-size="30" letter-spacing="3" fill="url(#${id}-gold)">${esc(SCHOOL)}</text>
+      </g>`;
+  } else if (view === 'front') {
     deco = `
       ${d.art === 'marble' ? crest(d, id, 236, 192, 1.0) : crest(d, id, 232, 164, 1.12)}
       <text class="chk" x="374" y="${d.art === 'marble' ? 212 : 186}" text-anchor="middle" font-family="Anton" font-size="48" fill="${d.text}" stroke="${d.art === 'crescent' ? d.accent : d.outline}" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
@@ -342,13 +365,13 @@ function shirt(d, id, view, player) {
         ${artBody(d, id, view)}
         ${view === 'front' && ['tiger', 'curve', 'crescent', 'marble'].includes(d.art) ? tigerMark(d) : ''}
         ${[0, 1].map((m) => `<g ${m ? `transform="${MIRROR}"` : ''}>
-          <path d="${SLEEVE}" fill="${d.sleeve || d.c3}"/>${d.art === 'marble' ? `<path d="${SLEEVE}" fill="url(#${id}-pat)"/>` : ''}${d.art === 'marble' ? '' : `<path d="${SLEEVE}" fill="url(#${id}-kawung)" mask="url(#${id}-smask)" opacity=".7"/>`}
+          <path d="${SLEEVE}" fill="${d.sleeve || d.c3}"/>${d.art === 'marble' ? `<path d="${SLEEVE}" fill="url(#${id}-big)" opacity=".55"/>` : ''}${d.art === 'marble' ? '' : `<path d="${SLEEVE}" fill="url(#${id}-kawung)" mask="url(#${id}-smask)" opacity=".7"/>`}
           <path class="ko" d="${CUFF}" fill="url(#${id}-gold)"/><path class="ko" d="${CUFF2}" fill="${d.line2}"/>
           <path class="ko" d="${RAGLAN}" fill="none" stroke="url(#${id}-gold)" stroke-width="${d.art === 'curve' ? 13 : 5}"/>
           <path d="${RAGLAN}" transform="translate(-9 3)" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.3" stroke-dasharray="5 4"/>
         </g>`).join('')}
         ${d.art === 'marble' ? [0, 1].map((m) => `<g ${m ? `transform="${MIRROR}"` : ''}>
-          ${[6, 13, 20].map((o) => `<path class="ko" d="M382 52 Q400.4 91.2 416.4 128.8" transform="translate(${-o} ${o * 0.3})" fill="none" stroke="url(#${id}-gold)" stroke-width="4" stroke-linecap="round"/>`).join('')}</g>`).join('') : ''}
+          ${[7, 15, 23].map((o) => `<path class="ko" d="M382 52 Q428 150 460 236" transform="translate(${-o} 0)" fill="none" stroke="url(#${id}-gold)" stroke-width="4" stroke-linecap="round"/>`).join('')}</g>`).join('') : ''}
         ${deco}
         <g filter="url(#${id}-blur)">
           <path d="M150 250 Q210 300 190 420" stroke="#000" stroke-opacity=".28" stroke-width="16" fill="none"/>
@@ -366,7 +389,7 @@ function shirt(d, id, view, player) {
         ? `<path d="${neck.inner}" fill="${d.art === 'marble' ? d.accent : d.c3}"/><path d="${neck.inner}" fill="#000" opacity="${d.art === 'marble' ? .15 : .45}"/>
            <rect x="286" y="62" width="28" height="11" rx="2" fill="#fff" opacity=".85"/>
            <path d="${neck.edge}" fill="none" stroke="${d.c3}" stroke-width="20" stroke-linejoin="round" stroke-linecap="round"/>
-           <path d="${neck.edge}" fill="none" stroke="url(#${id}-gold)" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" transform="translate(0 4)"/>`
+           <path d="${neck.edge}" fill="none" stroke="url(#${id}-gold)" stroke-width="${d.art === 'marble' ? 15 : 6}" stroke-linejoin="round" stroke-linecap="round" transform="translate(0 ${d.art === 'marble' ? 2 : 4})"/>`
         : `<path d="${BACK_NECK}" fill="none" stroke="${d.c3}" stroke-width="18" stroke-linecap="round"/>
            <path d="${BACK_NECK}" fill="none" stroke="url(#${id}-gold)" stroke-width="5" stroke-linecap="round" transform="translate(0 5)"/>`}
       <path d="${BODY}" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="2"/>
@@ -404,7 +427,7 @@ function shorts(d, id, player, view) {
         <rect width="600" height="520" fill="url(#${id}-shade)"/>
       </g>
       <path d="M120 30 L480 30 Q484 52 484 76 L116 76 Q116 52 120 30 Z" fill="${d.c3}"/>
-      <path d="M116 68 L484 68 L484 76 L116 76 Z" fill="url(#${id}-gold)"/>
+      ${d.art === 'marble' ? '' : `<path d="M116 68 L484 68 L484 76 L116 76 Z" fill="url(#${id}-gold)"/>`}
       <path d="M120 40 L480 40 M120 50 L480 50 M120 60 L480 60" stroke="#000" stroke-opacity=".25" stroke-width="1.2"/>
       ${view === 'front' ? `<path d="M293 74 Q284 112 276 132 M307 74 Q316 112 324 132" stroke="#fff" stroke-width="4.5" fill="none" stroke-linecap="round"/>` : ''}
       <path d="${SHORTS}" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="2"/>
