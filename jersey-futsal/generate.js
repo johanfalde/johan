@@ -186,11 +186,13 @@ function artBody(d, id, view) {
 
 // ---------- logo perisai TK Islam Plus Al Muhaajir ----------
 function crest(d, id, x, y, s = 1) {
-  // logo resmi berwarna asli di atas kotak putih
+  // perisai putih bertepi emas berisi logo resmi (warna asli)
   return `
   <g class="chk" transform="translate(${x} ${y}) scale(${s})" filter="url(#${id}-tshadow)">
-    <rect x="-50" y="-39" width="100" height="78" rx="9" fill="#FFFFFF" stroke="url(#${id}-gold)" stroke-width="2.5"/>
-    ${LOGO.officialLogoInline(86)}
+    <path d="M0 -42 L36 -30 L36 6 Q36 32 0 48 Q-36 32 -36 6 L-36 -30 Z" fill="#FFFFFF" stroke="url(#${id}-gold)" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M0 -35 L30 -25 L30 5 Q30 27 0 41 Q-30 27 -30 5 L-30 -25 Z" fill="none" stroke="#5A8436" stroke-opacity=".55" stroke-width="1.2"/>
+    <g transform="translate(0 -4)">${LOGO.officialLogoInline(52)}</g>
+    <path d="M0 22 L2.6 28 L9 28.6 L4.2 32.8 L5.6 39 L0 35.8 L-5.6 39 L-4.2 32.8 L-9 28.6 L-2.6 28 Z" fill="url(#${id}-gold)"/>
   </g>`;
 }
 
@@ -262,7 +264,7 @@ function shirt(d, id, view, player) {
   let deco;
   if (view === 'front') {
     deco = `
-      ${crest(d, id, 238, 166, 0.84)}
+      ${crest(d, id, 236, 166, 1.1)}
       <text class="chk" x="374" y="186" text-anchor="middle" font-family="Anton" font-size="48" fill="${d.text}" stroke="${d.art === 'crescent' ? d.accent : d.outline}" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
       <g filter="url(#${id}-tshadow)">
         <text class="chk" data-fit="236" x="300" y="286" text-anchor="middle" font-family="Bebas" font-size="40" letter-spacing="7" fill="${d.art === 'crescent' ? d.c3 : `url(#${id}-gold)`}" ${d.art === 'crescent' ? '' : `stroke="${d.c3}" stroke-width="3" paint-order="stroke"`}>${esc(cfg.sekolah_baris1)}</text>
