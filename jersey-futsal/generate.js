@@ -130,12 +130,16 @@ function commonDefs(d, id) {
 }
 
 // ---------- panel samping seperti nyala api ----------
-function flameSide(d, id, fill, tongue, edge = '', inner = true, innerFill = fill) {
+function flameSide(d, id, fill, tongue, edge = '', inner = true, innerFill = fill, edgeFromY = 0) {
+  const CURVE = 'M128 236 C148 290 148 360 152 420 C160 478 210 506 220 570 C226 612 212 642 198 660';
+  const edgeLine = edge ? `<clipPath id="${id}-ec${edgeFromY}"><rect x="0" y="${edgeFromY}" width="600" height="700"/></clipPath>
+        <path class="ko" d="${CURVE}" fill="none"${edge} clip-path="url(#${id}-ec${edgeFromY})"/>` : '';
   return `
-        <path class="ko" d="M128 236 C148 290 148 360 152 420 C160 478 210 506 220 570 C226 612 212 642 198 660 L90 660 L90 236 Z" fill="${fill}"${edge}/>
+        <path class="ko" d="M128 236 C148 290 148 360 152 420 C160 478 210 506 220 570 C226 612 212 642 198 660 L90 660 L90 236 Z" fill="${fill}"/>
         <path class="ko" d="M118 440 C150 482 170 532 164 600 C152 556 136 520 108 488 Z" fill="${tongue}"/>
         <path class="ko" d="M146 330 C152 360 154 392 150 418 C144 396 138 374 130 356 Z" fill="${tongue}"/>
         <path class="ko" d="M144 604 C160 624 170 644 172 660 L146 660 Z" fill="${tongue}"/>
+        ${edgeLine}
         ${inner ? `<path class="ko" d="M250 540 C238 590 242 626 262 660 L248 660 C226 624 224 584 238 534 Z" fill="${innerFill}"/>` : ''}`;
 }
 
@@ -172,7 +176,7 @@ function artBody(d, id, view) {
       <path d="M450 236 L444 236 Q454 420 448 660 L454 660 Q460 420 450 236 Z" fill="url(#${id}-gold)"/>`;
   }
   if (d.art === 'crescent') {
-    const side = flameSide(d, id, d.c3, '#FFFFFF', ` stroke="url(#${id}-gold)" stroke-width="3"`, true, `url(#${id}-gold)`);
+    const side = flameSide(d, id, d.c3, '#FFFFFF', ` stroke="url(#${id}-gold)" stroke-width="7" stroke-linecap="round"`, false, '', 340);
     return `
       <rect width="600" height="660" fill="url(#${id}-pat)"/>
       ${side}
