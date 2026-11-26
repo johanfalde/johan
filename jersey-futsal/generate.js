@@ -174,7 +174,7 @@ function artBody(d, id, view) {
       </g>`;
   }
   if (d.art === 'curve') {
-    const side = flameSide(d, id, `url(#${id}-gold)`, d.c2, ` stroke="#D6A531" stroke-width="7" stroke-linecap="round"`, false, '', 340);
+    const side = flameSide(d, id, `url(#${id}-gold)`, d.c2, ` stroke="${process.env.FLAME_EDGE || d.flameEdge || '#D6A531'}" stroke-width="7" stroke-linecap="round"`, false, '', 340);
     return `
       <rect width="600" height="660" fill="url(#${id}-pat)" opacity=".7"/>
       <path d="M190 560 C270 500 350 440 440 300 C410 430 320 520 220 600 Z" fill="#FFFFFF" opacity=".05"/>
@@ -365,10 +365,10 @@ function shorts(d, id, player, view) {
         ${[0, 1].map((m) => `<g ${m ? `transform="${MIRROR}"` : ''}>
           <path d="M100 60 L168 60 Q150 250 150 460 L60 460 Z" fill="url(#${id}-base)"/>
           <path class="ko" d="M168 60 L176 60 Q158 250 158 460 L150 460 Q150 250 168 60 Z" fill="url(#${id}-gold)"/>
-          <path d="M182 60 L185 60 Q167 250 167 460 L164 460 Q164 250 182 60 Z" fill="${d.art === 'curve' ? '#D6A531' : d.line2}" opacity="${d.art === 'curve' ? 1 : .9}"/>
+          <path d="M182 60 L185 60 Q167 250 167 460 L164 460 Q164 250 182 60 Z" fill="${d.art === 'curve' ? (process.env.FLAME_EDGE || d.flameEdge || '#D6A531') : d.line2}" opacity="${d.art === 'curve' ? 1 : .9}"/>
         </g>`).join('')}
         <path d="M60 396 L300 424 L540 396 L540 470 L60 470 Z" fill="url(#${id}-gold)"/>
-        <path class="ko" d="M60 388 L300 416 L540 388 L540 394 L300 422 L60 394 Z" fill="${d.art === 'curve' ? '#D6A531' : d.line2}"/>
+        <path class="ko" d="M60 388 L300 416 L540 388 L540 394 L300 422 L60 394 Z" fill="${d.art === 'curve' ? (process.env.FLAME_EDGE || d.flameEdge || '#D6A531') : d.line2}"/>
         ${view === 'front'
           ? `<text class="chk" x="222" y="372" text-anchor="middle" font-family="Anton" font-size="56" fill="#FFFFFF" stroke="url(#${id}-gold)" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
              ${crest(d, id, 392, 150, 0.62)}`
