@@ -33,6 +33,14 @@ const DESIGNS = [
     bg1: '#0A1B5C', bg2: '#020617',
     chips: [['#2F6BFF', 'Biru Elektrik'], ['#07134A', 'Navy'], ['#FF6A00', 'Oranye'], ['#FFD23F', 'Kuning']],
   },
+  {
+    key: 'desain-3-golden-crescent', no: 'DESAIN 03', nama: 'GOLDEN CRESCENT', jenis: 'PREMIUM KIT',
+    tagline: 'Putih mutiara · arabesque tonal · busur bulan sabit emas & navy',
+    c1: '#FFFFFF', c2: '#F1F4F9', b3: '#D9E0EB', c3: '#0E1B3D', accent: '#D4A017', accentHi: '#F7DC7A', accentLo: '#9C7410',
+    line2: '#FFFFFF', text: '#0E1B3D', outline: '#FFFFFF', neck: 'crew', art: 'crescent', ink: '#0E1B3D',
+    bg1: '#1B2A55', bg2: '#050A1C',
+    chips: [['#F4F6FA', 'Putih Mutiara'], ['#0E1B3D', 'Navy'], ['#D4A017', 'Emas'], ['#C9D1DE', 'Abu Perak']],
+  },
 ];
 
 // ======================= GEOMETRI KAOS (600x660) =======================
@@ -52,7 +60,7 @@ const HEM_STITCH = 'M138 600 Q300 626 462 600';
 function commonDefs(d, id) {
   return `
     <linearGradient id="${id}-base" x1="0" y1="0" x2=".35" y2="1">
-      <stop offset="0" stop-color="${d.c1}"/><stop offset=".55" stop-color="${d.c2}"/><stop offset="1" stop-color="${d.c3}"/>
+      <stop offset="0" stop-color="${d.c1}"/><stop offset=".55" stop-color="${d.c2}"/><stop offset="1" stop-color="${d.b3 || d.c3}"/>
     </linearGradient>
     <linearGradient id="${id}-gold" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="${d.accentHi}"/><stop offset=".45" stop-color="${d.accent}"/><stop offset="1" stop-color="${d.accentLo}"/>
@@ -76,12 +84,12 @@ function commonDefs(d, id) {
     <filter id="${id}-tshadow" x="-10%" y="-10%" width="120%" height="130%">
       <feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="#000" flood-opacity=".45"/>
     </filter>
-    ${d.art === 'royale' ? `
+    ${d.art !== 'electric' ? `
     <pattern id="${id}-pat" width="56" height="56" patternUnits="userSpaceOnUse">
-      <g fill="#fff" fill-opacity=".055" stroke="#fff" stroke-opacity=".09" stroke-width="1.4">
+      <g fill="${d.ink || '#fff'}" fill-opacity=".055" stroke="${d.ink || '#fff'}" stroke-opacity=".09" stroke-width="1.4">
         <polygon points="28,8 34,22 48,28 34,34 28,48 22,34 8,28 22,22"/>
       </g>
-      <g fill="none" stroke="#fff" stroke-opacity=".09" stroke-width="1.4">
+      <g fill="none" stroke="${d.ink || '#fff'}" stroke-opacity=".09" stroke-width="1.4">
         <rect x="16" y="16" width="24" height="24" transform="rotate(45 28 28)"/>
         <path d="M0 0 L8 8 M56 0 L48 8 M0 56 L8 48 M56 56 L48 48"/>
         <circle cx="28" cy="28" r="4"/>
@@ -112,6 +120,22 @@ function artBody(d, id, view) {
         <path d="M90 520 C230 485 360 615 620 490 L620 498 C360 625 230 495 90 530 Z" fill="${d.line2}" opacity=".9"/>
         <path d="M90 540 C230 505 360 640 620 515 L620 760 L90 760 Z" fill="${d.c3}" opacity=".85"/>
         <path d="M90 540 C230 505 360 640 620 515 L620 760 L90 760 Z" fill="url(#${id}-pat)"/>
+      </g>`;
+  }
+  if (d.art === 'crescent') {
+    return `
+      <rect width="600" height="660" fill="url(#${id}-pat)"/>
+      <path d="M120 236 L162 236 Q150 420 156 660 L110 660 Z" fill="${d.c3}"/>
+      <path d="M480 236 L438 236 Q450 420 444 660 L490 660 Z" fill="${d.c3}"/>
+      <path d="M162 236 L168 236 Q156 420 162 660 L156 660 Q150 420 162 236 Z" fill="url(#${id}-gold)"/>
+      <path d="M438 236 L432 236 Q444 420 438 660 L444 660 Q450 420 438 236 Z" fill="url(#${id}-gold)"/>
+      <g transform="translate(0 ${o})">
+        <circle cx="560" cy="720" r="290" fill="${d.c3}" opacity=".07"/>
+        <circle cx="560" cy="720" r="335" fill="none" stroke="${d.c3}" stroke-width="34"/>
+        <circle cx="560" cy="720" r="335" fill="none" stroke="url(#${id}-pat)" stroke-width="34"/>
+        <circle cx="560" cy="720" r="305" fill="none" stroke="url(#${id}-gold)" stroke-width="13"/>
+        <circle cx="560" cy="720" r="290" fill="none" stroke="${d.c3}" stroke-width="3"/>
+        <circle cx="560" cy="720" r="372" fill="none" stroke="url(#${id}-gold)" stroke-width="3.5"/>
       </g>`;
   }
   return `
@@ -150,12 +174,14 @@ function shirt(d, id, view, player) {
   let deco;
   if (view === 'front') {
     deco = `
-      ${crest(d, id, 210, 160, 1)}
-      <text x="392" y="182" text-anchor="middle" font-family="Anton" font-size="48" fill="${d.text}" stroke="${d.outline}" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
-      <g filter="url(#${id}-tshadow)">
-        <text x="300" y="284" text-anchor="middle" font-family="Bebas" font-size="40" letter-spacing="10" fill="url(#${id}-gold)">${esc(cfg.sekolah_baris1)}</text>
-        <text data-fit="290" x="300" y="368" text-anchor="middle" font-family="Anton" font-size="84" letter-spacing="1" fill="${d.text}" stroke="${d.outline}" stroke-width="9" paint-order="stroke" stroke-linejoin="round">${esc(cfg.sekolah_baris2)}</text>
-        <rect x="222" y="384" width="156" height="5" rx="2.5" fill="url(#${id}-gold)"/>
+      ${crest(d, id, 300, 180, 0.8)}
+      <g>
+        <text x="300" y="253" text-anchor="middle" font-family="Anton" font-size="30" letter-spacing="9" fill="url(#${id}-gold)" stroke="${d.art === 'crescent' ? '#FFFFFF' : d.c3}" stroke-width="4" paint-order="stroke" filter="url(#${id}-tshadow)">${esc(cfg.sekolah_baris1)}</text>
+        <rect x="100" y="264" width="400" height="60" fill="${d.c3}"/>
+        <rect x="100" y="264" width="400" height="60" fill="url(#${id}-pat)" opacity=".8"/>
+        <rect x="100" y="260" width="400" height="4" fill="url(#${id}-gold)"/>
+        <rect x="100" y="324" width="400" height="4" fill="url(#${id}-gold)"/>
+        <text data-fit="280" x="300" y="295" dominant-baseline="central" text-anchor="middle" font-family="Anton" font-size="46" letter-spacing="3" fill="#FFFFFF" filter="url(#${id}-tshadow)">${esc(cfg.sekolah_baris2)}</text>
       </g>`;
   } else {
     deco = `
@@ -223,7 +249,7 @@ function shorts(d, id, player, view) {
         <path d="M60 396 L300 424 L540 396 L540 470 L60 470 Z" fill="url(#${id}-gold)"/>
         <path d="M60 388 L300 416 L540 388 L540 394 L300 422 L60 394 Z" fill="${d.line2}"/>
         ${view === 'front'
-          ? `<text x="222" y="372" text-anchor="middle" font-family="Anton" font-size="56" fill="${d.text}" stroke="url(#${id}-gold)" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
+          ? `<text x="222" y="372" text-anchor="middle" font-family="Anton" font-size="56" fill="#FFFFFF" stroke="url(#${id}-gold)" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
              ${crest(d, id, 392, 150, 0.62)}`
           : `<text x="300" y="170" text-anchor="middle" font-family="Bebas" font-size="30" letter-spacing="7" fill="url(#${id}-gold)">${esc(cfg.sekolah_baris2)}</text>`}
         <g filter="url(#${id}-blur)">

@@ -69,7 +69,7 @@
         </g>
         
       
-  <g transform="translate(210 160) scale(1)" filter="url(#f-tshadow)">
+  <g transform="translate(300 180) scale(0.8)" filter="url(#f-tshadow)">
     <path d="M0 -40 L32 -29 L32 6 Q32 30 0 44 Q-32 30 -32 6 L-32 -29 Z" fill="#04331F" stroke="url(#f-gold)" stroke-width="4"></path>
     <path d="M0 -33 L26 -24 L26 5 Q26 25 0 37 Q-26 25 -26 5 L-26 -24 Z" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.2"></path>
     <path d="M-8 -22 A9 9 0 1 0 2 -10 A7 7 0 1 1 -8 -22 Z" fill="url(#f-gold)"></path>
@@ -78,11 +78,13 @@
     <path d="M0 5 L6.5 9.5 L4 16.5 L-4 16.5 L-6.5 9.5 Z" fill="#111"></path>
     <path d="M0 -1 L0 5 M6.5 9.5 L12.5 7 M4 16.5 L8 22 M-4 16.5 L-8 22 M-6.5 9.5 L-12.5 7" stroke="#111" stroke-width="1.8"></path>
   </g>
-      <text x="392" y="182" text-anchor="middle" font-family="Anton" font-size="48" fill="#FFFFFF" stroke="#04331F" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#f-tshadow)">24</text>
-      <g filter="url(#f-tshadow)">
-        <text x="300" y="284" text-anchor="middle" font-family="Bebas" font-size="40" letter-spacing="10" fill="url(#f-gold)">TK IP AI</text>
-        <text x="300" y="368" text-anchor="middle" font-family="Anton" font-size="71.3" letter-spacing="1" fill="#FFFFFF" stroke="#04331F" stroke-width="9" paint-order="stroke" stroke-linejoin="round">MUHAAJIR</text>
-        <rect x="222" y="384" width="156" height="5" rx="2.5" fill="url(#f-gold)"></rect>
+      <g>
+        <text x="300" y="253" text-anchor="middle" font-family="Anton" font-size="30" letter-spacing="9" fill="url(#f-gold)" stroke="#04331F" stroke-width="4" paint-order="stroke" filter="url(#f-tshadow)">TK IP</text>
+        <rect x="100" y="264" width="400" height="60" fill="#04331F"></rect>
+        <rect x="100" y="264" width="400" height="60" fill="url(#f-pat)" opacity=".8"></rect>
+        <rect x="100" y="260" width="400" height="4" fill="url(#f-gold)"></rect>
+        <rect x="100" y="324" width="400" height="4" fill="url(#f-gold)"></rect>
+        <text x="300" y="295" dominant-baseline="central" text-anchor="middle" font-family="Anton" font-size="46" letter-spacing="3" fill="#FFFFFF" filter="url(#f-tshadow)">AL MUHAAJIR</text>
       </g>
         <g filter="url(#f-blur)">
           <path d="M150 250 Q210 300 190 420" stroke="#000" stroke-opacity=".28" stroke-width="16" fill="none"></path>

@@ -74,7 +74,7 @@
         <text x="300" y="430" text-anchor="middle" font-family="Anton" font-size="232" letter-spacing="-2" fill="#FFFFFF" stroke="url(#b-gold)" stroke-width="16" paint-order="stroke" stroke-linejoin="round">24</text>
         <text x="300" y="430" text-anchor="middle" font-family="Anton" font-size="232" letter-spacing="-2" fill="none" stroke="#04331F" stroke-width="3.5">24</text>
       </g>
-      <text x="300" y="104" text-anchor="middle" font-family="Bebas" font-size="17" letter-spacing="6" fill="#fff" opacity=".7">TK IP AI MUHAAJIR</text>
+      <text x="300" y="104" text-anchor="middle" font-family="Bebas" font-size="17" letter-spacing="6" fill="#fff" opacity=".7">TK IP AL MUHAAJIR</text>
         <g filter="url(#b-blur)">
           <path d="M150 250 Q210 300 190 420" stroke="#000" stroke-opacity=".28" stroke-width="16" fill="none"></path>
           <path d="M450 250 Q395 310 412 430" stroke="#000" stroke-opacity=".25" stroke-width="16" fill="none"></path>

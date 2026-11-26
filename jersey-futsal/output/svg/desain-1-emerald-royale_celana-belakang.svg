@@ -56,7 +56,7 @@
         </g>
         <path d="M60 396 L300 424 L540 396 L540 470 L60 470 Z" fill="url(#sb-gold)"></path>
         <path d="M60 388 L300 416 L540 388 L540 394 L300 422 L60 394 Z" fill="#FFFFFF"></path>
-        <text x="300" y="170" text-anchor="middle" font-family="Bebas" font-size="30" letter-spacing="7" fill="url(#sb-gold)">MUHAAJIR</text>
+        <text x="300" y="170" text-anchor="middle" font-family="Bebas" font-size="30" letter-spacing="7" fill="url(#sb-gold)">AL MUHAAJIR</text>
         <g filter="url(#sb-blur)">
           <path d="M200 120 Q240 250 215 380" stroke="#fff" stroke-opacity=".12" stroke-width="30" fill="none"></path>
           <path d="M300 268 L290 440" stroke="#000" stroke-opacity=".35" stroke-width="14"></path>
