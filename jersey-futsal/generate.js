@@ -129,6 +129,16 @@ function commonDefs(d, id) {
     <clipPath id="${id}-clip"><path d="${BODY}"/></clipPath>`;
 }
 
+// ---------- panel samping seperti nyala api ----------
+function flameSide(d, id, fill, tongue, edge = '') {
+  return `
+        <path class="ko" d="M128 236 C148 290 148 360 152 420 C160 478 210 506 220 570 C226 612 212 642 198 660 L90 660 L90 236 Z" fill="${fill}"${edge}/>
+        <path class="ko" d="M118 440 C150 482 170 532 164 600 C152 556 136 520 108 488 Z" fill="${tongue}"/>
+        <path class="ko" d="M146 330 C152 360 154 392 150 418 C144 396 138 374 130 356 Z" fill="${tongue}"/>
+        <path class="ko" d="M144 604 C160 624 170 644 172 660 L146 660 Z" fill="${tongue}"/>
+        <path class="ko" d="M250 540 C238 590 242 626 262 660 L248 660 C226 624 224 584 238 534 Z" fill="${edge ? `url(#${id}-gold)` : fill}"/>`;
+}
+
 // ---------- motif badan ----------
 function artBody(d, id, view) {
   const o = view === 'front' ? 0 : 100; // geser motif bawah sedikit di tampak belakang
@@ -147,12 +157,7 @@ function artBody(d, id, view) {
       </g>`;
   }
   if (d.art === 'curve') {
-    const side = `
-        <path class="ko" d="M128 236 C148 290 148 360 152 420 C160 478 210 506 220 570 C226 612 212 642 198 660 L90 660 L90 236 Z" fill="url(#${id}-gold)"/>
-        <path class="ko" d="M118 440 C150 482 170 532 164 600 C152 556 136 520 108 488 Z" fill="${d.c2}"/>
-        <path class="ko" d="M146 330 C152 360 154 392 150 418 C144 396 138 374 130 356 Z" fill="${d.c2}"/>
-        <path class="ko" d="M144 604 C160 624 170 644 172 660 L146 660 Z" fill="${d.c2}"/>
-        <path class="ko" d="M250 540 C238 590 242 626 262 660 L248 660 C226 624 224 584 238 534 Z" fill="url(#${id}-gold)"/>`;
+    const side = flameSide(d, id, `url(#${id}-gold)`, d.c2);
     return `
       <rect width="600" height="660" fill="url(#${id}-pat)" opacity=".7"/>
       <path d="M190 560 C270 500 350 440 440 300 C410 430 320 520 220 600 Z" fill="#FFFFFF" opacity=".05"/>
@@ -167,21 +172,11 @@ function artBody(d, id, view) {
       <path d="M450 236 L444 236 Q454 420 448 660 L454 660 Q460 420 450 236 Z" fill="url(#${id}-gold)"/>`;
   }
   if (d.art === 'crescent') {
+    const side = flameSide(d, id, d.c3, '#FFFFFF', ` stroke="url(#${id}-gold)" stroke-width="3"`);
     return `
       <rect width="600" height="660" fill="url(#${id}-pat)"/>
-      <path class="ko" d="M120 236 L162 236 Q150 420 156 660 L110 660 Z" fill="${d.c3}"/>
-      <path class="ko" d="M480 236 L438 236 Q450 420 444 660 L490 660 Z" fill="${d.c3}"/>
-      <path class="ko" d="M162 236 L168 236 Q156 420 162 660 L156 660 Q150 420 162 236 Z" fill="url(#${id}-gold)"/>
-      <path class="ko" d="M438 236 L432 236 Q444 420 438 660 L444 660 Q450 420 438 236 Z" fill="url(#${id}-gold)"/>
-      ${view === 'front' ? '' : `
-      <g transform="translate(0 ${o})">
-        <circle class="ko" cx="560" cy="720" r="290" fill="${d.c3}" opacity=".07"/>
-        <circle class="ko" cx="560" cy="720" r="335" fill="none" stroke="${d.c3}" stroke-width="34"/>
-        <circle class="ko" cx="560" cy="720" r="335" fill="none" stroke="url(#${id}-pat)" stroke-width="34"/>
-        <circle class="ko" cx="560" cy="720" r="305" fill="none" stroke="url(#${id}-gold)" stroke-width="13"/>
-        <circle class="ko" cx="560" cy="720" r="290" fill="none" stroke="${d.c3}" stroke-width="3"/>
-        <circle class="ko" cx="560" cy="720" r="372" fill="none" stroke="url(#${id}-gold)" stroke-width="3.5"/>
-      </g>`}`;
+      ${side}
+      <g transform="${MIRROR}">${side}</g>`;
   }
   return `
       <g fill="#fff">
@@ -306,9 +301,9 @@ function shirt(d, id, view, player) {
     <g filter="url(#${id}-shadow)">
       <path d="${BODY}" fill="url(#${id}-base)"/>
       <g clip-path="url(#${id}-clip)">
-        ${view === 'front' && !['tiger', 'curve'].includes(d.art) ? tigerMark(d) : ''}
+        ${view === 'front' && !['tiger', 'curve', 'crescent'].includes(d.art) ? tigerMark(d) : ''}
         ${artBody(d, id, view)}
-        ${view === 'front' && ['tiger', 'curve'].includes(d.art) ? tigerMark(d) : ''}
+        ${view === 'front' && ['tiger', 'curve', 'crescent'].includes(d.art) ? tigerMark(d) : ''}
         ${[0, 1].map((m) => `<g ${m ? `transform="${MIRROR}"` : ''}>
           <path d="${SLEEVE}" fill="${d.c3}"/><path d="${SLEEVE}" fill="url(#${id}-kawung)" mask="url(#${id}-smask)" opacity=".7"/>
           <path class="ko" d="${CUFF}" fill="url(#${id}-gold)"/><path class="ko" d="${CUFF2}" fill="${d.line2}"/>
