@@ -63,11 +63,11 @@
         <g>
           <path d="M100 60 L168 60 Q150 250 150 460 L60 460 Z" fill="url(#sf-base)"></path>
           <path class="ko" d="M168 60 L176 60 Q158 250 158 460 L150 460 Q150 250 168 60 Z" fill="url(#sf-gold)"></path>
-          <path d="M182 60 L185 60 Q167 250 167 460 L164 460 Q164 250 182 60 Z" fill="#FFFFFF" opacity=".9"></path>
+          <path d="M182 60 L185 60 Q167 250 167 460 L164 460 Q164 250 182 60 Z" fill="#FFFFFF" opacity="0.9"></path>
         </g><g transform="matrix(-1 0 0 1 600 0)">
           <path d="M100 60 L168 60 Q150 250 150 460 L60 460 Z" fill="url(#sf-base)"></path>
           <path class="ko" d="M168 60 L176 60 Q158 250 158 460 L150 460 Q150 250 168 60 Z" fill="url(#sf-gold)"></path>
-          <path d="M182 60 L185 60 Q167 250 167 460 L164 460 Q164 250 182 60 Z" fill="#FFFFFF" opacity=".9"></path>
+          <path d="M182 60 L185 60 Q167 250 167 460 L164 460 Q164 250 182 60 Z" fill="#FFFFFF" opacity="0.9"></path>
         </g>
         <path d="M60 396 L300 424 L540 396 L540 470 L60 470 Z" fill="url(#sf-gold)"></path>
         <path class="ko" d="M60 388 L300 416 L540 388 L540 394 L300 422 L60 394 Z" fill="#FFFFFF"></path>

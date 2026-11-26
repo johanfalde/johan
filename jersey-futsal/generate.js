@@ -38,7 +38,7 @@ const DESIGNS = [
   },
   {
     key: 'desain-3-golden-crescent', no: 'DESAIN 03', nama: 'GOLDEN CRESCENT', jenis: 'PREMIUM KIT',
-    tagline: 'Putih mutiara · arabesque tonal · busur bulan sabit emas & navy',
+    tagline: 'Putih mutiara · panel api navy bergaris emas · harimau putih tonal',
     c1: '#FFFFFF', c2: '#F1F4F9', b3: '#D9E0EB', c3: '#0E1B3D', accent: '#D4A017', accentHi: '#F7DC7A', accentLo: '#9C7410',
     line2: '#FFFFFF', text: '#0E1B3D', outline: '#FFFFFF', neck: 'crew', art: 'crescent', ink: '#0E1B3D',
     bg1: '#1B2A55', bg2: '#050A1C',
@@ -46,11 +46,11 @@ const DESIGNS = [
   },
   {
     key: 'desain-4-navy-flame', no: 'DESAIN 04', nama: 'NAVY FLAME', jenis: 'SPECIAL KIT',
-    tagline: 'Navy · panel lengkung krem seperti nyala api · harimau putih tonal',
+    tagline: 'Navy · panel api krem bergaris emas · lengan batik modern',
     c1: '#2B3F75', c2: '#1C2B55', c3: '#121D3C', accent: '#EFE6D6', accentHi: '#FFFFFF', accentLo: '#D3C6AE',
     line2: '#1C2B55', text: '#F3ECDF', outline: '#121D3C', neck: 'crew', art: 'curve',
     bg1: '#1C2B55', bg2: '#050A18',
-    chips: [['#1C2B55', 'Navy'], ['#EFE6D6', 'Krem'], ['#2B3F75', 'Navy Terang'], ['#FFFFFF', 'Putih']],
+    chips: [['#1C2B55', 'Navy'], ['#EFE6D6', 'Krem'], ['#D6A531', 'Emas'], ['#FFFFFF', 'Putih']],
   },
 ];
 
@@ -365,10 +365,10 @@ function shorts(d, id, player, view) {
         ${[0, 1].map((m) => `<g ${m ? `transform="${MIRROR}"` : ''}>
           <path d="M100 60 L168 60 Q150 250 150 460 L60 460 Z" fill="url(#${id}-base)"/>
           <path class="ko" d="M168 60 L176 60 Q158 250 158 460 L150 460 Q150 250 168 60 Z" fill="url(#${id}-gold)"/>
-          <path d="M182 60 L185 60 Q167 250 167 460 L164 460 Q164 250 182 60 Z" fill="${d.line2}" opacity=".9"/>
+          <path d="M182 60 L185 60 Q167 250 167 460 L164 460 Q164 250 182 60 Z" fill="${d.art === 'curve' ? '#D6A531' : d.line2}" opacity="${d.art === 'curve' ? 1 : .9}"/>
         </g>`).join('')}
         <path d="M60 396 L300 424 L540 396 L540 470 L60 470 Z" fill="url(#${id}-gold)"/>
-        <path class="ko" d="M60 388 L300 416 L540 388 L540 394 L300 422 L60 394 Z" fill="${d.line2}"/>
+        <path class="ko" d="M60 388 L300 416 L540 388 L540 394 L300 422 L60 394 Z" fill="${d.art === 'curve' ? '#D6A531' : d.line2}"/>
         ${view === 'front'
           ? `<text class="chk" x="222" y="372" text-anchor="middle" font-family="Anton" font-size="56" fill="#FFFFFF" stroke="url(#${id}-gold)" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
              ${crest(d, id, 392, 150, 0.62)}`
