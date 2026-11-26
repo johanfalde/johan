@@ -267,7 +267,7 @@ function tigerMark(d) {
   if (d.art === 'tiger')
     return `<image href="${TIGER_PNG}" x="140" y="392" width="320" height="268" preserveAspectRatio="xMidYMid meet"/>`;
   const white = d.art === 'crescent';
-  return `<image href="${TIGER_PNG}" x="125" y="372" width="350" height="293" preserveAspectRatio="xMidYMid meet"
+  return `<image href="${TIGER_PNG}" x="142" y="338" width="316" height="266" preserveAspectRatio="xMidYMid meet"
     style="mix-blend-mode:${white ? 'multiply' : 'luminosity'}" opacity="${white ? .55 : .6}"${white ? ' filter="grayscale(1)"' : ''}/>`;
 }
 
