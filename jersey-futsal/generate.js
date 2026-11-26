@@ -45,13 +45,12 @@ const DESIGNS = [
     chips: [['#F4F6FA', 'Putih Mutiara'], ['#0E1B3D', 'Navy'], ['#D4A017', 'Emas'], ['#C9D1DE', 'Abu Perak']],
   },
   {
-    aktif: false, // draf, belum disetujui klien
-    key: 'desain-4-golden-tiger', no: 'DESAIN 04', nama: 'GOLDEN TIGER', jenis: 'SPECIAL KIT',
-    tagline: 'Hitam pekat · ilustrasi harimau emas · sapuan kuas & cipratan berputar',
+    key: 'desain-4-black-tiger', no: 'DESAIN 04', nama: 'BLACK TIGER', jenis: 'SPECIAL KIT',
+    tagline: 'Hitam pekat · harimau realistis tonal · motif geometri islami & aksen emas',
     c1: '#1C1C1F', c2: '#0F0F11', c3: '#050506', accent: '#E3A81B', accentHi: '#FFE08A', accentLo: '#9A6A00',
     line2: '#FFFFFF', text: '#FFFFFF', outline: '#050506', neck: 'crew', art: 'tiger',
     bg1: '#2A2010', bg2: '#050403',
-    chips: [['#0F0F11', 'Hitam'], ['#E3A81B', 'Emas'], ['#FFF4D6', 'Krem'], ['#FFFFFF', 'Putih']],
+    chips: [['#0F0F11', 'Hitam'], ['#E3A81B', 'Emas'], ['#9AA0A8', 'Abu Perak'], ['#FFFFFF', 'Putih']],
   },
 ];
 
@@ -149,8 +148,7 @@ function artBody(d, id, view) {
   }
   if (d.art === 'tiger') {
     return `
-      <rect width="600" height="660" fill="url(#${id}-pat)" opacity=".5"/>
-      <g>${swirl(id, view === 'front' ? 1234567 : 7654321, view)}</g>
+      <rect width="600" height="660" fill="url(#${id}-pat)" opacity="1.6"/>
       <path d="M150 236 L156 236 Q146 420 152 660 L146 660 Q140 420 150 236 Z" fill="url(#${id}-gold)"/>
       <path d="M450 236 L444 236 Q454 420 448 660 L454 660 Q460 420 450 236 Z" fill="url(#${id}-gold)"/>`;
   }
@@ -188,8 +186,10 @@ function artBody(d, id, view) {
 
 // ---------- logo perisai TK Islam Plus Al Muhaajir ----------
 function crest(d, id, x, y, s = 1) {
+  const white = d.art === 'crescent';
   return `
-  <g class="chk" transform="translate(${x} ${y}) scale(${s})" filter="url(#${id}-tshadow)">${LOGO.crestShield(id, d.c3, `url(#${id}-gold)`)}</g>`;
+  <g class="chk" transform="translate(${x} ${y}) scale(${s})" filter="url(#${id}-tshadow)">${LOGO.officialLogoInline(98, {
+    frame: `url(#${id}-gold)`, tk: `url(#${id}-gold)`, text: white ? d.c3 : '#FFFFFF' })}</g>`;
 }
 
 // ---------- detail lengan: bintang segi-8 islami (Rub el Hizb) transparan / tonal ----------
@@ -248,7 +248,7 @@ function swirl(id, seed, view) {
 const d4gold = (id) => `url(#${id}-gold)`;
 
 function tigerMark(d) {
-  if (d.art === 'tiger') return `<image href="${TIGER_GOLD}" x="110" y="132" width="380" height="380" preserveAspectRatio="xMidYMid meet"/>`;
+  if (d.art === 'tiger') return `<image href="${TIGER_PNG}" x="95" y="318" width="410" height="410" preserveAspectRatio="xMidYMid meet" style="mix-blend-mode:screen" opacity=".92"/>`;
   const white = d.art === 'crescent';
   return `<image href="${TIGER_PNG}" x="125" y="262" width="350" height="350" preserveAspectRatio="xMidYMid meet"
     style="mix-blend-mode:${white ? 'multiply' : 'luminosity'}" opacity="${white ? .3 : .5}"/>`;
@@ -260,12 +260,12 @@ function shirt(d, id, view, player) {
   let deco;
   if (view === 'front') {
     deco = `
-      ${crest(d, id, 228, 164, 0.94)}
+      ${crest(d, id, 238, 166, 0.84)}
       <text class="chk" x="374" y="186" text-anchor="middle" font-family="Anton" font-size="48" fill="${d.text}" stroke="${d.art === 'crescent' ? d.accent : d.outline}" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
       <g filter="url(#${id}-tshadow)">
-        <text class="chk" data-fit="236" x="300" y="${d.art === 'tiger' ? 526 : 286}" text-anchor="middle" font-family="Bebas" font-size="40" letter-spacing="7" fill="${d.art === 'crescent' ? d.c3 : `url(#${id}-gold)`}" ${d.art === 'crescent' ? '' : `stroke="${d.c3}" stroke-width="3" paint-order="stroke"`}>${esc(cfg.sekolah_baris1)}</text>
-        <text class="chk" data-fit="246" x="300" y="${d.art === 'tiger' ? 580 : 360}" text-anchor="middle" font-family="Anton" font-size="78" letter-spacing="1" fill="${d.text}" stroke="${d.art === 'crescent' ? d.accent : d.outline}" stroke-width="${d.art === 'crescent' ? 3 : 9}" paint-order="stroke" stroke-linejoin="round">${esc(cfg.sekolah_baris2)}</text>
-        <g transform="translate(0 ${d.art === 'tiger' ? 220 : 0})"><rect x="236" y="378" width="128" height="5" rx="2.5" fill="url(#${id}-gold)"/>
+        <text class="chk" data-fit="236" x="300" y="286" text-anchor="middle" font-family="Bebas" font-size="40" letter-spacing="7" fill="${d.art === 'crescent' ? d.c3 : `url(#${id}-gold)`}" ${d.art === 'crescent' ? '' : `stroke="${d.c3}" stroke-width="3" paint-order="stroke"`}>${esc(cfg.sekolah_baris1)}</text>
+        <text class="chk" data-fit="246" x="300" y="360" text-anchor="middle" font-family="Anton" font-size="78" letter-spacing="1" fill="${d.text}" stroke="${d.art === 'crescent' ? d.accent : d.outline}" stroke-width="${d.art === 'crescent' ? 3 : 9}" paint-order="stroke" stroke-linejoin="round">${esc(cfg.sekolah_baris2)}</text>
+        <g transform="translate(0 0)"><rect x="236" y="378" width="128" height="5" rx="2.5" fill="url(#${id}-gold)"/>
         <path d="M222 380.5 l7 -6 7 6 -7 6 Z M364 380.5 l7 -6 7 6 -7 6 Z" fill="url(#${id}-gold)"/></g>
       </g>`;
   } else {
@@ -437,45 +437,37 @@ function backOnly(d, player) {
 }
 
 
-// ======================= LEMBAR LOGO =======================
-function logoSheet(svg) {
-  const m = [['Kubah & dua menara', 'Nilai-nilai Islam sebagai fondasi pendidikan'],
-    ['Kitab terbuka', "Ilmu & cinta Al-Qur'an sejak dini"],
-    ['Bulan sabit & bintang', 'Akhlak yang menerangi, cita-cita setinggi bintang'],
-    ['Bola', 'Anak yang aktif, sehat, sportif & kompak'],
-    ['Sinar matahari', 'Generasi yang tumbuh ceria & bersinar'],
-    ['Untaian daun', 'Pendidikan yang menumbuhkan & membanggakan']];
+// ======================= LEMBAR LOGO (logo resmi sekolah) =======================
+function logoSheet() {
+  const v = (o, bg, label) => `<div class="v"><div class="box" style="background:${bg}">${LOGO.officialLogo(o)}</div><span>${label}</span></div>`;
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${FONT_CSS}
   *{margin:0;padding:0;box-sizing:border-box}
-  body{width:1920px;height:1200px;display:flex;font-family:'Bebas';overflow:hidden}
-  .l{width:1000px;height:1200px;background:radial-gradient(circle at 50% 45%,#FFFEF8,#EFE6CC);display:flex;align-items:center;justify-content:center;position:relative}
-  .l .lg{width:860px;height:860px;filter:drop-shadow(0 25px 40px rgba(0,0,0,.25))}
-  .r{flex:1;background:radial-gradient(ellipse at 30% 20%,#0E6B45,#03261A 75%);color:#fff;padding:70px 70px 0}
-  .ey{letter-spacing:7px;color:#F2C230;font-size:24px}
-  h1{font-family:'Cinzel';font-weight:800;font-size:54px;line-height:1.1;margin:10px 0 6px}
-  .sub{opacity:.75;letter-spacing:3px;font-size:24px}
-  .row{display:flex;gap:28px;align-items:center;margin:34px 0 30px}
-  .sm{width:190px;height:190px}
-  .lock{display:flex;align-items:center;gap:18px;background:#fff;border-radius:18px;padding:16px 26px}
-  .lock .sm2{width:120px;height:120px}
-  .lock b{display:block;font-family:'Cinzel';font-weight:800;color:#0B5D3B;font-size:26px;letter-spacing:2px}
-  .lock i{display:block;font-style:normal;font-family:'Cinzel';font-weight:800;color:#C7920B;font-size:40px;letter-spacing:2px;line-height:1}
-  .mk{display:grid;grid-template-columns:1fr 1fr;gap:16px 30px}
-  .mk div{font-size:22px;letter-spacing:1.5px;line-height:1.25;opacity:.9}
-  .mk b{display:block;color:#F2C230;font-weight:400;font-size:25px;letter-spacing:3px}
-  .ch{display:flex;gap:22px;margin-top:34px}
-  .ch span{display:flex;align-items:center;gap:10px;font-size:20px;letter-spacing:2px}
-  .ch i{width:40px;height:40px;border-radius:50%;border:3px solid rgba(255,255,255,.8);display:block}
+  body{width:1920px;height:1200px;display:flex;font-family:'Bebas';overflow:hidden;background:#F4F5F0}
+  .l{width:980px;height:1200px;background:#FFFFFF;display:flex;align-items:center;justify-content:center;border-right:1px solid #e3e6dc}
+  .l .lg{width:820px}
+  .r{flex:1;padding:70px 70px 0}
+  .ey{letter-spacing:7px;color:#5A8436;font-size:24px}
+  h1{font-family:'Anton';font-weight:400;font-size:64px;line-height:1.05;margin:8px 0 6px;color:#1b1f17}
+  .sub{opacity:.65;letter-spacing:3px;font-size:23px;color:#1b1f17}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:40px}
+  .v .box{height:270px;border-radius:16px;display:flex;align-items:center;justify-content:center;padding:30px;box-shadow:0 6px 18px rgba(0,0,0,.08)}
+  .v span{display:block;margin-top:10px;letter-spacing:3px;font-size:21px;color:#394034}
+  .ch{display:flex;gap:26px;margin-top:34px}
+  .ch span{display:flex;align-items:center;gap:10px;font-size:21px;letter-spacing:2px;color:#1b1f17}
+  .ch i{width:40px;height:40px;border-radius:50%;border:2px solid rgba(0,0,0,.15);display:block}
   </style></head><body>
-  <div class="l"><div class="lg">${svg}</div></div>
+  <div class="l"><div class="lg">${LOGO.officialLogo()}</div></div>
   <div class="r">
-    <div class="ey">LOGO RESMI · IDENTITAS SEKOLAH</div>
+    <div class="ey">LOGO RESMI · VERSI VEKTOR (SIAP CETAK)</div>
     <h1>TK ISLAM PLUS<br>AL MUHAAJIR</h1>
-    <div class="sub">Dipakai di jersey, seragam, spanduk, kop surat & media sosial</div>
-    <div class="row"><div class="sm">${svg}</div>
-      <div class="lock"><div class="sm2">${svg}</div><div><b>TK ISLAM PLUS</b><i>AL MUHAAJIR</i></div></div></div>
-    <div class="mk">${m.map(([a, b]) => `<div><b>${a}</b>${b}</div>`).join('')}</div>
-    <div class="ch">${[['#0B5D3B', 'HIJAU'], ['#E8B21A', 'EMAS'], ['#F2E8CC', 'KREM'], ['#FFFFFF', 'PUTIH']].map(([c, n]) => `<span><i style="background:${c}"></i>${n} ${c}</span>`).join('')}</div>
+    <div class="sub">Logo asli sekolah, di-trace ulang ke vektor agar tajam di ukuran berapa pun</div>
+    <div class="grid">
+      ${v({}, '#FFFFFF', 'WARNA ASLI · LATAR TERANG')}
+      ${v({ frame: '#F2B705', tk: '#F2B705', text: '#FFFFFF' }, '#0A6646', 'VERSI JERSEY · LATAR GELAP')}
+      ${v({ frame: '#FFFFFF', tk: '#FFFFFF', text: '#FFFFFF' }, '#111111', 'PUTIH 1 WARNA')}
+      ${v({ frame: '#111111', tk: '#111111', text: '#111111' }, '#FFFFFF', 'HITAM 1 WARNA')}
+    </div>
+    <div class="ch">${[['#5A8436', 'HIJAU LOGO'], ['#111111', 'HITAM'], ['#FFFFFF', 'PUTIH']].map(([c, n]) => `<span><i style="background:${c}"></i>${n} ${c}</span>`).join('')}</div>
   </div></body></html>`;
 }
 
@@ -562,12 +554,16 @@ async function render(page, html) {
   // ---------- LOGO ----------
   const LD = path.join(OUT, 'logo');
   fs.mkdirSync(LD, { recursive: true });
-  const logoSvg = LOGO.fullLogo(FONT_CSS);
-  fs.writeFileSync(path.join(LD, 'logo-tk-islam-plus-al-muhaajir.svg'), `<?xml version="1.0" encoding="UTF-8"?>\n${logoSvg.replace('width="100%" height="100%"', 'width="1000" height="1000"')}`);
-  const lp = await browser.newPage({ viewport: { width: 1000, height: 1000 }, deviceScaleFactor: 2 });
+  const logoSvg = LOGO.officialLogo();
+  const [, , VW, VH] = LOGO.OFFICIAL.viewBox.split(' ').map(Number);
+  const sized = (svg) => `<?xml version="1.0" encoding="UTF-8"?>\n${svg.replace('width="100%" height="100%"', `width="${VW * 3}" height="${(VH * 3).toFixed(0)}"`)}`;
+  fs.writeFileSync(path.join(LD, 'logo-tk-islam-plus-al-muhaajir.svg'), sized(LOGO.officialLogo({ css: FONT_CSS })));
+  fs.writeFileSync(path.join(LD, 'logo-putih-untuk-latar-gelap.svg'), sized(LOGO.officialLogo({ frame: '#FFFFFF', tk: '#FFFFFF', text: '#FFFFFF', css: FONT_CSS })));
+  fs.writeFileSync(path.join(LD, 'logo-hitam-1-warna.svg'), sized(LOGO.officialLogo({ frame: '#111111', tk: '#111111', text: '#111111', css: FONT_CSS })));
+  const lp = await browser.newPage({ viewport: { width: Math.round(VW * 1.5), height: Math.round(VH * 1.5) }, deviceScaleFactor: 2 });
   await render(lp, `<html><body style="margin:0;background:transparent">${logoSvg}</body></html>`);
   await lp.screenshot({ path: path.join(LD, 'logo-tk-islam-plus-al-muhaajir.png'), omitBackground: true });
-  await render(page, logoSheet(logoSvg));
+  await render(page, logoSheet());
   await page.screenshot({ path: path.join(LD, 'logo-presentasi.jpg'), type: 'jpeg', quality: 95 });
   await page.pdf({ path: path.join(LD, 'logo-presentasi.pdf'), width: '1920px', height: '1200px', printBackground: true });
   console.log('OK logo');

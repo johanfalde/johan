@@ -126,4 +126,22 @@ function fullLogo(FONT_CSS, opt = {}) {
 </svg>`;
 }
 
-module.exports = { emblem, crestShield, fullLogo, ball };
+// ===== LOGO RESMI (hasil tracing dari logo sekolah) =====
+const OFFICIAL = require('./assets/logo-resmi.json');
+function officialLogo({ frame = '#5A8436', tk = '#5A8436', text = '#111111', bg = null, css = '' } = {}) {
+  const rects = OFFICIAL.frame.map(([x, y, w, h]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${frame}"/>`).join('');
+  const [vx, vy, vw, vh] = OFFICIAL.viewBox.split(' ').map(Number);
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${OFFICIAL.viewBox}" width="100%" height="100%">
+    ${bg ? `<rect x="${vx}" y="${vy}" width="${vw}" height="${vh}" fill="${bg}"/>` : ''}
+    ${css ? `<defs><style>${css}</style></defs>` : ''}
+    ${rects}<text x="418" y="136" text-anchor="middle" font-family="Bebas" font-size="47" letter-spacing="1" textLength="236" lengthAdjust="spacingAndGlyphs" fill="${tk}" stroke="${tk}" stroke-width="1.4" stroke-linejoin="round">TK ISLAM PLUS</text><path d="${OFFICIAL.black}" fill="${text}"/></svg>`;
+}
+// isi logo (tanpa <svg>) untuk ditempel di dalam SVG lain, dipusatkan di (0,0) dengan lebar w
+function officialLogoInline(w, opt = {}) {
+  const [vx, vy, vw, vh] = OFFICIAL.viewBox.split(' ').map(Number), k = w / vw;
+  const { frame = '#5A8436', tk = '#5A8436', text = '#111111' } = opt;
+  return `<g transform="scale(${k.toFixed(4)}) translate(${(-vx - vw / 2).toFixed(1)} ${(-vy - vh / 2).toFixed(1)})">
+    ${OFFICIAL.frame.map(([x, y, ww, h]) => `<rect x="${x}" y="${y}" width="${ww}" height="${h}" fill="${frame}"/>`).join('')}
+    <text x="418" y="136" text-anchor="middle" font-family="Bebas" font-size="47" letter-spacing="1" textLength="236" lengthAdjust="spacingAndGlyphs" fill="${tk}" stroke="${tk}" stroke-width="1.4" stroke-linejoin="round">TK ISLAM PLUS</text><path d="${OFFICIAL.black}" fill="${text}"/></g>`;
+}
+module.exports = { emblem, crestShield, fullLogo, ball, officialLogo, officialLogoInline, OFFICIAL };

@@ -41,7 +41,11 @@ Generator ada di `jersey-futsal/` (`generate.js` + `config.json`). Jalankan `cd 
 - Nama punggung di atas (arc 186–414, y≈158–182), nomor di bawahnya; logo dada x=228, nomor dada x=374.
 
 ## Logo
-- `logo.js`: logo bulat resmi (kubah+menara, kitab, bulan sabit-bintang, BOLA, sinar, untaian daun; font Cinzel),
+- **LOGO RESMI SEKOLAH** = bingkai hijau + "TK ISLAM PLUS" + kaligrafi "المهاجر" + "AL - MUHAAJIR"
+  (sumber: `assets/logo-resmi-sumber.jpg`). `trace_logo.py` (potracer) men-trace kaligrafi & "AL - MUHAAJIR" ke vektor,
+  bingkai dibangun ulang (sumber terpotong kiri-kanan), "TK ISLAM PLUS" pakai font Bebas (hasil trace bergerigi).
+  `LOGO.officialLogo()` / `officialLogoInline()`. Di jersey: bingkai & TK warna aksen, kaligrafi putih (navy di baju putih).
+- (Lama, tidak dipakai lagi) `logo.js` fullLogo: logo bulat (kubah+menara, kitab, bulan sabit-bintang, BOLA, sinar, untaian daun; font Cinzel),
   versi perisai untuk jersey (`crestShield`, ada bola kecil), dan `ball()`.
 - Nama sekolah lengkap: "TK ISLAM PLUS" + "AL MUHAAJIR" (bukan "TK IP").
 - Lengan (depan & belakang): BATIK MODERN: garis miring tebal-tipis + isen-isen cecek (titik) + belah ketupat kecil, memudar dari bahu ke manset (mask `${id}-smask`). Klien TIDAK mau bendera, logo, bintang, Kawung, atau Parang gelombang di lengan.
@@ -54,7 +58,10 @@ Generator ada di `jersey-futsal/` (`generate.js` + `config.json`). Jalankan `cd 
   Ganti gambar via `config.json`: `harimau_gambar` + `harimau_crop`.
 - Di jersey: lapisan PALING BAWAH (sebelum motif), `mix-blend-mode: luminosity` (opacity .5) untuk baju gelap,
   `multiply` (.3) untuk baju putih → menyatu dengan warna baju seperti sublim tonal.
-- Gaya referensi klien: ilustrasi harimau mengaum emas-hitam + cipratan kuas & pusaran (full print).
+- Gaya referensi klien: harimau mengaum realistis, tonal/transparan di depan bawah (contoh FUSBOL, Tiger Esport).
+- JANGAN mengambil/memotong gambar dari contoh desain toko lain (hak cipta). Vektor maskot & efek bulu buatan
+  sendiri DITOLAK klien (imut/jelek). Ilustrasi harimau mengaum realistis butuh AI gambar (API key) atau gambar beli.
+- Desain 4 BLACK TIGER: hitam, harimau foto domain publik grayscale (blend screen) di depan bawah.
 
 ## Presentasi ke konsumen
 Lembar "kit launch" 1920×1200 (render @2x = 3840×2400 JPG): latar gelap senada + sorot lampu,
