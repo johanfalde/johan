@@ -45,12 +45,12 @@ const DESIGNS = [
     chips: [['#F4F6FA', 'Putih Mutiara'], ['#0E1B3D', 'Navy'], ['#D4A017', 'Emas'], ['#C9D1DE', 'Abu Perak']],
   },
   {
-    key: 'desain-4-black-tiger', no: 'DESAIN 04', nama: 'BLACK TIGER', jenis: 'SPECIAL KIT',
-    tagline: 'Hitam pekat · harimau realistis tonal · motif geometri islami & aksen emas',
-    c1: '#1C1C1F', c2: '#0F0F11', c3: '#050506', accent: '#E3A81B', accentHi: '#FFE08A', accentLo: '#9A6A00',
-    line2: '#FFFFFF', text: '#FFFFFF', outline: '#050506', neck: 'crew', art: 'tiger',
-    bg1: '#2A2010', bg2: '#050403',
-    chips: [['#0F0F11', 'Hitam'], ['#E3A81B', 'Emas'], ['#9AA0A8', 'Abu Perak'], ['#FFFFFF', 'Putih']],
+    key: 'desain-4-navy-flame', no: 'DESAIN 04', nama: 'NAVY FLAME', jenis: 'SPECIAL KIT',
+    tagline: 'Navy · panel lengkung krem seperti nyala api · harimau putih tonal',
+    c1: '#2B3F75', c2: '#1C2B55', c3: '#121D3C', accent: '#EFE6D6', accentHi: '#FFFFFF', accentLo: '#D3C6AE',
+    line2: '#1C2B55', text: '#F3ECDF', outline: '#121D3C', neck: 'crew', art: 'curve',
+    bg1: '#1C2B55', bg2: '#050A18',
+    chips: [['#1C2B55', 'Navy'], ['#EFE6D6', 'Krem'], ['#2B3F75', 'Navy Terang'], ['#FFFFFF', 'Putih']],
   },
 ];
 
@@ -145,6 +145,20 @@ function artBody(d, id, view) {
         <path class="ko" d="M90 540 C230 505 360 640 620 515 L620 760 L90 760 Z" fill="${d.c3}" opacity=".85"/>
         <path class="ko" d="M90 540 C230 505 360 640 620 515 L620 760 L90 760 Z" fill="url(#${id}-pat)"/>
       </g>`;
+  }
+  if (d.art === 'curve') {
+    const side = `
+        <path class="ko" d="M128 236 C148 290 148 360 152 420 C160 478 210 506 220 570 C226 612 212 642 198 660 L90 660 L90 236 Z" fill="url(#${id}-gold)"/>
+        <path class="ko" d="M118 440 C150 482 170 532 164 600 C152 556 136 520 108 488 Z" fill="${d.c2}"/>
+        <path class="ko" d="M146 330 C152 360 154 392 150 418 C144 396 138 374 130 356 Z" fill="${d.c2}"/>
+        <path class="ko" d="M144 604 C160 624 170 644 172 660 L146 660 Z" fill="${d.c2}"/>
+        <path class="ko" d="M250 540 C238 590 242 626 262 660 L248 660 C226 624 224 584 238 534 Z" fill="url(#${id}-gold)"/>`;
+    return `
+      <rect width="600" height="660" fill="url(#${id}-pat)" opacity=".7"/>
+      <path d="M190 560 C270 500 350 440 440 300 C410 430 320 520 220 600 Z" fill="#FFFFFF" opacity=".05"/>
+      <path d="M170 470 C240 420 300 360 360 260 C350 360 280 440 190 500 Z" fill="#FFFFFF" opacity=".035"/>
+      ${side}
+      <g transform="${MIRROR}">${side}</g>`;
   }
   if (d.art === 'tiger') {
     return `
@@ -290,13 +304,13 @@ function shirt(d, id, view, player) {
     <g filter="url(#${id}-shadow)">
       <path d="${BODY}" fill="url(#${id}-base)"/>
       <g clip-path="url(#${id}-clip)">
-        ${view === 'front' && d.art !== 'tiger' ? tigerMark(d) : ''}
+        ${view === 'front' && !['tiger', 'curve'].includes(d.art) ? tigerMark(d) : ''}
         ${artBody(d, id, view)}
-        ${view === 'front' && d.art === 'tiger' ? tigerMark(d) : ''}
+        ${view === 'front' && ['tiger', 'curve'].includes(d.art) ? tigerMark(d) : ''}
         ${[0, 1].map((m) => `<g ${m ? `transform="${MIRROR}"` : ''}>
           <path d="${SLEEVE}" fill="${d.c3}"/><path d="${SLEEVE}" fill="url(#${id}-kawung)" mask="url(#${id}-smask)" opacity=".7"/>
           <path class="ko" d="${CUFF}" fill="url(#${id}-gold)"/><path class="ko" d="${CUFF2}" fill="${d.line2}"/>
-          <path class="ko" d="${RAGLAN}" fill="none" stroke="url(#${id}-gold)" stroke-width="5"/>
+          <path class="ko" d="${RAGLAN}" fill="none" stroke="url(#${id}-gold)" stroke-width="${d.art === 'curve' ? 13 : 5}"/>
           <path d="${RAGLAN}" transform="translate(-9 3)" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.3" stroke-dasharray="5 4"/>
         </g>`).join('')}
         ${deco}

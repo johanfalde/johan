@@ -3,7 +3,7 @@
 ## File hasil (folder `output/`)
 | File | Untuk apa |
 |---|---|
-| `desain-1-emerald-royale.jpg`, `desain-2-electric-ocean.jpg`, `desain-3-golden-crescent.jpg`, `desain-4-black-tiger.jpg` | Preview untuk dibagikan ke konsumen/wali murid (3840×2400 px) |
+| `desain-1-emerald-royale.jpg`, `desain-2-electric-ocean.jpg`, `desain-3-golden-crescent.jpg`, `desain-4-navy-flame.jpg` | Preview untuk dibagikan ke konsumen/wali murid (3840×2400 px) |
 | `*.pdf` | Versi vektor (tajam di ukuran berapa pun), kirim ke konveksi |
 | `svg/*.svg` (baju depan/belakang, celana depan/belakang) | File vektor terpisah, bisa dibuka & diedit di CorelDraw / Illustrator / Inkscape |
 | `logo/` (PNG transparan, SVG, lembar presentasi JPG/PDF) | Logo resmi sekolah versi vektor (warna asli, putih, hitam) + lembar presentasi |
