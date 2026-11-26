@@ -105,14 +105,19 @@ function commonDefs(d, id) {
       <stop offset=".25" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity="1"/>
     </linearGradient>
     <mask id="${id}-fm"><rect width="600" height="660" fill="url(#${id}-fade)"/></mask>`}
-    <pattern id="${id}-kawung" width="40" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+    <pattern id="${id}-kawung" width="24" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(-42)">
       <g fill="${d.art === 'crescent' ? '#FFFFFF' : d.accent}" stroke="${d.art === 'crescent' ? '#FFFFFF' : d.accent}">
-        <path d="M0 6 Q10 -1 20 6 Q30 13 40 6 L40 12 Q30 19 20 12 Q10 5 0 12 Z" fill-opacity=".15" stroke-opacity=".42" stroke-width="1.2"/>
-        <path d="M0 9 Q10 2 20 9 Q30 16 40 9" fill="none" stroke-opacity=".3" stroke-width=".8"/>
-        <path d="M0 18 L40 18" fill="none" stroke-opacity=".28" stroke-width=".9"/>
-        <path d="M10 15.6 L12.4 18 L10 20.4 L7.6 18 Z M30 15.6 L32.4 18 L30 20.4 L27.6 18 Z" fill-opacity=".45" stroke="none"/>
+        <rect x="0" y="1.2" width="24" height="2.6" stroke="none" fill-opacity=".55"/>
+        <rect x="0" y="6" width="24" height=".9" stroke="none" fill-opacity=".45"/>
+        <circle cx="2" cy="10" r=".95" stroke="none" fill-opacity=".6"/><circle cx="8" cy="10" r=".95" stroke="none" fill-opacity=".6"/>
+        <circle cx="14" cy="10" r=".95" stroke="none" fill-opacity=".6"/><circle cx="20" cy="10" r=".95" stroke="none" fill-opacity=".6"/>
+        <path d="M6 12.6 L8.4 14.4 L6 16.2 L3.6 14.4 Z M18 12.6 L20.4 14.4 L18 16.2 L15.6 14.4 Z" stroke="none" fill-opacity=".5"/>
       </g>
     </pattern>
+    <linearGradient id="${id}-sfade" gradientUnits="userSpaceOnUse" x1="430" y1="70" x2="560" y2="235">
+      <stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset=".55" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity=".12"/>
+    </linearGradient>
+    <mask id="${id}-smask" maskUnits="userSpaceOnUse" x="0" y="0" width="660" height="400"><rect x="0" y="0" width="660" height="400" fill="url(#${id}-sfade)"/></mask>
     <clipPath id="${id}-clip"><path d="${BODY}"/></clipPath>`;
 }
 
@@ -218,7 +223,7 @@ function shirt(d, id, view, player) {
       <g clip-path="url(#${id}-clip)">
         ${artBody(d, id, view)}
         ${[0, 1].map((m) => `<g ${m ? `transform="${MIRROR}"` : ''}>
-          <path d="${SLEEVE}" fill="${d.c3}"/><path d="${SLEEVE}" fill="url(#${id}-kawung)"/>
+          <path d="${SLEEVE}" fill="${d.c3}"/><path d="${SLEEVE}" fill="url(#${id}-kawung)" mask="url(#${id}-smask)" opacity=".7"/>
           <path class="ko" d="${CUFF}" fill="url(#${id}-gold)"/><path class="ko" d="${CUFF2}" fill="${d.line2}"/>
           <path class="ko" d="${RAGLAN}" fill="none" stroke="url(#${id}-gold)" stroke-width="5"/>
           <path d="${RAGLAN}" transform="translate(-9 3)" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.3" stroke-dasharray="5 4"/>

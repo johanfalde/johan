@@ -44,7 +44,7 @@ Generator ada di `jersey-futsal/` (`generate.js` + `config.json`). Jalankan `cd 
 - `logo.js`: logo bulat resmi (kubah+menara, kitab, bulan sabit-bintang, BOLA, sinar, untaian daun; font Cinzel),
   versi perisai untuk jersey (`crestShield`, ada bola kecil), dan `ball()`.
 - Nama sekolah lengkap: "TK ISLAM PLUS" + "AL MUHAAJIR" (bukan "TK IP").
-- Lengan (depan & belakang): motif BATIK PARANG (bergaris miring) transparan memenuhi lengan (pattern `${id}-kawung`, isinya Parang). Klien TIDAK mau bendera, logo, bintang, atau Kawung di lengan.
+- Lengan (depan & belakang): BATIK MODERN: garis miring tebal-tipis + isen-isen cecek (titik) + belah ketupat kecil, memudar dari bahu ke manset (mask `${id}-smask`). Klien TIDAK mau bendera, logo, bintang, Kawung, atau Parang gelombang di lengan.
 
 ## Presentasi ke konsumen
 Lembar "kit launch" 1920×1200 (render @2x = 3840×2400 JPG): latar gelap senada + sorot lampu,
