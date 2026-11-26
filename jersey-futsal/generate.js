@@ -161,7 +161,7 @@ function artBody(d, id, view) {
       </g>`;
   }
   if (d.art === 'curve') {
-    const side = flameSide(d, id, `url(#${id}-gold)`, d.c2, ` stroke="#D6A531" stroke-width="7" stroke-linejoin="round"`, false);
+    const side = flameSide(d, id, `url(#${id}-gold)`, d.c2, ` stroke="#D6A531" stroke-width="7" stroke-linecap="round"`, false, '', 340);
     return `
       <rect width="600" height="660" fill="url(#${id}-pat)" opacity=".7"/>
       <path d="M190 560 C270 500 350 440 440 300 C410 430 320 520 220 600 Z" fill="#FFFFFF" opacity=".05"/>
