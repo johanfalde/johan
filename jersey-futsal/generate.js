@@ -105,6 +105,16 @@ function commonDefs(d, id) {
       <stop offset=".25" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity="1"/>
     </linearGradient>
     <mask id="${id}-fm"><rect width="600" height="660" fill="url(#${id}-fade)"/></mask>`}
+    <pattern id="${id}-kawung" width="34" height="34" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <g fill="${d.art === 'crescent' ? '#FFFFFF' : d.accent}" fill-opacity=".16" stroke="${d.art === 'crescent' ? '#FFFFFF' : d.accent}" stroke-opacity=".38" stroke-width="1.3">
+        <ellipse cx="17" cy="8" rx="5.6" ry="8"/><ellipse cx="17" cy="26" rx="5.6" ry="8"/>
+        <ellipse cx="8" cy="17" rx="8" ry="5.6"/><ellipse cx="26" cy="17" rx="8" ry="5.6"/>
+      </g>
+      <g fill="${d.art === 'crescent' ? '#FFFFFF' : d.accent}" fill-opacity=".45">
+        <circle cx="17" cy="17" r="1.8"/><circle cx="17" cy="7" r="1.1"/><circle cx="17" cy="27" r="1.1"/><circle cx="7" cy="17" r="1.1"/><circle cx="27" cy="17" r="1.1"/>
+        <path d="M0 -3 L3 0 L0 3 L-3 0 Z M34 -3 L37 0 L34 3 L31 0 Z M0 31 L3 34 L0 37 L-3 34 Z M34 31 L37 34 L34 37 L31 34 Z"/>
+      </g>
+    </pattern>
     <clipPath id="${id}-clip"><path d="${BODY}"/></clipPath>`;
 }
 
@@ -210,13 +220,12 @@ function shirt(d, id, view, player) {
       <g clip-path="url(#${id}-clip)">
         ${artBody(d, id, view)}
         ${[0, 1].map((m) => `<g ${m ? `transform="${MIRROR}"` : ''}>
-          <path d="${SLEEVE}" fill="${d.c3}"/><path d="${SLEEVE}" fill="url(#${id}-pat)" opacity=".7"/>
+          <path d="${SLEEVE}" fill="${d.c3}"/><path d="${SLEEVE}" fill="url(#${id}-kawung)"/>
           <path class="ko" d="${CUFF}" fill="url(#${id}-gold)"/><path class="ko" d="${CUFF2}" fill="${d.line2}"/>
           <path class="ko" d="${RAGLAN}" fill="none" stroke="url(#${id}-gold)" stroke-width="5"/>
           <path d="${RAGLAN}" transform="translate(-9 3)" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.3" stroke-dasharray="5 4"/>
         </g>`).join('')}
         ${deco}
-        ${sleeveBadges(d, id)}
         <g filter="url(#${id}-blur)">
           <path d="M150 250 Q210 300 190 420" stroke="#000" stroke-opacity=".28" stroke-width="16" fill="none"/>
           <path d="M450 250 Q395 310 412 430" stroke="#000" stroke-opacity=".25" stroke-width="16" fill="none"/>
