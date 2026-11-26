@@ -186,15 +186,13 @@ function artBody(d, id, view) {
 
 // ---------- logo perisai TK Islam Plus Al Muhaajir ----------
 function crest(d, id, x, y, s = 1) {
-  // perisai gaya desain awal: gelap senada baju, tepi emas, bulan-bintang atas, logo resmi di tengah, bola di bawah
+  // perisai gaya desain awal: gelap senada baju, tepi emas, logo resmi di tengah, bola di bawah
   return `
   <g class="chk" transform="translate(${x} ${y}) scale(${s})" filter="url(#${id}-tshadow)">
     <path d="M0 -40 L32 -29 L32 6 Q32 30 0 44 Q-32 30 -32 6 L-32 -29 Z" fill="${d.c3}" stroke="url(#${id}-gold)" stroke-width="4"/>
     <path d="M0 -33 L26 -24 L26 5 Q26 25 0 37 Q-26 25 -26 5 L-26 -24 Z" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.2"/>
-    <path d="M-5 -31 A5 5 0 1 0 0.5 -24.5 A3.8 3.8 0 1 1 -5 -31 Z" fill="url(#${id}-gold)"/>
-    <path d="M4.5 -30.5 l1 2.2 2.4.2 -1.8 1.6.5 2.4 -2.1 -1.3 -2.1 1.3.5 -2.4 -1.8 -1.6 2.4 -.2 Z" fill="url(#${id}-gold)"/>
-    <g transform="translate(0 -3)">${LOGO.officialLogoInline(46, { frame: `url(#${id}-gold)`, tk: `url(#${id}-gold)`, text: '#FFFFFF' })}</g>
-    ${LOGO.ball(0, 27, 6.5)}
+    <g transform="translate(0 -9)">${LOGO.officialLogoInline(48, { frame: `url(#${id}-gold)`, tk: `url(#${id}-gold)`, text: '#FFFFFF' })}</g>
+    ${LOGO.ball(0, 23, 7.5)}
   </g>`;
 }
 
