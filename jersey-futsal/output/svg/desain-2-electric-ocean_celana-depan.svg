@@ -54,7 +54,7 @@
         </g>
         <path d="M60 396 L300 424 L540 396 L540 470 L60 470 Z" fill="url(#sf-gold)"></path>
         <path d="M60 388 L300 416 L540 388 L540 394 L300 422 L60 394 Z" fill="#FFD23F"></path>
-        <text x="222" y="372" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="56" fill="#FFFFFF" stroke="url(#sf-gold)" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#sf-tshadow)">24</text>
+        <text x="222" y="372" text-anchor="middle" font-family="Anton" font-size="56" fill="#FFFFFF" stroke="url(#sf-gold)" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#sf-tshadow)">24</text>
              
   <g transform="translate(392 150) scale(0.62)" filter="url(#sf-tshadow)">
     <path d="M0 -40 L32 -29 L32 6 Q32 30 0 44 Q-32 30 -32 6 L-32 -29 Z" fill="#07134A" stroke="url(#sf-gold)" stroke-width="4"></path>
