@@ -105,14 +105,12 @@ function commonDefs(d, id) {
       <stop offset=".25" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity="1"/>
     </linearGradient>
     <mask id="${id}-fm"><rect width="600" height="660" fill="url(#${id}-fade)"/></mask>`}
-    <pattern id="${id}-kawung" width="34" height="34" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-      <g fill="${d.art === 'crescent' ? '#FFFFFF' : d.accent}" fill-opacity=".16" stroke="${d.art === 'crescent' ? '#FFFFFF' : d.accent}" stroke-opacity=".38" stroke-width="1.3">
-        <ellipse cx="17" cy="8" rx="5.6" ry="8"/><ellipse cx="17" cy="26" rx="5.6" ry="8"/>
-        <ellipse cx="8" cy="17" rx="8" ry="5.6"/><ellipse cx="26" cy="17" rx="8" ry="5.6"/>
-      </g>
-      <g fill="${d.art === 'crescent' ? '#FFFFFF' : d.accent}" fill-opacity=".45">
-        <circle cx="17" cy="17" r="1.8"/><circle cx="17" cy="7" r="1.1"/><circle cx="17" cy="27" r="1.1"/><circle cx="7" cy="17" r="1.1"/><circle cx="27" cy="17" r="1.1"/>
-        <path d="M0 -3 L3 0 L0 3 L-3 0 Z M34 -3 L37 0 L34 3 L31 0 Z M0 31 L3 34 L0 37 L-3 34 Z M34 31 L37 34 L34 37 L31 34 Z"/>
+    <pattern id="${id}-kawung" width="40" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+      <g fill="${d.art === 'crescent' ? '#FFFFFF' : d.accent}" stroke="${d.art === 'crescent' ? '#FFFFFF' : d.accent}">
+        <path d="M0 6 Q10 -1 20 6 Q30 13 40 6 L40 12 Q30 19 20 12 Q10 5 0 12 Z" fill-opacity=".15" stroke-opacity=".42" stroke-width="1.2"/>
+        <path d="M0 9 Q10 2 20 9 Q30 16 40 9" fill="none" stroke-opacity=".3" stroke-width=".8"/>
+        <path d="M0 18 L40 18" fill="none" stroke-opacity=".28" stroke-width=".9"/>
+        <path d="M10 15.6 L12.4 18 L10 20.4 L7.6 18 Z M30 15.6 L32.4 18 L30 20.4 L27.6 18 Z" fill-opacity=".45" stroke="none"/>
       </g>
     </pattern>
     <clipPath id="${id}-clip"><path d="${BODY}"/></clipPath>`;
