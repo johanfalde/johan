@@ -212,9 +212,10 @@ function sleeveBadges(d, id) {
 }
 
 // Harimau realistis transparan di tengah depan baju (foto domain publik / gambar milik sendiri, lihat assets/)
+// Harimau putih milik klien (latar sudah dihapus oleh cutout_tiger.py)
 const TIGER_PNG = (() => {
-  require('child_process').execFileSync('python3', ['-I', path.join(ROOT, 'prep_tiger.py'), ROOT]);
-  return 'data:image/png;base64,' + fs.readFileSync(path.join(ROOT, 'assets', 'tiger-head.png')).toString('base64');
+  require('child_process').execFileSync('python3', ['-I', path.join(ROOT, 'cutout_tiger.py'), ROOT]);
+  return 'data:image/png;base64,' + fs.readFileSync(path.join(ROOT, 'assets', 'harimau-transparan.png')).toString('base64');
 })();
 const TIGER_GOLD = 'data:image/png;base64,' + fs.readFileSync(path.join(ROOT, 'assets', 'tiger-gold.png')).toString('base64');
 
@@ -252,10 +253,11 @@ function swirl(id, seed, view) {
 const d4gold = (id) => `url(#${id}-gold)`;
 
 function tigerMark(d) {
-  if (d.art === 'tiger') return `<image href="${TIGER_PNG}" x="95" y="318" width="410" height="410" preserveAspectRatio="xMidYMid meet" style="mix-blend-mode:screen" opacity=".92"/>`;
+  if (d.art === 'tiger')
+    return `<image href="${TIGER_PNG}" x="140" y="392" width="320" height="268" preserveAspectRatio="xMidYMid meet"/>`;
   const white = d.art === 'crescent';
-  return `<image href="${TIGER_PNG}" x="125" y="262" width="350" height="350" preserveAspectRatio="xMidYMid meet"
-    style="mix-blend-mode:${white ? 'multiply' : 'luminosity'}" opacity="${white ? .3 : .5}"/>`;
+  return `<image href="${TIGER_PNG}" x="125" y="372" width="350" height="293" preserveAspectRatio="xMidYMid meet"
+    style="mix-blend-mode:${white ? 'multiply' : 'luminosity'}" opacity="${white ? .32 : .42}"${white ? ' filter="grayscale(1)"' : ''}/>`;
 }
 
 function shirt(d, id, view, player) {
@@ -570,6 +572,7 @@ async function render(page, html) {
   await render(page, logoSheet());
   await page.screenshot({ path: path.join(LD, 'logo-presentasi.jpg'), type: 'jpeg', quality: 95 });
   await page.pdf({ path: path.join(LD, 'logo-presentasi.pdf'), width: '1920px', height: '1200px', printBackground: true });
+  fs.copyFileSync(path.join(ROOT, 'assets', 'harimau-transparan.png'), path.join(OUT, 'harimau-transparan.png'));
   console.log('OK logo');
 
   if (cfg.pemain && cfg.pemain.length) {

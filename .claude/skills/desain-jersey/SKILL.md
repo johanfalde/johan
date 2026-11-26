@@ -61,7 +61,9 @@ Generator ada di `jersey-futsal/` (`generate.js` + `config.json`). Jalankan `cd 
 - Gaya referensi klien: harimau mengaum realistis, tonal/transparan di depan bawah (contoh FUSBOL, Tiger Esport).
 - JANGAN mengambil/memotong gambar dari contoh desain toko lain (hak cipta). Vektor maskot & efek bulu buatan
   sendiri DITOLAK klien (imut/jelek). Ilustrasi harimau mengaum realistis butuh AI gambar (API key) atau gambar beli.
-- Desain 4 BLACK TIGER: hitam, harimau foto domain publik grayscale (blend screen) di depan bawah.
+- SEKARANG DIPAKAI: harimau putih mengaum dari klien (`assets/harimau-klien.jpg`), latar dihapus `cutout_tiger.py`
+  (flood-fill dari tepi, jadi bulu putih dalam tetap). Desain 1–3: tonal transparan di bawah lockup nama
+  (luminosity .42 / baju putih multiply .32 grayscale), di bawah lapisan motif. Desain 4 BLACK TIGER: warna penuh.
 
 ## Presentasi ke konsumen
 Lembar "kit launch" 1920×1200 (render @2x = 3840×2400 JPG): latar gelap senada + sorot lampu,
