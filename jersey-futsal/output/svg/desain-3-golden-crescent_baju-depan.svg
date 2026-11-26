@@ -105,8 +105,7 @@
       <g filter="url(#f-tshadow)">
         <text class="chk" x="300" y="286" text-anchor="middle" font-family="Bebas" font-size="31.3" letter-spacing="7" fill="#0E1B3D">TK ISLAM PLUS</text>
         <text class="chk" x="300" y="360" text-anchor="middle" font-family="Anton" font-size="45.9" letter-spacing="1" fill="#0E1B3D" stroke="#D4A017" stroke-width="3" paint-order="stroke" stroke-linejoin="round">AL MUHAAJIR</text>
-        <g transform="translate(0 0)"><rect x="236" y="378" width="128" height="5" rx="2.5" fill="url(#f-gold)"></rect>
-        <path d="M222 380.5 l7 -6 7 6 -7 6 Z M364 380.5 l7 -6 7 6 -7 6 Z" fill="url(#f-gold)"></path></g>
+        
       </g>
         <g filter="url(#f-blur)">
           <path d="M150 250 Q210 300 190 420" stroke="#000" stroke-opacity=".28" stroke-width="16" fill="none"></path>

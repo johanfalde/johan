@@ -282,8 +282,8 @@ function shirt(d, id, view, player) {
       <g filter="url(#${id}-tshadow)">
         <text class="chk" data-fit="236" x="300" y="286" text-anchor="middle" font-family="Bebas" font-size="40" letter-spacing="7" fill="${d.art === 'crescent' ? d.c3 : `url(#${id}-gold)`}" ${d.art === 'crescent' ? '' : `stroke="${d.c3}" stroke-width="3" paint-order="stroke"`}>${esc(cfg.sekolah_baris1)}</text>
         <text class="chk" data-fit="246" x="300" y="360" text-anchor="middle" font-family="Anton" font-size="78" letter-spacing="1" fill="${d.text}" stroke="${d.art === 'crescent' ? d.accent : d.outline}" stroke-width="${d.art === 'crescent' ? 3 : 9}" paint-order="stroke" stroke-linejoin="round">${esc(cfg.sekolah_baris2)}</text>
-        <g transform="translate(0 0)"><rect x="236" y="378" width="128" height="5" rx="2.5" fill="url(#${id}-gold)"/>
-        <path d="M222 380.5 l7 -6 7 6 -7 6 Z M364 380.5 l7 -6 7 6 -7 6 Z" fill="url(#${id}-gold)"/></g>
+        ${d.art === 'crescent' ? '' : `<g transform="translate(0 0)"><rect x="236" y="378" width="128" height="5" rx="2.5" fill="url(#${id}-gold)"/>
+        <path d="M222 380.5 l7 -6 7 6 -7 6 Z M364 380.5 l7 -6 7 6 -7 6 Z" fill="url(#${id}-gold)"/></g>`}
       </g>`;
   } else {
     deco = `
