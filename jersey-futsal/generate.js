@@ -136,7 +136,7 @@ function flameSide(d, id, fill, tongue, edge = '') {
         <path class="ko" d="M118 440 C150 482 170 532 164 600 C152 556 136 520 108 488 Z" fill="${tongue}"/>
         <path class="ko" d="M146 330 C152 360 154 392 150 418 C144 396 138 374 130 356 Z" fill="${tongue}"/>
         <path class="ko" d="M144 604 C160 624 170 644 172 660 L146 660 Z" fill="${tongue}"/>
-        <path class="ko" d="M250 540 C238 590 242 626 262 660 L248 660 C226 624 224 584 238 534 Z" fill="${edge ? `url(#${id}-gold)` : fill}"/>`;
+        ${edge ? '' : `<path class="ko" d="M250 540 C238 590 242 626 262 660 L248 660 C226 624 224 584 238 534 Z" fill="${fill}"/>`}`;
 }
 
 // ---------- motif badan ----------
@@ -172,7 +172,7 @@ function artBody(d, id, view) {
       <path d="M450 236 L444 236 Q454 420 448 660 L454 660 Q460 420 450 236 Z" fill="url(#${id}-gold)"/>`;
   }
   if (d.art === 'crescent') {
-    const side = flameSide(d, id, d.c3, '#FFFFFF', ` stroke="url(#${id}-gold)" stroke-width="3"`);
+    const side = flameSide(d, id, d.c3, '#FFFFFF', ` stroke="url(#${id}-gold)" stroke-width="7" stroke-linejoin="round"`);
     return `
       <rect width="600" height="660" fill="url(#${id}-pat)"/>
       ${side}
