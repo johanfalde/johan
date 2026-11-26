@@ -186,10 +186,12 @@ function artBody(d, id, view) {
 
 // ---------- logo perisai TK Islam Plus Al Muhaajir ----------
 function crest(d, id, x, y, s = 1) {
-  const white = d.art === 'crescent';
+  // logo resmi berwarna asli di atas kotak putih
   return `
-  <g class="chk" transform="translate(${x} ${y}) scale(${s})" filter="url(#${id}-tshadow)">${LOGO.officialLogoInline(98, {
-    frame: `url(#${id}-gold)`, tk: `url(#${id}-gold)`, text: white ? d.c3 : '#FFFFFF' })}</g>`;
+  <g class="chk" transform="translate(${x} ${y}) scale(${s})" filter="url(#${id}-tshadow)">
+    <rect x="-50" y="-39" width="100" height="78" rx="9" fill="#FFFFFF" stroke="url(#${id}-gold)" stroke-width="2.5"/>
+    ${LOGO.officialLogoInline(86)}
+  </g>`;
 }
 
 // ---------- detail lengan: bintang segi-8 islami (Rub el Hizb) transparan / tonal ----------
