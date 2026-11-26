@@ -645,6 +645,19 @@ async function render(page, html) {
   await render(page, logoSheet());
   await page.screenshot({ path: path.join(LD, 'logo-presentasi.jpg'), type: 'jpeg', quality: 95 });
   await page.pdf({ path: path.join(LD, 'logo-presentasi.pdf'), width: '1920px', height: '1200px', printBackground: true });
+  // ---- file logo untuk AI (Nano Banana / Gemini) & keperluan lain ----
+  {
+    const ap = await browser.newPage({ viewport: { width: 1000, height: 1000 }, deviceScaleFactor: 2 });
+    const [, , vw, vh] = LOGO.OFFICIAL.viewBox.split(' ').map(Number);
+    const box = (bg, svg) => `<html><body style="margin:0;background:${bg};width:1000px;height:1000px;display:flex;align-items:center;justify-content:center"><div style="width:860px;height:${Math.round(860 * vh / vw)}px">${svg}</div></body></html>`;
+    await render(ap, box('#FFFFFF', LOGO.officialLogo({ css: FONT_CSS })));
+    await ap.screenshot({ path: path.join(LD, 'logo-resmi-latar-putih.png') });
+    const D = DESIGNS.find((x) => x.art === 'marble') || DESIGNS[0];
+    const shield = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-46 -50 92 100" width="100%" height="100%"><defs>${commonDefs(D, 'k')}</defs>${crest(D, 'k', 0, 0, 1)}</svg>`;
+    await render(ap, `<html><head><style>${FONT_CSS}</style></head><body style="margin:0;background:transparent;width:1000px;height:1000px;display:flex;align-items:center;justify-content:center"><div style="width:880px;height:960px">${shield}</div></body></html>`);
+    await ap.screenshot({ path: path.join(LD, 'logo-perisai-jersey-transparan.png'), omitBackground: true });
+    console.log('OK logo AI');
+  }
   fs.copyFileSync(path.join(ROOT, 'assets', 'harimau-transparan.png'), path.join(OUT, 'harimau-transparan.png'));
   console.log('OK logo');
 
