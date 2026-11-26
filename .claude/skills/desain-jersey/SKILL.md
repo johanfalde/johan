@@ -63,7 +63,8 @@ Generator ada di `jersey-futsal/` (`generate.js` + `config.json`). Jalankan `cd 
   sendiri DITOLAK klien (imut/jelek). Ilustrasi harimau mengaum realistis butuh AI gambar (API key) atau gambar beli.
 - SEKARANG DIPAKAI: harimau putih mengaum dari klien (`assets/harimau-klien.jpg`), latar dihapus `cutout_tiger.py`
   (flood-fill dari tepi, jadi bulu putih dalam tetap). Desain 1–3: tonal transparan di bawah lockup nama
-  (luminosity .6 / baju putih multiply .55 grayscale; gambar aktif = config `harimau_klien`, kini kepala harimau samping), di bawah lapisan motif. Desain 4 NAVY FLAME (art 'curve'): navy + panel samping krem melengkung seperti api dengan lidah navy, garis raglan krem tebal, angka krem; harimau tonal di ATAS lapisan motif (agar mulut tak tertutup panel).
+  (luminosity .6 / baju putih multiply .55 grayscale; gambar aktif = config `harimau_klien`, kini kepala harimau samping), di bawah lapisan motif. Desain 4 NAVY FLAME (art 'curve'): navy + panel samping krem melengkung seperti api dengan lidah navy, garis raglan krem tebal, angka krem; TANPA harimau (permintaan klien).
+- Desain 3 GOLDEN CRESCENT: busur/garis melengkung HANYA di tampak belakang; depan polos (permintaan klien).
 
 ## Presentasi ke konsumen
 Lembar "kit launch" 1920×1200 (render @2x = 3840×2400 JPG): latar gelap senada + sorot lampu,

@@ -66,6 +66,7 @@
       <path class="ko" d="M480 236 L438 236 Q450 420 444 660 L490 660 Z" fill="#0E1B3D"></path>
       <path class="ko" d="M162 236 L168 236 Q156 420 162 660 L156 660 Q150 420 162 236 Z" fill="url(#b-gold)"></path>
       <path class="ko" d="M438 236 L432 236 Q444 420 438 660 L444 660 Q450 420 438 236 Z" fill="url(#b-gold)"></path>
+      
       <g transform="translate(0 100)">
         <circle class="ko" cx="560" cy="720" r="290" fill="#0E1B3D" opacity=".07"></circle>
         <circle class="ko" cx="560" cy="720" r="335" fill="none" stroke="#0E1B3D" stroke-width="34"></circle>

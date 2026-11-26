@@ -173,6 +173,7 @@ function artBody(d, id, view) {
       <path class="ko" d="M480 236 L438 236 Q450 420 444 660 L490 660 Z" fill="${d.c3}"/>
       <path class="ko" d="M162 236 L168 236 Q156 420 162 660 L156 660 Q150 420 162 236 Z" fill="url(#${id}-gold)"/>
       <path class="ko" d="M438 236 L432 236 Q444 420 438 660 L444 660 Q450 420 438 236 Z" fill="url(#${id}-gold)"/>
+      ${view === 'front' ? '' : `
       <g transform="translate(0 ${o})">
         <circle class="ko" cx="560" cy="720" r="290" fill="${d.c3}" opacity=".07"/>
         <circle class="ko" cx="560" cy="720" r="335" fill="none" stroke="${d.c3}" stroke-width="34"/>
@@ -180,7 +181,7 @@ function artBody(d, id, view) {
         <circle class="ko" cx="560" cy="720" r="305" fill="none" stroke="url(#${id}-gold)" stroke-width="13"/>
         <circle class="ko" cx="560" cy="720" r="290" fill="none" stroke="${d.c3}" stroke-width="3"/>
         <circle class="ko" cx="560" cy="720" r="372" fill="none" stroke="url(#${id}-gold)" stroke-width="3.5"/>
-      </g>`;
+      </g>`}`;
   }
   return `
       <g fill="#fff">
@@ -267,6 +268,7 @@ function swirl(id, seed, view) {
 const d4gold = (id) => `url(#${id}-gold)`;
 
 function tigerMark(d) {
+  if (d.art === 'curve') return ''; // Navy Flame: tanpa harimau (permintaan klien)
   if (d.art === 'tiger')
     return `<image href="${TIGER_PNG}" x="140" y="392" width="320" height="268" preserveAspectRatio="xMidYMid meet"/>`;
   const white = d.art === 'crescent';
