@@ -57,6 +57,7 @@
       <path d="M205 46 C176 56 150 64 126 74 L30 168 Q22 178 28 188 L76 262 Q84 272 96 266 L140 236 L136 616 Q300 642 464 616 L460 236 L504 266 Q516 272 524 262 L572 188 Q578 178 570 168 L474 74 C450 64 424 56 395 46 Z" fill="url(#b-base)"></path>
       <g clip-path="url(#b-clip)">
         
+        
       <g fill="#fff">
         <polygon points="100,40 330,40 180,330" opacity=".06"></polygon>
         <polygon points="330,40 520,40 520,200 260,180" opacity=".035"></polygon>

@@ -60,6 +60,7 @@
       <path d="M205 46 C176 56 150 64 126 74 L30 168 Q22 178 28 188 L76 262 Q84 272 96 266 L140 236 L136 616 Q300 642 464 616 L460 236 L504 266 Q516 272 524 262 L572 188 Q578 178 570 168 L474 74 C450 64 424 56 395 46 Z" fill="url(#b-base)"></path>
       <g clip-path="url(#b-clip)">
         
+        
       <rect width="600" height="660" fill="url(#b-pat)"></rect>
       <path class="ko" d="M120 236 L162 236 Q150 420 156 660 L110 660 Z" fill="#0E1B3D"></path>
       <path class="ko" d="M480 236 L438 236 Q450 420 444 660 L490 660 Z" fill="#0E1B3D"></path>

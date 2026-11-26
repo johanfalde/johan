@@ -191,6 +191,17 @@ function sleeveBadges(d, id) {
   return rubElHizb(d, id, 486, 170, -57 + 22.5) + rubElHizb(d, id, 114, 170, 57 - 22.5);
 }
 
+// Harimau realistis transparan di tengah depan baju (foto domain publik / gambar milik sendiri, lihat assets/)
+const TIGER_PNG = (() => {
+  require('child_process').execFileSync('python3', ['-I', path.join(ROOT, 'prep_tiger.py'), ROOT]);
+  return 'data:image/png;base64,' + fs.readFileSync(path.join(ROOT, 'assets', 'tiger-head.png')).toString('base64');
+})();
+function tigerMark(d) {
+  const white = d.art === 'crescent';
+  return `<image href="${TIGER_PNG}" x="125" y="262" width="350" height="350" preserveAspectRatio="xMidYMid meet"
+    style="mix-blend-mode:${white ? 'multiply' : 'luminosity'}" opacity="${white ? .3 : .5}"/>`;
+}
+
 function shirt(d, id, view, player) {
   const neck = NECK[d.neck];
   const nm = String(player.nama).toUpperCase();
@@ -221,6 +232,7 @@ function shirt(d, id, view, player) {
     <g filter="url(#${id}-shadow)">
       <path d="${BODY}" fill="url(#${id}-base)"/>
       <g clip-path="url(#${id}-clip)">
+        ${view === 'front' ? tigerMark(d) : ''}
         ${artBody(d, id, view)}
         ${[0, 1].map((m) => `<g ${m ? `transform="${MIRROR}"` : ''}>
           <path d="${SLEEVE}" fill="${d.c3}"/><path d="${SLEEVE}" fill="url(#${id}-kawung)" mask="url(#${id}-smask)" opacity=".7"/>

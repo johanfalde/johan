@@ -46,6 +46,16 @@ Generator ada di `jersey-futsal/` (`generate.js` + `config.json`). Jalankan `cd 
 - Nama sekolah lengkap: "TK ISLAM PLUS" + "AL MUHAAJIR" (bukan "TK IP").
 - Lengan (depan & belakang): BATIK MODERN: garis miring tebal-tipis + isen-isen cecek (titik) + belah ketupat kecil, memudar dari bahu ke manset (mask `${id}-smask`). Klien TIDAK mau bendera, logo, bintang, Kawung, atau Parang gelombang di lengan.
 
+## Gambar realistis (harimau, dll.)
+- JANGAN menggambar hewan realistis dengan path SVG — hasilnya kartun/imut. Klien minta "realistis & garang".
+- Pakai FOTO/ilustrasi berlisensi aman: domain publik/CC0 (mis. foto U.S. Fish & Wildlife Service di Wikimedia
+  Commons), atau gambar yang dibeli klien (Freepik/Shutterstock/Envato). Catat sumber di `assets/SUMBER-GAMBAR.md`.
+- `prep_tiger.py`: crop → perbesar → pertajam → grayscale kontras → masker oval lembut → `assets/tiger-head.png`.
+  Ganti gambar via `config.json`: `harimau_gambar` + `harimau_crop`.
+- Di jersey: lapisan PALING BAWAH (sebelum motif), `mix-blend-mode: luminosity` (opacity .5) untuk baju gelap,
+  `multiply` (.3) untuk baju putih → menyatu dengan warna baju seperti sublim tonal.
+- Gaya referensi klien: ilustrasi harimau mengaum emas-hitam + cipratan kuas & pusaran (full print).
+
 ## Presentasi ke konsumen
 Lembar "kit launch" 1920×1200 (render @2x = 3840×2400 JPG): latar gelap senada + sorot lampu,
 watermark nama besar outline tipis, judul desain, label tampak depan/belakang/celana,
