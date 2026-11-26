@@ -133,7 +133,7 @@
         <rect width="600" height="660" fill="url(#f-vshade)"></rect>
         <path d="M138 600 Q300 626 462 600" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.4" stroke-dasharray="6 4"></path>
       </g>
-      <path d="M205 46 Q300 122 395 46 Q300 70 205 46 Z" fill="#04331F"></path><path d="M205 46 Q300 122 395 46 Q300 70 205 46 Z" fill="#000" opacity="0.45"></path>
+      <path d="M205 46 Q300 122 395 46 Q300 70 205 46 Z" fill="#04331F"></path><path d="M205 46 Q300 122 395 46 Q300 70 205 46 Z" fill="#000" opacity=".45"></path>
            <rect x="286" y="62" width="28" height="11" rx="2" fill="#fff" opacity=".85"></rect>
            <path d="M205 46 Q300 122 395 46" fill="none" stroke="#04331F" stroke-width="20" stroke-linejoin="round" stroke-linecap="round"></path>
            <path d="M205 46 Q300 122 395 46" fill="none" stroke="url(#f-gold)" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" transform="translate(0 4)"></path>

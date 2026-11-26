@@ -386,11 +386,11 @@ function shirt(d, id, view, player) {
         <path d="${HEM_STITCH}" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.4" stroke-dasharray="6 4"/>
       </g>
       ${view === 'front'
-        ? `<path d="${neck.inner}" fill="${d.art === 'marble' ? d.accent : d.c3}"/><path d="${neck.inner}" fill="#000" opacity="${d.art === 'marble' ? .15 : .45}"/>
+        ? `<path d="${neck.inner}" fill="${d.c3}"/><path d="${neck.inner}" fill="#000" opacity=".45"/>
            <rect x="286" y="62" width="28" height="11" rx="2" fill="#fff" opacity=".85"/>
-           <path d="${neck.edge}" fill="none" stroke="${d.c3}" stroke-width="20" stroke-linejoin="round" stroke-linecap="round"/>
+           <path d="${neck.edge}" fill="none" stroke="${d.art === 'marble' ? `url(#${id}-gold)` : d.c3}" stroke-width="20" stroke-linejoin="round" stroke-linecap="round"/>
            <path d="${neck.edge}" fill="none" stroke="url(#${id}-gold)" stroke-width="${d.art === 'marble' ? 15 : 6}" stroke-linejoin="round" stroke-linecap="round" transform="translate(0 ${d.art === 'marble' ? 2 : 4})"/>`
-        : `<path d="${BACK_NECK}" fill="none" stroke="${d.c3}" stroke-width="18" stroke-linecap="round"/>
+        : `<path d="${BACK_NECK}" fill="none" stroke="${d.art === 'marble' ? `url(#${id}-gold)` : d.c3}" stroke-width="${d.art === 'marble' ? 20 : 18}" stroke-linecap="round"/>
            <path d="${BACK_NECK}" fill="none" stroke="url(#${id}-gold)" stroke-width="5" stroke-linecap="round" transform="translate(0 5)"/>`}
       <path d="${BODY}" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="2"/>
     </g>
