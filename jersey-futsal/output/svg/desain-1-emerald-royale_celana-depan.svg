@@ -55,7 +55,13 @@
       <stop offset="0" stop-color="#fff" stop-opacity=".95"></stop><stop offset=".55" stop-color="#fff" stop-opacity=".55"></stop><stop offset="1" stop-color="#fff" stop-opacity=".12"></stop>
     </linearGradient>
     <mask id="sf-smask" maskUnits="userSpaceOnUse" x="0" y="0" width="660" height="400"><rect x="0" y="0" width="660" height="400" fill="url(#sf-sfade)"></rect></mask>
-    <clipPath id="sf-clip"><path d="M205 46 C176 56 150 64 126 74 L30 168 Q22 178 28 188 L76 262 Q84 272 96 266 L140 236 L136 616 Q300 642 464 616 L460 236 L504 266 Q516 272 524 262 L572 188 Q578 178 570 168 L474 74 C450 64 424 56 395 46 Z"></path></clipPath><clipPath id="sf-sc"><path d="M118 70 L482 70 Q500 250 520 420 L326 446 Q312 330 300 268 Q288 330 274 446 L80 420 Q100 250 118 70 Z"></path></clipPath></defs>
+    <filter id="sf-marble" x="0" y="0" width="100%" height="100%" filterUnits="userSpaceOnUse">
+      <feTurbulence type="fractalNoise" baseFrequency="0.0075 0.012" numOctaves="3" seed="11"></feTurbulence>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.04  0 0 0 0 0.09  0 0 0 0 0.24  1 0 0 0 0"></feColorMatrix>
+      <feComponentTransfer><feFuncA type="table" tableValues="0 .9 0 .9 0 .9 0 .9 0 .9 0 .9 0"></feFuncA></feComponentTransfer>
+    </filter>
+    <clipPath id="sf-clip"><path d="M205 46 C176 56 150 64 126 74 L30 168 Q22 178 28 188 L76 262 Q84 272 96 266 L140 236 L136 616 Q300 642 464 616 L460 236 L504 266 Q516 272 524 262 L572 188 Q578 178 570 168 L474 74 C450 64 424 56 395 46 Z"></path></clipPath>
+    <clipPath id="sf-top"><rect x="0" y="0" width="600" height="118"></rect></clipPath><clipPath id="sf-sc"><path d="M118 70 L482 70 Q500 250 520 420 L326 446 Q312 330 300 268 Q288 330 274 446 L80 420 Q100 250 118 70 Z"></path></clipPath></defs>
     <g filter="url(#sf-shadow)">
       <path d="M118 70 L482 70 Q500 250 520 420 L326 446 Q312 330 300 268 Q288 330 274 446 L80 420 Q100 250 118 70 Z" fill="#04331F"></path>
       <g clip-path="url(#sf-sc)">
