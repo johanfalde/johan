@@ -1,6 +1,5 @@
-// Generator desain jersey futsal anak (4-6 th) — TK IP AI MUHAAJIR
-// Jalankan:  node generate.js
-// Hasil ada di folder ./output (JPG untuk dibagikan, PDF vektor + SVG untuk konveksi)
+// Generator desain jersey futsal anak (4-6 th) — v2 "Kit Launch"
+// Jalankan:  node generate.js     → hasil di ./output
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright');
@@ -12,282 +11,355 @@ const font = (f) => 'data:font/woff2;base64,' + fs.readFileSync(path.join(ROOT, 
 const FONT_CSS = `
 @font-face{font-family:'Anton';src:url(${font('Anton.woff2')}) format('woff2');}
 @font-face{font-family:'Bebas';src:url(${font('BebasNeue.woff2')}) format('woff2');}
-@font-face{font-family:'Teko';src:url(${font('Teko-Bold.woff2')}) format('woff2');font-weight:700;}
-`;
+@font-face{font-family:'Teko';src:url(${font('Teko-Bold.woff2')}) format('woff2');font-weight:700;}`;
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const SCHOOL = `${cfg.sekolah_baris1} ${cfg.sekolah_baris2}`;
 
-// ---------- Desain (palet & gaya) ----------
+// ======================= PALET DESAIN =======================
 const DESIGNS = [
   {
-    key: 'desain-1-emerald-gold',
-    judul: 'DESAIN 1 — EMERALD GOLD',
-    tagline: 'Hijau zamrud + emas, motif geometri islami (sublim)',
-    base1: '#12875E', base2: '#065238', panel: '#043D2A', accent: '#F4B400', accent2: '#FFFFFF',
-    text: '#FFFFFF', textStroke: '#F4B400', numFill: '#FFFFFF', numStroke: '#043D2A',
-    neck: 'crew', pattern: 'islamic',
-    chips: [['#12875E', 'Hijau Zamrud'], ['#065238', 'Hijau Tua'], ['#F4B400', 'Emas'], ['#FFFFFF', 'Putih']],
+    key: 'desain-1-emerald-royale', no: 'DESAIN 01', nama: 'EMERALD ROYALE', jenis: 'HOME KIT',
+    tagline: 'Hijau zamrud · motif geometri islami tonal · sapuan emas asimetris',
+    c1: '#14936A', c2: '#0A6646', c3: '#04331F', accent: '#F2B705', accentHi: '#FFE27A', accentLo: '#B37F00',
+    line2: '#FFFFFF', text: '#FFFFFF', outline: '#04331F', neck: 'crew', art: 'royale',
+    bg1: '#06301F', bg2: '#010D08',
+    chips: [['#14936A', 'Hijau Zamrud'], ['#04331F', 'Hijau Gelap'], ['#F2B705', 'Emas'], ['#FFFFFF', 'Putih']],
   },
   {
-    key: 'desain-2-ocean-blast',
-    judul: 'DESAIN 2 — OCEAN BLAST',
-    tagline: 'Biru laut + oranye ceria, motif kilat & halftone (sublim)',
-    base1: '#2563EB', base2: '#0B1F5C', panel: '#0A1A4A', accent: '#FF7A00', accent2: '#FFC93C',
-    text: '#FFFFFF', textStroke: '#FF7A00', numFill: '#FFFFFF', numStroke: '#FF7A00',
-    neck: 'v', pattern: 'blast',
-    chips: [['#2563EB', 'Biru Royal'], ['#0B1F5C', 'Navy'], ['#FF7A00', 'Oranye'], ['#FFC93C', 'Kuning']],
+    key: 'desain-2-electric-ocean', no: 'DESAIN 02', nama: 'ELECTRIC OCEAN', jenis: 'AWAY KIT',
+    tagline: 'Biru elektrik · pecahan geometris & halftone · aksen kilat oranye',
+    c1: '#2F6BFF', c2: '#1236B8', c3: '#07134A', accent: '#FF6A00', accentHi: '#FFB35C', accentLo: '#C24A00',
+    line2: '#FFD23F', text: '#FFFFFF', outline: '#07134A', neck: 'v', art: 'electric',
+    bg1: '#0A1B5C', bg2: '#020617',
+    chips: [['#2F6BFF', 'Biru Elektrik'], ['#07134A', 'Navy'], ['#FF6A00', 'Oranye'], ['#FFD23F', 'Kuning']],
   },
 ];
 
-// ---------- Geometri kaos (viewBox 600x660) ----------
-const BODY = 'M205 50 L130 75 L25 175 L80 265 L138 228 L132 630 Q300 648 468 630 L462 228 L520 265 L575 175 L470 75 L395 50 Z';
-const SLEEVE_R = 'M380 56 L470 75 L575 175 L520 265 L462 228 Q430 140 380 56 Z';
-const SLEEVE_L = 'M220 56 L130 75 L25 175 L80 265 L138 228 Q170 140 220 56 Z';
-const CUFF_R = 'M575 175 L520 265 L503 254 L558 163 Z';
-const CUFF_L = 'M25 175 L80 265 L97 254 L42 163 Z';
+// ======================= GEOMETRI KAOS (600x660) =======================
+const BODY = 'M205 46 C176 56 150 64 126 74 L30 168 Q22 178 28 188 L76 262 Q84 272 96 266 L140 236 L136 616 Q300 642 464 616 L460 236 L504 266 Q516 272 524 262 L572 188 Q578 178 570 168 L474 74 C450 64 424 56 395 46 Z';
+const SLEEVE = 'M382 52 L620 40 L620 320 L460 236 Q428 150 382 52 Z';
+const RAGLAN = 'M382 52 Q428 150 460 236';
+const CUFF = 'M590 160 L512 280 L495 269 L573 149 Z';
+const CUFF2 = 'M569 146 L491 266 L486 263 L564 143 Z';
+const MIRROR = 'matrix(-1 0 0 1 600 0)';
 const NECK = {
-  crew: { front: 'M205 50 Q300 118 395 50', inner: 'M205 50 Q300 118 395 50 Q300 74 205 50 Z' },
-  v: { front: 'M212 50 L300 128 L388 50', inner: 'M212 50 L300 128 L388 50 Q300 74 212 50 Z' },
+  crew: { edge: 'M205 46 Q300 122 395 46', inner: 'M205 46 Q300 122 395 46 Q300 70 205 46 Z' },
+  v: { edge: 'M214 46 L300 134 L386 46', inner: 'M214 46 L300 134 L386 46 Q300 70 214 46 Z' },
 };
-const BACK_NECK = 'M205 50 Q300 76 395 50';
+const BACK_NECK = 'M205 46 Q300 74 395 46';
+const HEM_STITCH = 'M138 600 Q300 626 462 600';
 
-function defs(d, id) {
-  const islamic = `
-    <pattern id="${id}-pat" width="60" height="60" patternUnits="userSpaceOnUse">
-      <g fill="none" stroke="#fff" stroke-opacity=".10" stroke-width="2">
-        <rect x="15" y="15" width="30" height="30"/>
-        <rect x="15" y="15" width="30" height="30" transform="rotate(45 30 30)"/>
-        <circle cx="30" cy="30" r="6"/>
-        <path d="M0 0 L15 15 M60 0 L45 15 M0 60 L15 45 M60 60 L45 45"/>
-      </g>
-    </pattern>`;
-  const blast = `
-    <pattern id="${id}-pat" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
-      <circle cx="7" cy="7" r="2.6" fill="#fff" fill-opacity=".13"/>
-    </pattern>`;
+function commonDefs(d, id) {
   return `
-  <defs>
-    <linearGradient id="${id}-base" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="${d.base1}"/><stop offset="1" stop-color="${d.base2}"/>
+    <linearGradient id="${id}-base" x1="0" y1="0" x2=".35" y2="1">
+      <stop offset="0" stop-color="${d.c1}"/><stop offset=".55" stop-color="${d.c2}"/><stop offset="1" stop-color="${d.c3}"/>
+    </linearGradient>
+    <linearGradient id="${id}-gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="${d.accentHi}"/><stop offset=".45" stop-color="${d.accent}"/><stop offset="1" stop-color="${d.accentLo}"/>
     </linearGradient>
     <linearGradient id="${id}-shade" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#000" stop-opacity=".32"/>
-      <stop offset=".22" stop-color="#000" stop-opacity="0"/>
-      <stop offset=".45" stop-color="#fff" stop-opacity=".10"/>
-      <stop offset=".78" stop-color="#000" stop-opacity="0"/>
-      <stop offset="1" stop-color="#000" stop-opacity=".32"/>
+      <stop offset="0" stop-color="#000" stop-opacity=".45"/><stop offset=".2" stop-color="#000" stop-opacity=".05"/>
+      <stop offset=".42" stop-color="#fff" stop-opacity=".12"/><stop offset=".6" stop-color="#fff" stop-opacity=".02"/>
+      <stop offset=".82" stop-color="#000" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity=".5"/>
     </linearGradient>
-    <linearGradient id="${id}-fade" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".55" stop-color="#fff" stop-opacity=".25"/>
-      <stop offset="1" stop-color="#fff" stop-opacity="1"/>
+    <linearGradient id="${id}-vshade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".10"/><stop offset=".3" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity=".25"/>
     </linearGradient>
-    <mask id="${id}-fademask"><rect width="600" height="660" fill="url(#${id}-fade)"/></mask>
-    <clipPath id="${id}-clip"><path d="${BODY}"/></clipPath>
-    <filter id="${id}-shadow" x="-10%" y="-10%" width="120%" height="125%">
-      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity=".28"/>
+    <pattern id="${id}-mesh" width="5" height="5" patternUnits="userSpaceOnUse">
+      <circle cx="2.5" cy="2.5" r=".9" fill="#000" fill-opacity=".13"/>
+    </pattern>
+    <filter id="${id}-blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="9"/></filter>
+    <filter id="${id}-shadow" x="-15%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#000" flood-opacity=".55"/>
     </filter>
-    ${d.pattern === 'islamic' ? islamic : blast}
-  </defs>`;
+    <filter id="${id}-tshadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="#000" flood-opacity=".45"/>
+    </filter>
+    ${d.art === 'royale' ? `
+    <pattern id="${id}-pat" width="56" height="56" patternUnits="userSpaceOnUse">
+      <g fill="#fff" fill-opacity=".055" stroke="#fff" stroke-opacity=".09" stroke-width="1.4">
+        <polygon points="28,8 34,22 48,28 34,34 28,48 22,34 8,28 22,22"/>
+      </g>
+      <g fill="none" stroke="#fff" stroke-opacity=".09" stroke-width="1.4">
+        <rect x="16" y="16" width="24" height="24" transform="rotate(45 28 28)"/>
+        <path d="M0 0 L8 8 M56 0 L48 8 M0 56 L8 48 M56 56 L48 48"/>
+        <circle cx="28" cy="28" r="4"/>
+      </g>
+    </pattern>` : `
+    <pattern id="${id}-pat" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+      <circle cx="6" cy="6" r="2.4" fill="#fff" fill-opacity=".16"/>
+    </pattern>
+    <linearGradient id="${id}-fade" x1="0" y1="0" x2="1" y2="1">
+      <stop offset=".25" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity="1"/>
+    </linearGradient>
+    <mask id="${id}-fm"><rect width="600" height="660" fill="url(#${id}-fade)"/></mask>`}
+    <clipPath id="${id}-clip"><path d="${BODY}"/></clipPath>`;
 }
 
-// Motif sublim di badan kaos
-function bodyArt(d, id) {
-  if (d.pattern === 'islamic') {
+// ---------- motif badan ----------
+function artBody(d, id, view) {
+  const o = view === 'front' ? 0 : 50; // geser motif bawah sedikit di tampak belakang
+  if (d.art === 'royale') {
     return `
       <rect width="600" height="660" fill="url(#${id}-pat)"/>
-      <!-- panel samping gelap + list emas -->
-      <path d="M120 228 L150 228 L150 660 L120 660 Z" fill="${d.panel}"/>
-      <path d="M450 228 L480 228 L480 660 L450 660 Z" fill="${d.panel}"/>
-      <path d="M150 228 L155 228 L155 660 L150 660 Z" fill="${d.accent}"/>
-      <path d="M445 228 L450 228 L450 660 L445 660 Z" fill="${d.accent}"/>
-      <!-- gelombang emas di bawah -->
-      <path d="M100 560 Q200 520 300 555 T500 545 L500 660 L100 660 Z" fill="${d.panel}"/>
-      <path d="M100 548 Q200 508 300 543 T500 533 L500 547 Q400 520 300 557 T100 562 Z" fill="${d.accent}"/>
-      <path d="M100 572 Q200 535 300 568 T500 560 L500 566 Q400 545 300 576 T100 580 Z" fill="${d.accent2}" opacity=".85"/>
-      <!-- chevron tipis di dada -->
-      <path d="M150 205 L300 250 L450 205 L450 214 L300 259 L150 214 Z" fill="${d.accent}" opacity=".9"/>`;
+      <path d="M120 236 L162 236 Q150 420 156 660 L110 660 Z" fill="${d.c3}" opacity=".9"/>
+      <path d="M480 236 L438 236 Q450 420 444 660 L490 660 Z" fill="${d.c3}" opacity=".9"/>
+      <path d="M162 236 L168 236 Q156 420 162 660 L156 660 Q150 420 162 236 Z" fill="url(#${id}-gold)"/>
+      <path d="M438 236 L432 236 Q444 420 438 660 L444 660 Q450 420 438 236 Z" fill="url(#${id}-gold)"/>
+      <g transform="translate(0 ${o})">
+        <path d="M90 470 C220 430 360 560 620 430 L620 470 C360 600 230 470 90 505 Z" fill="url(#${id}-gold)"/>
+        <path d="M90 520 C230 485 360 615 620 490 L620 498 C360 625 230 495 90 530 Z" fill="${d.line2}" opacity=".9"/>
+        <path d="M90 540 C230 505 360 640 620 515 L620 760 L90 760 Z" fill="${d.c3}" opacity=".85"/>
+        <path d="M90 540 C230 505 360 640 620 515 L620 760 L90 760 Z" fill="url(#${id}-pat)"/>
+      </g>`;
   }
   return `
-      <g mask="url(#${id}-fademask)"><rect width="600" height="660" fill="url(#${id}-pat)"/></g>
-      <!-- kilat / speed slashes -->
-      <path d="M90 600 L560 330 L560 380 L90 650 Z" fill="${d.accent}"/>
-      <path d="M90 668 L560 398 L560 420 L90 690 Z" fill="${d.accent2}"/>
-      <path d="M90 560 L560 290 L560 302 L90 572 Z" fill="${d.accent2}" opacity=".9"/>
-      <path d="M380 660 L560 556 L560 660 Z" fill="${d.panel}" opacity=".55"/>
-      <!-- bintang kecil ceria -->
-      ${[[180, 470, 1], [230, 520, .7], [420, 610, .8]].map(([x, y, s]) =>
-        `<path transform="translate(${x} ${y}) scale(${s})" d="M0 -14 L4 -4 L14 -4 L6 2 L9 13 L0 6 L-9 13 L-6 2 L-14 -4 L-4 -4 Z" fill="#fff" opacity=".35"/>`).join('')}`;
+      <g fill="#fff">
+        <polygon points="100,40 330,40 180,330" opacity=".06"/>
+        <polygon points="330,40 520,40 520,200 260,180" opacity=".035"/>
+        <polygon points="180,330 520,200 520,420" opacity=".05"/>
+        <polygon points="80,420 300,330 140,660 80,660" opacity=".04"/>
+      </g>
+      <g mask="url(#${id}-fm)"><rect width="600" height="660" fill="url(#${id}-pat)"/></g>
+      <g transform="translate(0 ${o})">
+        <path d="M620 360 L380 470 L430 482 L80 640 L80 600 L330 490 L280 478 L620 322 Z" fill="url(#${id}-gold)"/>
+        <path d="M620 300 L300 455 L620 310 Z" fill="${d.line2}"/>
+        <path d="M80 660 L470 500 L620 440 L620 760 L80 760 Z" fill="${d.c3}" opacity=".75"/>
+        <path d="M80 662 L470 502 L620 442" stroke="${d.line2}" stroke-width="4" fill="none"/>
+      </g>`;
 }
 
-// Logo/badge kecil di dada kiri
-function badge(d, x, y) {
+// ---------- logo sementara (perisai, bulan bintang, bola) ----------
+function crest(d, id, x, y, s = 1) {
   return `
-  <g transform="translate(${x} ${y})">
-    <path d="M0 -34 L28 -24 L28 4 Q28 26 0 38 Q-28 26 -28 4 L-28 -24 Z" fill="${d.panel}" stroke="${d.accent}" stroke-width="3.5"/>
-    <circle cx="0" cy="2" r="15" fill="#fff"/>
-    <path d="M0 -6 L7 -1 L4.5 7 L-4.5 7 L-7 -1 Z" fill="#111"/>
-    <path d="M0 -13 L0 -6 M7 -1 L14 -4 M4.5 7 L9 13 M-4.5 7 L-9 13 M-7 -1 L-14 -4" stroke="#111" stroke-width="2"/>
-    <text x="0" y="-19" text-anchor="middle" font-family="Bebas" font-size="11" fill="${d.accent}" letter-spacing="1">TK</text>
+  <g transform="translate(${x} ${y}) scale(${s})" filter="url(#${id}-tshadow)">
+    <path d="M0 -40 L32 -29 L32 6 Q32 30 0 44 Q-32 30 -32 6 L-32 -29 Z" fill="${d.c3}" stroke="url(#${id}-gold)" stroke-width="4"/>
+    <path d="M0 -33 L26 -24 L26 5 Q26 25 0 37 Q-26 25 -26 5 L-26 -24 Z" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.2"/>
+    <path d="M-8 -22 A9 9 0 1 0 2 -10 A7 7 0 1 1 -8 -22 Z" fill="url(#${id}-gold)"/>
+    <path d="M7 -21 l1.6 3.4 3.6.4 -2.7 2.4.8 3.6 -3.3 -1.9 -3.3 1.9.8 -3.6 -2.7 -2.4 3.6 -.4 Z" fill="url(#${id}-gold)"/>
+    <circle cx="0" cy="12" r="13" fill="#fff"/>
+    <path d="M0 5 L6.5 9.5 L4 16.5 L-4 16.5 L-6.5 9.5 Z" fill="#111"/>
+    <path d="M0 -1 L0 5 M6.5 9.5 L12.5 7 M4 16.5 L8 22 M-4 16.5 L-8 22 M-6.5 9.5 L-12.5 7" stroke="#111" stroke-width="1.8"/>
   </g>`;
 }
 
 function shirt(d, id, view, player) {
   const neck = NECK[d.neck];
-  const sleeveFill = d.pattern === 'islamic' ? d.panel : d.panel;
-  let front = '';
+  const nm = String(player.nama).toUpperCase();
+  let deco;
   if (view === 'front') {
-    front = `
-      ${badge(d, 215, 150)}
-      <text x="385" y="168" text-anchor="middle" font-family="Anton" font-size="44" fill="${d.numFill}" stroke="${d.numStroke}" stroke-width="5" paint-order="stroke" stroke-linejoin="round">${esc(player.nomor)}</text>
-      <text x="300" y="318" text-anchor="middle" font-family="Bebas" font-size="44" letter-spacing="8" fill="${d.text}" stroke="${d.textStroke}" stroke-width="5" paint-order="stroke" stroke-linejoin="round">${esc(cfg.sekolah_baris1)}</text>
-      <text x="300" y="395" text-anchor="middle" font-family="Anton" font-size="76" letter-spacing="2" textLength="${Math.min(268, cfg.sekolah_baris2.length * 34)}" lengthAdjust="spacingAndGlyphs" fill="${d.text}" stroke="${d.textStroke}" stroke-width="7" paint-order="stroke" stroke-linejoin="round">${esc(cfg.sekolah_baris2)}</text>`;
+    deco = `
+      ${crest(d, id, 210, 160, 1)}
+      <text x="392" y="182" text-anchor="middle" font-family="Anton" font-size="48" fill="${d.text}" stroke="${d.outline}" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
+      <g filter="url(#${id}-tshadow)">
+        <text x="300" y="284" text-anchor="middle" font-family="Bebas" font-size="40" letter-spacing="10" fill="url(#${id}-gold)">${esc(cfg.sekolah_baris1)}</text>
+        <text data-fit="290" x="300" y="368" text-anchor="middle" font-family="Anton" font-size="84" letter-spacing="1" fill="${d.text}" stroke="${d.outline}" stroke-width="9" paint-order="stroke" stroke-linejoin="round">${esc(cfg.sekolah_baris2)}</text>
+        <rect x="222" y="384" width="156" height="5" rx="2.5" fill="url(#${id}-gold)"/>
+      </g>`;
   } else {
-    const nm = String(player.nama).toUpperCase();
-    front = `
-      <text x="300" y="178" text-anchor="middle" font-family="Bebas" font-size="58" letter-spacing="5" ${nm.length > 9 ? `textLength="290" lengthAdjust="spacingAndGlyphs"` : ''} fill="${d.text}" stroke="${d.textStroke}" stroke-width="6" paint-order="stroke" stroke-linejoin="round">${esc(nm)}</text>
-      <text x="300" y="440" text-anchor="middle" font-family="Anton" font-size="235" ${String(player.nomor).length > 1 ? 'letter-spacing="-4"' : ''} fill="${d.numFill}" stroke="${d.numStroke}" stroke-width="12" paint-order="stroke" stroke-linejoin="round">${esc(player.nomor)}</text>
-      ${d.pattern !== "islamic" ? "" : `<text x="300" y="520" text-anchor="middle" font-family="Bebas" font-size="22" letter-spacing="6" fill="#fff" opacity=".75">${esc(cfg.sekolah_baris1 + " " + cfg.sekolah_baris2)}</text>`}`;
+    deco = `
+      <path id="${id}-arc" d="M150 196 Q300 140 450 196" fill="none"/>
+      <g filter="url(#${id}-tshadow)">
+        <text data-fit="292" font-family="Bebas" font-size="58" letter-spacing="3" text-anchor="middle" fill="${d.text}" stroke="${d.outline}" stroke-width="7" paint-order="stroke" stroke-linejoin="round"><textPath href="#${id}-arc" startOffset="50%">${esc(nm)}</textPath></text>
+        <text x="300" y="430" text-anchor="middle" font-family="Anton" font-size="232" letter-spacing="-2" fill="${d.text}" stroke="url(#${id}-gold)" stroke-width="16" paint-order="stroke" stroke-linejoin="round">${esc(player.nomor)}</text>
+        <text x="300" y="430" text-anchor="middle" font-family="Anton" font-size="232" letter-spacing="-2" fill="none" stroke="${d.outline}" stroke-width="3.5">${esc(player.nomor)}</text>
+      </g>
+      <text x="300" y="104" text-anchor="middle" font-family="Bebas" font-size="17" letter-spacing="6" fill="#fff" opacity=".7">${esc(SCHOOL)}</text>`;
   }
   return `
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 660" width="100%" height="100%">
-    ${defs(d, id)}
+    <defs>${commonDefs(d, id)}</defs>
     <g filter="url(#${id}-shadow)">
       <path d="${BODY}" fill="url(#${id}-base)"/>
       <g clip-path="url(#${id}-clip)">
-        ${bodyArt(d, id)}
-        <path d="${SLEEVE_R}" fill="${sleeveFill}"/><path d="${SLEEVE_L}" fill="${sleeveFill}"/>
-        <path d="${CUFF_R}" fill="${d.accent}"/><path d="${CUFF_L}" fill="${d.accent}"/>
-        <path d="M380 56 Q430 140 462 228" fill="none" stroke="${d.accent}" stroke-width="4"/>
-        <path d="M220 56 Q170 140 138 228" fill="none" stroke="${d.accent}" stroke-width="4"/>
-        ${front}
+        ${artBody(d, id, view)}
+        ${[0, 1].map((m) => `<g ${m ? `transform="${MIRROR}"` : ''}>
+          <path d="${SLEEVE}" fill="${d.c3}"/><path d="${SLEEVE}" fill="url(#${id}-pat)" opacity=".7"/>
+          <path d="${CUFF}" fill="url(#${id}-gold)"/><path d="${CUFF2}" fill="${d.line2}"/>
+          <path d="${RAGLAN}" fill="none" stroke="url(#${id}-gold)" stroke-width="5"/>
+          <path d="${RAGLAN}" transform="translate(-9 3)" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.3" stroke-dasharray="5 4"/>
+        </g>`).join('')}
+        ${deco}
+        <g filter="url(#${id}-blur)">
+          <path d="M150 250 Q210 300 190 420" stroke="#000" stroke-opacity=".28" stroke-width="16" fill="none"/>
+          <path d="M450 250 Q395 310 412 430" stroke="#000" stroke-opacity=".25" stroke-width="16" fill="none"/>
+          <path d="M230 560 Q300 590 380 555" stroke="#000" stroke-opacity=".2" stroke-width="14" fill="none"/>
+          <path d="M260 110 Q300 300 280 600" stroke="#fff" stroke-opacity=".12" stroke-width="40" fill="none"/>
+          <path d="M60 180 L110 250" stroke="#fff" stroke-opacity=".15" stroke-width="14"/>
+        </g>
+        <rect width="600" height="660" fill="url(#${id}-mesh)"/>
         <rect width="600" height="660" fill="url(#${id}-shade)"/>
+        <rect width="600" height="660" fill="url(#${id}-vshade)"/>
+        <path d="${HEM_STITCH}" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.4" stroke-dasharray="6 4"/>
       </g>
       ${view === 'front'
-        ? `<path d="${neck.inner}" fill="${d.base2}"/><path d="${neck.inner}" fill="#000" opacity=".35"/>
-           <path d="${neck.front}" fill="none" stroke="${d.panel}" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/>
-           <path d="${neck.front}" fill="none" stroke="${d.accent}" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>`
-        : `<path d="${BACK_NECK}" fill="none" stroke="${d.panel}" stroke-width="16" stroke-linecap="round"/>
-           <path d="${BACK_NECK}" fill="none" stroke="${d.accent}" stroke-width="4" stroke-linecap="round"/>`}
-      <path d="${BODY}" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="2"/>
+        ? `<path d="${neck.inner}" fill="${d.c3}"/><path d="${neck.inner}" fill="#000" opacity=".45"/>
+           <rect x="286" y="62" width="28" height="11" rx="2" fill="#fff" opacity=".85"/>
+           <path d="${neck.edge}" fill="none" stroke="${d.c3}" stroke-width="20" stroke-linejoin="round" stroke-linecap="round"/>
+           <path d="${neck.edge}" fill="none" stroke="url(#${id}-gold)" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" transform="translate(0 4)"/>`
+        : `<path d="${BACK_NECK}" fill="none" stroke="${d.c3}" stroke-width="18" stroke-linecap="round"/>
+           <path d="${BACK_NECK}" fill="none" stroke="url(#${id}-gold)" stroke-width="5" stroke-linecap="round" transform="translate(0 5)"/>`}
+      <path d="${BODY}" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="2"/>
     </g>
   </svg>`;
 }
 
-// ---------- Celana (viewBox 600x660) ----------
-const SHORTS = 'M128 185 L472 185 L508 520 L318 542 L300 372 L282 542 L92 520 Z';
+// ======================= CELANA (600x520) =======================
+const SHORTS = 'M118 70 L482 70 Q500 250 520 420 L326 446 Q312 330 300 268 Q288 330 274 446 L80 420 Q100 250 118 70 Z';
 function shorts(d, id, player, view) {
   return `
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 660" width="100%" height="100%">
-    ${defs(d, id)}
-    <clipPath id="${id}-sclip"><path d="${SHORTS}"/></clipPath>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 520" width="100%" height="100%">
+    <defs>${commonDefs(d, id)}<clipPath id="${id}-sc"><path d="${SHORTS}"/></clipPath></defs>
     <g filter="url(#${id}-shadow)">
-      <path d="${SHORTS}" fill="${d.pattern === 'islamic' ? `url(#${id}-base)` : d.panel}"/>
-      <g clip-path="url(#${id}-sclip)">
-        ${d.pattern === 'islamic' ? `<rect width="600" height="660" fill="url(#${id}-pat)"/>` : `<rect width="600" height="660" fill="url(#${id}-pat)" opacity=".6"/>`}
-        <!-- panel samping -->
-        <path d="M128 185 L168 185 L134 525 L92 520 Z" fill="${d.pattern === 'islamic' ? d.panel : d.accent}"/>
-        <path d="M472 185 L432 185 L466 525 L508 520 Z" fill="${d.pattern === 'islamic' ? d.panel : d.accent}"/>
-        <path d="M168 185 L176 185 L142 526 L134 525 Z" fill="${d.pattern === 'islamic' ? d.accent : d.accent2}"/>
-        <path d="M432 185 L424 185 L458 526 L466 525 Z" fill="${d.pattern === 'islamic' ? d.accent : d.accent2}"/>
-        <!-- list bawah kaki -->
-        <path d="M80 498 L300 520 L520 498 L520 560 L80 560 Z" fill="${d.accent}" opacity=".95"/>
-        <path d="M80 490 L300 512 L520 490 L520 498 L300 520 L80 498 Z" fill="#fff" opacity=".9"/>
+      <path d="${SHORTS}" fill="${d.c3}"/>
+      <g clip-path="url(#${id}-sc)">
+        <rect width="600" height="520" fill="url(#${id}-pat)" opacity=".8"/>
+        ${[0, 1].map((m) => `<g ${m ? `transform="${MIRROR}"` : ''}>
+          <path d="M100 60 L168 60 Q150 250 150 460 L60 460 Z" fill="url(#${id}-base)"/>
+          <path d="M168 60 L176 60 Q158 250 158 460 L150 460 Q150 250 168 60 Z" fill="url(#${id}-gold)"/>
+          <path d="M182 60 L185 60 Q167 250 167 460 L164 460 Q164 250 182 60 Z" fill="${d.line2}" opacity=".9"/>
+        </g>`).join('')}
+        <path d="M60 396 L300 424 L540 396 L540 470 L60 470 Z" fill="url(#${id}-gold)"/>
+        <path d="M60 388 L300 416 L540 388 L540 394 L300 422 L60 394 Z" fill="${d.line2}"/>
         ${view === 'front'
-          ? `<text x="${d.pattern === 'islamic' ? 222 : 225}" y="${470}" text-anchor="middle" font-family="Anton" font-size="46" fill="${d.numFill}" stroke="${d.pattern === 'islamic' ? d.accent : d.accent}" stroke-width="5" paint-order="stroke" stroke-linejoin="round">${esc(player.nomor)}</text>`
-          : `<text x="300" y="300" text-anchor="middle" font-family="Bebas" font-size="26" letter-spacing="5" fill="#fff" opacity=".8">${esc(cfg.sekolah_baris2)}</text>`}
-        <rect width="600" height="660" fill="url(#${id}-shade)"/>
+          ? `<text x="222" y="372" text-anchor="middle" font-family="Anton" font-size="56" fill="${d.text}" stroke="url(#${id}-gold)" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
+             ${crest(d, id, 392, 150, 0.62)}`
+          : `<text x="300" y="170" text-anchor="middle" font-family="Bebas" font-size="30" letter-spacing="7" fill="url(#${id}-gold)">${esc(cfg.sekolah_baris2)}</text>`}
+        <g filter="url(#${id}-blur)">
+          <path d="M200 120 Q240 250 215 380" stroke="#fff" stroke-opacity=".12" stroke-width="30" fill="none"/>
+          <path d="M300 268 L290 440" stroke="#000" stroke-opacity=".35" stroke-width="14"/>
+          <path d="M400 110 Q370 250 392 390" stroke="#000" stroke-opacity=".2" stroke-width="14" fill="none"/>
+        </g>
+        <rect width="600" height="520" fill="url(#${id}-mesh)"/>
+        <rect width="600" height="520" fill="url(#${id}-shade)"/>
       </g>
-      <!-- pinggang karet -->
-      <path d="M130 150 L470 150 L473 188 L127 188 Z" fill="${d.panel}"/>
-      <path d="M128 180 L472 180 L473 188 L127 188 Z" fill="${d.accent}"/>
-      ${view === 'front' ? `<path d="M292 186 Q285 215 278 232 M308 186 Q315 215 322 232" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/>` : ''}
-      <path d="M300 188 L300 372" stroke="#000" stroke-opacity=".25" stroke-width="2"/>
-      <path d="${SHORTS}" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="2"/>
-      <path d="M130 150 L470 150 L473 188 L127 188 Z" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="2"/>
+      <path d="M120 30 L480 30 Q484 52 484 76 L116 76 Q116 52 120 30 Z" fill="${d.c3}"/>
+      <path d="M116 68 L484 68 L484 76 L116 76 Z" fill="url(#${id}-gold)"/>
+      <path d="M120 40 L480 40 M120 50 L480 50 M120 60 L480 60" stroke="#000" stroke-opacity=".25" stroke-width="1.2"/>
+      ${view === 'front' ? `<path d="M293 74 Q284 112 276 132 M307 74 Q316 112 324 132" stroke="#fff" stroke-width="4.5" fill="none" stroke-linecap="round"/>` : ''}
+      <path d="${SHORTS}" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="2"/>
+      <path d="M120 30 L480 30 Q484 52 484 76 L116 76 Q116 52 120 30 Z" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="2"/>
     </g>
   </svg>`;
 }
 
-// ---------- Lembar presentasi ----------
+// ======================= LEMBAR PRESENTASI 1920x1200 =======================
 function sheet(d, player) {
-  const card = (label, svg) => `<div class="card"><div class="art">${svg}</div><div class="lbl">${label}</div></div>`;
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
-  ${FONT_CSS}
+  const p = (t) => `<div class="tag"><span></span>${t}</div>`;
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${FONT_CSS}
   *{box-sizing:border-box;margin:0;padding:0}
-  body{width:1600px;height:1000px;font-family:'Bebas',sans-serif;background:
-    radial-gradient(circle at 50% 40%, #ffffff 0%, #eef1f4 60%, #dfe4ea 100%);color:#16202b;overflow:hidden}
-  header{height:120px;display:flex;align-items:center;justify-content:space-between;padding:0 56px;
-    background:${d.panel};color:#fff;border-bottom:8px solid ${d.accent}}
-  header h1{font-family:'Anton';font-size:46px;letter-spacing:2px;font-weight:400}
-  header h1 span{color:${d.accent}}
-  header .r{text-align:right;font-size:26px;letter-spacing:2px;line-height:1.2}
-  header .r b{display:block;font-family:'Anton';font-weight:400;font-size:30px;color:${d.accent}}
-  .row{display:flex;justify-content:center;gap:10px;padding:26px 30px 0}
-  .card{width:500px;text-align:center}
-  .art{height:600px}
-  .lbl{font-size:30px;letter-spacing:4px;margin-top:2px;color:#2b3846}
-  .shorts{display:flex;flex-direction:column;width:500px}
-  .shorts .art{height:300px}
-  .shorts .lbl{font-size:26px;margin:-8px 0 2px}
-  footer{position:absolute;bottom:0;left:0;right:0;height:150px;display:flex;align-items:center;justify-content:space-between;
-    padding:0 56px;border-top:3px solid #cfd6de;background:#fff}
-  .chips{display:flex;gap:18px}
-  .chip{display:flex;align-items:center;gap:10px;font-size:22px;letter-spacing:1px}
-  .chip i{width:42px;height:42px;border-radius:10px;border:2px solid #0002;display:block}
-  .notes{font-size:23px;letter-spacing:1px;line-height:1.35;text-align:right;color:#394756}
-  .notes b{color:${d.base2}}
+  body{width:1920px;height:1200px;overflow:hidden;position:relative;color:#fff;font-family:'Bebas',sans-serif;
+    background:radial-gradient(ellipse 70% 60% at 45% 48%, ${d.bg1} 0%, ${d.bg2} 75%);}
+  .bgsvg{position:absolute;inset:0}
+  .wm{position:absolute;left:-30px;top:330px;font-family:'Anton';font-size:420px;letter-spacing:10px;line-height:1;
+    color:transparent;-webkit-text-stroke:2px rgba(255,255,255,.06);white-space:nowrap}
+  header{position:absolute;left:70px;top:52px;right:70px;display:flex;justify-content:space-between;align-items:flex-start}
+  .eyebrow{font-size:24px;letter-spacing:7px;color:${d.accent}}
+  h1{font-family:'Anton';font-weight:400;font-size:92px;line-height:1;letter-spacing:2px;margin-top:6px}
+  .sub{font-size:25px;letter-spacing:3px;opacity:.75;margin-top:10px}
+  .badge{text-align:right}
+  .badge .k{font-family:'Anton';font-size:64px;line-height:1;color:transparent;-webkit-text-stroke:2px ${d.accent}}
+  .badge .s{font-size:26px;letter-spacing:6px;margin-top:6px}
+  .stage{position:absolute;top:255px;left:40px;right:40px;height:760px}
+  .g{position:absolute}
+  .tag{display:inline-flex;align-items:center;gap:10px;font-size:22px;letter-spacing:5px;
+    padding:6px 16px 4px;border:1.5px solid rgba(255,255,255,.25);border-radius:30px;background:rgba(0,0,0,.25);white-space:nowrap}
+  .tag span{width:9px;height:9px;border-radius:50%;background:${d.accent};display:block;margin-top:-2px}
+  .floor{position:absolute;height:60px;border-radius:50%;background:radial-gradient(ellipse at center, rgba(0,0,0,.55), transparent 70%)}
+  footer{position:absolute;left:0;right:0;bottom:0;height:150px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 70px;background:linear-gradient(90deg, rgba(0,0,0,.55), rgba(0,0,0,.25));border-top:3px solid ${d.accent}}
+  .chips{display:flex;gap:26px}
+  .chip{display:flex;align-items:center;gap:12px;font-size:21px;letter-spacing:2px;line-height:1.15}
+  .chip i{width:46px;height:46px;border-radius:50%;display:block;border:3px solid rgba(255,255,255,.85);box-shadow:0 4px 10px rgba(0,0,0,.4)}
+  .chip small{opacity:.6;font-size:18px}
+  .spec{display:grid;grid-template-columns:auto auto auto;gap:6px 40px;font-size:21px;letter-spacing:2px}
+  .spec div b{display:block;color:${d.accent};font-weight:400;font-size:17px;letter-spacing:4px}
   </style></head><body>
-  <header><h1>JERSEY FUTSAL <span>${esc(cfg.sekolah_baris1)} ${esc(cfg.sekolah_baris2)}</span></h1>
-    <div class="r"><b>${esc(d.judul)}</b>${esc(d.tagline)}</div></header>
-  <div class="row">
-    ${card('TAMPAK DEPAN', shirt(d, d.key + '-f', 'front', player))}
-    ${card('TAMPAK BELAKANG', shirt(d, d.key + '-b', 'back', player))}
-    <div class="shorts">
-      <div class="card"><div class="art">${shorts(d, d.key + '-sf', player, 'front')}</div><div class="lbl">CELANA — DEPAN</div></div>
-      <div class="card"><div class="art">${shorts(d, d.key + '-sb', player, 'back')}</div><div class="lbl">CELANA — BELAKANG</div></div>
-    </div>
+  <svg class="bgsvg" viewBox="0 0 1920 1200" preserveAspectRatio="none">
+    <defs><radialGradient id="spot" cx=".5" cy="0" r="1"><stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>
+    <polygon points="520,0 760,0 1050,1200 260,1200" fill="url(#spot)"/>
+    <polygon points="1080,0 1280,0 1600,1200 900,1200" fill="url(#spot)" opacity=".8"/>
+    <g fill="none" stroke="#fff" stroke-opacity=".06" stroke-width="3">
+      <circle cx="960" cy="1250" r="330"/><rect x="-200" y="200" width="2320" height="1100"/>
+    </g>
+    <g stroke="${d.accent}" stroke-opacity=".5" stroke-width="5"><line x1="1700" y1="250" x2="1880" y2="160"/><line x1="1730" y1="275" x2="1880" y2="200"/></g>
+    <g stroke="${d.accent}" stroke-opacity=".35" stroke-width="5"><line x1="40" y1="1030" x2="220" y2="940"/></g>
+  </svg>
+  <div class="wm">${esc(cfg.sekolah_baris2)}</div>
+  <header>
+    <div><div class="eyebrow">KIT FUTSAL ANAK 2026/27 · ${esc(SCHOOL)}</div><h1>${esc(d.nama)}</h1><div class="sub">${esc(d.tagline)}</div></div>
+    <div class="badge"><div class="k">${esc(d.no)}</div><div class="s">${esc(d.jenis)} · USIA 4–6 TH</div></div>
+  </header>
+  <div class="stage">
+    <div class="floor" style="left:80px;top:650px;width:480px"></div>
+    <div class="floor" style="left:710px;top:650px;width:480px"></div>
+    <div class="g" style="left:20px;top:30px;width:600px;height:660px">${shirt(d, 'f', 'front', player)}</div>
+    <div class="g" style="left:650px;top:30px;width:600px;height:660px">${shirt(d, 'b', 'back', player)}</div>
+    <div class="g" style="left:1330px;top:-10px;width:460px;height:399px">${shorts(d, 'sf', player, 'front')}</div>
+    <div class="g" style="left:1330px;top:375px;width:460px;height:399px">${shorts(d, 'sb', player, 'back')}</div>
+    <div style="position:absolute;left:225px;top:712px">${p('TAMPAK DEPAN')}</div>
+    <div style="position:absolute;left:835px;top:712px">${p('TAMPAK BELAKANG')}</div>
+    <div style="position:absolute;left:1475px;top:330px">${p('CELANA DEPAN')}</div>
+    <div style="position:absolute;left:1455px;top:712px">${p('CELANA BELAKANG')}</div>
   </div>
   <footer>
-    <div class="chips">${d.chips.map(([c, n]) => `<div class="chip"><i style="background:${c}"></i>${n}<br>${c}</div>`).join('')}</div>
-    <div class="notes">Ukuran anak <b>4–6 tahun</b> · Bahan <b>dryfit / milano</b> · Full printing <b>sublimasi</b><br>
-      Nama &amp; nomor punggung <b>bisa diganti</b> per anak · Font: Anton &amp; Bebas Neue</div>
+    <div class="chips">${d.chips.map(([c, n]) => `<div class="chip"><i style="background:${c}"></i><div>${n}<br><small>${c}</small></div></div>`).join('')}</div>
+    <div class="spec">
+      <div><b>BAHAN</b>Dryfit / Milano</div><div><b>PRINTING</b>Full Sublimasi</div><div><b>UKURAN</b>Anak 4–6 Th (S–M–L)</div>
+      <div><b>CONTOH NAMA</b>${esc(player.nama)}</div><div><b>NOMOR</b>${esc(player.nomor)}</div><div><b>FONT</b>Anton · Bebas Neue</div>
+    </div>
   </footer>
   </body></html>`;
 }
 
-// Hanya tampak belakang (untuk daftar nama & nomor per anak)
 function backOnly(d, player) {
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${FONT_CSS}
-  *{margin:0}body{width:800px;height:900px;background:#fff;font-family:'Bebas'}
-  .a{height:800px;padding:20px}.l{text-align:center;font-size:34px;letter-spacing:3px;color:#223}</style></head><body>
+  *{margin:0}body{width:900px;height:1000px;font-family:'Bebas';color:#fff;
+  background:radial-gradient(ellipse at 50% 40%, ${d.bg1}, ${d.bg2} 80%)}
+  .a{height:860px;padding:40px 40px 0}.l{text-align:center;font-size:34px;letter-spacing:4px}
+  .l b{color:${d.accent};font-weight:400}</style></head><body>
   <div class="a">${shirt(d, 'p', 'back', player)}</div>
-  <div class="l">${esc(player.nama)} · NO ${esc(player.nomor)} · ${esc(d.judul)}</div></body></html>`;
+  <div class="l">${esc(player.nama)} · <b>NO ${esc(player.nomor)}</b> · ${esc(d.nama)}</div></body></html>`;
+}
+
+// Kecilkan otomatis teks yang terlalu panjang (mis. nama panjang) supaya muat
+const FIT = () => {
+  document.querySelectorAll('text[data-fit]').forEach((t) => {
+    const max = +t.dataset.fit; let fs = parseFloat(t.getAttribute('font-size'));
+    for (let i = 0; i < 30 && t.getComputedTextLength() > max; i++) { fs *= 0.96; t.setAttribute('font-size', fs.toFixed(1)); }
+    t.removeAttribute('data-fit');
+  });
+};
+
+async function render(page, html) {
+  await page.setContent(html, { waitUntil: 'load' });
+  await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(FIT);
 }
 
 (async () => {
-  fs.mkdirSync(OUT, { recursive: true });
+  fs.rmSync(OUT, { recursive: true, force: true });
+  fs.mkdirSync(path.join(OUT, 'svg'), { recursive: true });
   const browser = await chromium.launch();
-  const page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 2 });
+  const page = await browser.newPage({ viewport: { width: 1920, height: 1200 }, deviceScaleFactor: 2 });
   for (const d of DESIGNS) {
-    await page.setContent(sheet(d, cfg.contoh_pemain), { waitUntil: 'load' });
-    await page.evaluate(() => document.fonts.ready);
+    await render(page, sheet(d, cfg.contoh_pemain));
     await page.screenshot({ path: path.join(OUT, `${d.key}.jpg`), type: 'jpeg', quality: 95 });
-    await page.pdf({ path: path.join(OUT, `${d.key}.pdf`), width: '1600px', height: '1000px', printBackground: true });
-    // SVG terpisah (vektor) untuk diedit di CorelDraw/Illustrator
-    const svgHead = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-    const withFont = (s) => s.replace('<defs>', `<defs><style>${FONT_CSS}</style>`);
-    fs.writeFileSync(path.join(OUT, `${d.key}_baju-depan.svg`), svgHead + withFont(shirt(d, 'f', 'front', cfg.contoh_pemain)));
-    fs.writeFileSync(path.join(OUT, `${d.key}_baju-belakang.svg`), svgHead + withFont(shirt(d, 'b', 'back', cfg.contoh_pemain)));
-    fs.writeFileSync(path.join(OUT, `${d.key}_celana-depan.svg`), svgHead + withFont(shorts(d, 's', cfg.contoh_pemain, 'front')));
+    await page.pdf({ path: path.join(OUT, `${d.key}.pdf`), width: '1920px', height: '1200px', printBackground: true });
+    const svgs = await page.$$eval('.g svg', (els) => els.map((e) => e.outerHTML));
+    ['baju-depan', 'baju-belakang', 'celana-depan', 'celana-belakang'].forEach((n, i) => {
+      const s = svgs[i].replace('<defs>', `<defs><style>${FONT_CSS}</style>`);
+      fs.writeFileSync(path.join(OUT, 'svg', `${d.key}_${n}.svg`), `<?xml version="1.0" encoding="UTF-8"?>\n${s}`);
+    });
     console.log('OK', d.key);
   }
-  // Per pemain (opsional)
   if (cfg.pemain && cfg.pemain.length) {
-    const pp = await browser.newPage({ viewport: { width: 800, height: 900 }, deviceScaleFactor: 2 });
+    const pp = await browser.newPage({ viewport: { width: 900, height: 1000 }, deviceScaleFactor: 2 });
     const dir = path.join(OUT, 'per-pemain');
     fs.mkdirSync(dir, { recursive: true });
     for (const d of DESIGNS) for (const p of cfg.pemain) {
-      await pp.setContent(backOnly(d, p), { waitUntil: 'load' });
-      await pp.evaluate(() => document.fonts.ready);
+      await render(pp, backOnly(d, p));
       const safe = `${p.nomor}-${p.nama}`.replace(/[^\w-]+/g, '_');
       await pp.screenshot({ path: path.join(dir, `${d.key}_${safe}.jpg`), type: 'jpeg', quality: 92 });
     }

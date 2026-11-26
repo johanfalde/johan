@@ -1,12 +1,15 @@
 {
   "sekolah_baris1": "TK IP AI",
   "sekolah_baris2": "MUHAAJIR",
-
-  "contoh_pemain": { "nama": "NAMA ANAK", "nomor": "10" },
-
+  "contoh_pemain": {
+    "nama": "NADHIF ABQORY A",
+    "nomor": "24"
+  },
   "_catatan": "Isi daftar 'pemain' di bawah ini kalau desain sudah disetujui. Setiap pemain akan dibuatkan JPG tampak belakang (nama + nomor) untuk dikirim ke konveksi. Kosongkan [] kalau belum perlu.",
   "pemain": [
-    { "nama": "RAFA", "nomor": "7" },
-    { "nama": "AISYAH", "nomor": "9" }
+    {
+      "nama": "NADHIF ABQORY A",
+      "nomor": "24"
+    }
   ]
 }

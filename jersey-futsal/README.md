@@ -3,9 +3,9 @@
 ## File hasil (folder `output/`)
 | File | Untuk apa |
 |---|---|
-| `desain-1-emerald-gold.jpg`, `desain-2-ocean-blast.jpg` | Preview untuk dibagikan ke konsumen/wali murid (3200×2000 px) |
+| `desain-1-emerald-royale.jpg`, `desain-2-electric-ocean.jpg` | Preview untuk dibagikan ke konsumen/wali murid (3840×2400 px) |
 | `*.pdf` | Versi vektor (tajam di ukuran berapa pun), kirim ke konveksi |
-| `*_baju-depan.svg`, `*_baju-belakang.svg`, `*_celana-depan.svg` | File vektor terpisah, bisa dibuka & diedit di CorelDraw / Illustrator / Inkscape |
+| `svg/*.svg` (baju depan/belakang, celana depan/belakang) | File vektor terpisah, bisa dibuka & diedit di CorelDraw / Illustrator / Inkscape |
 | `per-pemain/*.jpg` | Tampak belakang per anak (nama + nomor), sebagai daftar order ke konveksi |
 
 ## Mengganti nama sekolah / nama & nomor anak
