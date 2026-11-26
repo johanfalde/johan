@@ -130,13 +130,13 @@ function commonDefs(d, id) {
 }
 
 // ---------- panel samping seperti nyala api ----------
-function flameSide(d, id, fill, tongue, edge = '') {
+function flameSide(d, id, fill, tongue, edge = '', inner = true, innerFill = fill) {
   return `
         <path class="ko" d="M128 236 C148 290 148 360 152 420 C160 478 210 506 220 570 C226 612 212 642 198 660 L90 660 L90 236 Z" fill="${fill}"${edge}/>
         <path class="ko" d="M118 440 C150 482 170 532 164 600 C152 556 136 520 108 488 Z" fill="${tongue}"/>
         <path class="ko" d="M146 330 C152 360 154 392 150 418 C144 396 138 374 130 356 Z" fill="${tongue}"/>
         <path class="ko" d="M144 604 C160 624 170 644 172 660 L146 660 Z" fill="${tongue}"/>
-        ${edge ? '' : `<path class="ko" d="M250 540 C238 590 242 626 262 660 L248 660 C226 624 224 584 238 534 Z" fill="${fill}"/>`}`;
+        ${inner ? `<path class="ko" d="M250 540 C238 590 242 626 262 660 L248 660 C226 624 224 584 238 534 Z" fill="${innerFill}"/>` : ''}`;
 }
 
 // ---------- motif badan ----------
@@ -157,7 +157,7 @@ function artBody(d, id, view) {
       </g>`;
   }
   if (d.art === 'curve') {
-    const side = flameSide(d, id, `url(#${id}-gold)`, d.c2);
+    const side = flameSide(d, id, `url(#${id}-gold)`, d.c2, ` stroke="#D6A531" stroke-width="7" stroke-linejoin="round"`, false);
     return `
       <rect width="600" height="660" fill="url(#${id}-pat)" opacity=".7"/>
       <path d="M190 560 C270 500 350 440 440 300 C410 430 320 520 220 600 Z" fill="#FFFFFF" opacity=".05"/>
@@ -172,7 +172,7 @@ function artBody(d, id, view) {
       <path d="M450 236 L444 236 Q454 420 448 660 L454 660 Q460 420 450 236 Z" fill="url(#${id}-gold)"/>`;
   }
   if (d.art === 'crescent') {
-    const side = flameSide(d, id, d.c3, '#FFFFFF', ` stroke="url(#${id}-gold)" stroke-width="7" stroke-linejoin="round"`);
+    const side = flameSide(d, id, d.c3, '#FFFFFF', ` stroke="url(#${id}-gold)" stroke-width="3"`, true, `url(#${id}-gold)`);
     return `
       <rect width="600" height="660" fill="url(#${id}-pat)"/>
       ${side}

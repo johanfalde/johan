@@ -65,17 +65,17 @@
       <path d="M190 560 C270 500 350 440 440 300 C410 430 320 520 220 600 Z" fill="#FFFFFF" opacity=".05"></path>
       <path d="M170 470 C240 420 300 360 360 260 C350 360 280 440 190 500 Z" fill="#FFFFFF" opacity=".035"></path>
       
-        <path class="ko" d="M128 236 C148 290 148 360 152 420 C160 478 210 506 220 570 C226 612 212 642 198 660 L90 660 L90 236 Z" fill="url(#b-gold)"></path>
+        <path class="ko" d="M128 236 C148 290 148 360 152 420 C160 478 210 506 220 570 C226 612 212 642 198 660 L90 660 L90 236 Z" fill="url(#b-gold)" stroke="#D6A531" stroke-width="7" stroke-linejoin="round"></path>
         <path class="ko" d="M118 440 C150 482 170 532 164 600 C152 556 136 520 108 488 Z" fill="#1C2B55"></path>
         <path class="ko" d="M146 330 C152 360 154 392 150 418 C144 396 138 374 130 356 Z" fill="#1C2B55"></path>
         <path class="ko" d="M144 604 C160 624 170 644 172 660 L146 660 Z" fill="#1C2B55"></path>
-        <path class="ko" d="M250 540 C238 590 242 626 262 660 L248 660 C226 624 224 584 238 534 Z" fill="url(#b-gold)"></path>
+        
       <g transform="matrix(-1 0 0 1 600 0)">
-        <path class="ko" d="M128 236 C148 290 148 360 152 420 C160 478 210 506 220 570 C226 612 212 642 198 660 L90 660 L90 236 Z" fill="url(#b-gold)"></path>
+        <path class="ko" d="M128 236 C148 290 148 360 152 420 C160 478 210 506 220 570 C226 612 212 642 198 660 L90 660 L90 236 Z" fill="url(#b-gold)" stroke="#D6A531" stroke-width="7" stroke-linejoin="round"></path>
         <path class="ko" d="M118 440 C150 482 170 532 164 600 C152 556 136 520 108 488 Z" fill="#1C2B55"></path>
         <path class="ko" d="M146 330 C152 360 154 392 150 418 C144 396 138 374 130 356 Z" fill="#1C2B55"></path>
         <path class="ko" d="M144 604 C160 624 170 644 172 660 L146 660 Z" fill="#1C2B55"></path>
-        <path class="ko" d="M250 540 C238 590 242 626 262 660 L248 660 C226 624 224 584 238 534 Z" fill="url(#b-gold)"></path></g>
+        </g>
         
         <g>
           <path d="M382 52 L620 40 L620 320 L460 236 Q428 150 382 52 Z" fill="#121D3C"></path><path d="M382 52 L620 40 L620 320 L460 236 Q428 150 382 52 Z" fill="url(#b-kawung)" mask="url(#b-smask)" opacity=".7"></path>
