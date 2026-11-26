@@ -64,7 +64,7 @@ Generator ada di `jersey-futsal/` (`generate.js` + `config.json`). Jalankan `cd 
 - SEKARANG DIPAKAI: harimau putih mengaum dari klien (`assets/harimau-klien.jpg`), latar dihapus `cutout_tiger.py`
   (flood-fill dari tepi, jadi bulu putih dalam tetap). Desain 1–3: tonal transparan di bawah lockup nama
   (luminosity .6 / baju putih multiply .55 grayscale; gambar aktif = config `harimau_klien`, kini kepala harimau samping), di bawah lapisan motif. Desain 4 NAVY FLAME (art 'curve'): navy + panel samping krem melengkung seperti api dengan lidah navy + TEPI EMAS MERUNCING mengikuti lengkung flame, TERPUTUS di bagian atas flame (mulai t=0.15 dg ujung lancip), TANPA 2 garis krem tipis di tengah bawah, garis raglan krem tebal, angka krem; TANPA harimau (permintaan klien).
-- Desain 3 GOLDEN CRESCENT: busur dihapus (depan & belakang), diganti panel api `flameSide()` navy + lidah putih + tepi emas MERUNCING mengikuti lengkung flame, TERPUTUS di bagian atas flame (mulai t=0.15, ujung lancip lalu tebal ±8), TANPA 2 garis emas tengah; harimau tonal di atas motif; TANPA garis emas di bawah "AL MUHAAJIR".
+- Desain 3 GOLDEN CRESCENT: busur dihapus (depan & belakang), diganti panel api `flameSide()` navy + lidah putih + tepi emas MERUNCING mengikuti lengkung flame, TERPUTUS di bagian atas flame (mulai t=0.15, ujung lancip lalu tebal ±8), berada DI DALAM panel api (sisi bawah-samping), bukan ke arah tengah badan, TANPA 2 garis emas tengah; harimau tonal di atas motif; TANPA garis emas di bawah "AL MUHAAJIR".
 
 ## Presentasi ke konsumen
 Lembar "kit launch" 1920×1200 (render @2x = 3840×2400 JPG): latar gelap senada + sorot lampu,
