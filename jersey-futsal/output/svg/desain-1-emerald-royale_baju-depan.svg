@@ -72,6 +72,7 @@
         <path class="ko" d="M90 540 C230 505 360 640 620 515 L620 760 L90 760 Z" fill="#04331F" opacity=".85"></path>
         <path class="ko" d="M90 540 C230 505 360 640 620 515 L620 760 L90 760 Z" fill="url(#f-pat)"></path>
       </g>
+        
         <g>
           <path d="M382 52 L620 40 L620 320 L460 236 Q428 150 382 52 Z" fill="#04331F"></path><path d="M382 52 L620 40 L620 320 L460 236 Q428 150 382 52 Z" fill="url(#f-kawung)" mask="url(#f-smask)" opacity=".7"></path>
           <path class="ko" d="M590 160 L512 280 L495 269 L573 149 Z" fill="url(#f-gold)"></path><path class="ko" d="M569 146 L491 266 L486 263 L564 143 Z" fill="#FFFFFF"></path>
@@ -119,8 +120,8 @@
       <g filter="url(#f-tshadow)">
         <text class="chk" x="300" y="286" text-anchor="middle" font-family="Bebas" font-size="31.3" letter-spacing="7" fill="url(#f-gold)" stroke="#04331F" stroke-width="3" paint-order="stroke">TK ISLAM PLUS</text>
         <text class="chk" x="300" y="360" text-anchor="middle" font-family="Anton" font-size="45.9" letter-spacing="1" fill="#FFFFFF" stroke="#04331F" stroke-width="9" paint-order="stroke" stroke-linejoin="round">AL MUHAAJIR</text>
-        <rect x="236" y="378" width="128" height="5" rx="2.5" fill="url(#f-gold)"></rect>
-        <path d="M222 380.5 l7 -6 7 6 -7 6 Z M364 380.5 l7 -6 7 6 -7 6 Z" fill="url(#f-gold)"></path>
+        <g transform="translate(0 0)"><rect x="236" y="378" width="128" height="5" rx="2.5" fill="url(#f-gold)"></rect>
+        <path d="M222 380.5 l7 -6 7 6 -7 6 Z M364 380.5 l7 -6 7 6 -7 6 Z" fill="url(#f-gold)"></path></g>
       </g>
         <g filter="url(#f-blur)">
           <path d="M150 250 Q210 300 190 420" stroke="#000" stroke-opacity=".28" stroke-width="16" fill="none"></path>

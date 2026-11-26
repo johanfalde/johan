@@ -74,6 +74,7 @@
         <circle class="ko" cx="560" cy="720" r="290" fill="none" stroke="#0E1B3D" stroke-width="3"></circle>
         <circle class="ko" cx="560" cy="720" r="372" fill="none" stroke="url(#b-gold)" stroke-width="3.5"></circle>
       </g>
+        
         <g>
           <path d="M382 52 L620 40 L620 320 L460 236 Q428 150 382 52 Z" fill="#0E1B3D"></path><path d="M382 52 L620 40 L620 320 L460 236 Q428 150 382 52 Z" fill="url(#b-kawung)" mask="url(#b-smask)" opacity=".7"></path>
           <path class="ko" d="M590 160 L512 280 L495 269 L573 149 Z" fill="url(#b-gold)"></path><path class="ko" d="M569 146 L491 266 L486 263 L564 143 Z" fill="#FFFFFF"></path>

@@ -71,6 +71,7 @@
         <path class="ko" d="M80 660 L470 500 L620 440 L620 760 L80 760 Z" fill="#07134A" opacity=".75"></path>
         <path class="ko" d="M80 662 L470 502 L620 442" stroke="#FFD23F" stroke-width="4" fill="none"></path>
       </g>
+        
         <g>
           <path d="M382 52 L620 40 L620 320 L460 236 Q428 150 382 52 Z" fill="#07134A"></path><path d="M382 52 L620 40 L620 320 L460 236 Q428 150 382 52 Z" fill="url(#b-kawung)" mask="url(#b-smask)" opacity=".7"></path>
           <path class="ko" d="M590 160 L512 280 L495 269 L573 149 Z" fill="url(#b-gold)"></path><path class="ko" d="M569 146 L491 266 L486 263 L564 143 Z" fill="#FFD23F"></path>

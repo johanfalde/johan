@@ -72,6 +72,7 @@
         <path class="ko" d="M90 540 C230 505 360 640 620 515 L620 760 L90 760 Z" fill="#04331F" opacity=".85"></path>
         <path class="ko" d="M90 540 C230 505 360 640 620 515 L620 760 L90 760 Z" fill="url(#b-pat)"></path>
       </g>
+        
         <g>
           <path d="M382 52 L620 40 L620 320 L460 236 Q428 150 382 52 Z" fill="#04331F"></path><path d="M382 52 L620 40 L620 320 L460 236 Q428 150 382 52 Z" fill="url(#b-kawung)" mask="url(#b-smask)" opacity=".7"></path>
           <path class="ko" d="M590 160 L512 280 L495 269 L573 149 Z" fill="url(#b-gold)"></path><path class="ko" d="M569 146 L491 266 L486 263 L564 143 Z" fill="#FFFFFF"></path>

@@ -44,6 +44,15 @@ const DESIGNS = [
     bg1: '#1B2A55', bg2: '#050A1C',
     chips: [['#F4F6FA', 'Putih Mutiara'], ['#0E1B3D', 'Navy'], ['#D4A017', 'Emas'], ['#C9D1DE', 'Abu Perak']],
   },
+  {
+    aktif: false, // draf, belum disetujui klien
+    key: 'desain-4-golden-tiger', no: 'DESAIN 04', nama: 'GOLDEN TIGER', jenis: 'SPECIAL KIT',
+    tagline: 'Hitam pekat · ilustrasi harimau emas · sapuan kuas & cipratan berputar',
+    c1: '#1C1C1F', c2: '#0F0F11', c3: '#050506', accent: '#E3A81B', accentHi: '#FFE08A', accentLo: '#9A6A00',
+    line2: '#FFFFFF', text: '#FFFFFF', outline: '#050506', neck: 'crew', art: 'tiger',
+    bg1: '#2A2010', bg2: '#050403',
+    chips: [['#0F0F11', 'Hitam'], ['#E3A81B', 'Emas'], ['#FFF4D6', 'Krem'], ['#FFFFFF', 'Putih']],
+  },
 ];
 
 // ======================= GEOMETRI KAOS (600x660) =======================
@@ -138,6 +147,13 @@ function artBody(d, id, view) {
         <path class="ko" d="M90 540 C230 505 360 640 620 515 L620 760 L90 760 Z" fill="url(#${id}-pat)"/>
       </g>`;
   }
+  if (d.art === 'tiger') {
+    return `
+      <rect width="600" height="660" fill="url(#${id}-pat)" opacity=".5"/>
+      <g>${swirl(id, view === 'front' ? 1234567 : 7654321, view)}</g>
+      <path d="M150 236 L156 236 Q146 420 152 660 L146 660 Q140 420 150 236 Z" fill="url(#${id}-gold)"/>
+      <path d="M450 236 L444 236 Q454 420 448 660 L454 660 Q460 420 450 236 Z" fill="url(#${id}-gold)"/>`;
+  }
   if (d.art === 'crescent') {
     return `
       <rect width="600" height="660" fill="url(#${id}-pat)"/>
@@ -196,7 +212,43 @@ const TIGER_PNG = (() => {
   require('child_process').execFileSync('python3', ['-I', path.join(ROOT, 'prep_tiger.py'), ROOT]);
   return 'data:image/png;base64,' + fs.readFileSync(path.join(ROOT, 'assets', 'tiger-head.png')).toString('base64');
 })();
+const TIGER_GOLD = 'data:image/png;base64,' + fs.readFileSync(path.join(ROOT, 'assets', 'tiger-gold.png')).toString('base64');
+
+// Sapuan kuas berputar + cipratan (acak tapi tetap/seeded)
+function swirl(id, seed, view) {
+  let s = seed; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  const cx = 300, cy = view === 'front' ? 370 : 380, out = [];
+  const cols = [`url(#${id}-gold)`, '#FFFFFF', '#F5D98A', `url(#${id}-gold)`];
+  const KO = view === 'front'
+    ? [[140, 480, 460, 625], [170, 100, 282, 225], [315, 115, 435, 220]]
+    : [[170, 112, 430, 200], [160, 245, 440, 455], [195, 80, 405, 115]];
+  const bad = (x, y) => KO.some(([a, b, c, e]) => x > a && x < c && y > b && y < e);
+  for (let i = 0; i < 60; i++) {
+    const r = 175 + rnd() * 150, a0 = rnd() * Math.PI * 2, sweep = (0.5 + rnd() * 1.1) * (i % 2 ? 1 : 1);
+    const w = 3 + rnd() * (i < 8 ? 26 : 12), n = 24, L = [], Rr = [];
+    let hit = false;
+    for (let k = 0; k <= n; k++) {
+      const t = k / n, a = a0 + sweep * t, rr = r * (1 - 0.18 * t);
+      const x = cx + rr * Math.cos(a) * 0.92, y = cy + rr * Math.sin(a) * 1.08;
+      if (bad(x, y)) hit = true;
+      const hw = w * Math.sin(Math.PI * Math.min(1, t * 1.15)) * (0.6 + 0.4 * rnd());
+      const nx = Math.cos(a), ny = Math.sin(a);
+      L.push(`${(x + nx * hw).toFixed(1)},${(y + ny * hw).toFixed(1)}`); Rr.unshift(`${(x - nx * hw).toFixed(1)},${(y - ny * hw).toFixed(1)}`);
+    }
+    if (hit) continue;
+    out.push(`<polygon class="ko" points="${L.concat(Rr).join(' ')}" fill="${cols[i % 4]}" opacity="${(0.55 + rnd() * 0.4).toFixed(2)}"/>`);
+  }
+  for (let i = 0; i < 90; i++) {
+    const r = 160 + rnd() * 190, a = rnd() * Math.PI * 2;
+    if (bad(cx + r * Math.cos(a) * .92, cy + r * Math.sin(a) * 1.08)) continue;
+    out.push(`<circle cx="${(cx + r * Math.cos(a) * .92).toFixed(1)}" cy="${(cy + r * Math.sin(a) * 1.08).toFixed(1)}" r="${(0.8 + rnd() * 3.8).toFixed(1)}" fill="${rnd() > .5 ? '#FFFFFF' : d4gold(id)}" opacity="${(0.5 + rnd() * .5).toFixed(2)}"/>`);
+  }
+  return out.join('');
+}
+const d4gold = (id) => `url(#${id}-gold)`;
+
 function tigerMark(d) {
+  if (d.art === 'tiger') return `<image href="${TIGER_GOLD}" x="110" y="132" width="380" height="380" preserveAspectRatio="xMidYMid meet"/>`;
   const white = d.art === 'crescent';
   return `<image href="${TIGER_PNG}" x="125" y="262" width="350" height="350" preserveAspectRatio="xMidYMid meet"
     style="mix-blend-mode:${white ? 'multiply' : 'luminosity'}" opacity="${white ? .3 : .5}"/>`;
@@ -211,10 +263,10 @@ function shirt(d, id, view, player) {
       ${crest(d, id, 228, 164, 0.94)}
       <text class="chk" x="374" y="186" text-anchor="middle" font-family="Anton" font-size="48" fill="${d.text}" stroke="${d.art === 'crescent' ? d.accent : d.outline}" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
       <g filter="url(#${id}-tshadow)">
-        <text class="chk" data-fit="236" x="300" y="286" text-anchor="middle" font-family="Bebas" font-size="40" letter-spacing="7" fill="${d.art === 'crescent' ? d.c3 : `url(#${id}-gold)`}" ${d.art === 'crescent' ? '' : `stroke="${d.c3}" stroke-width="3" paint-order="stroke"`}>${esc(cfg.sekolah_baris1)}</text>
-        <text class="chk" data-fit="246" x="300" y="360" text-anchor="middle" font-family="Anton" font-size="78" letter-spacing="1" fill="${d.text}" stroke="${d.art === 'crescent' ? d.accent : d.outline}" stroke-width="${d.art === 'crescent' ? 3 : 9}" paint-order="stroke" stroke-linejoin="round">${esc(cfg.sekolah_baris2)}</text>
-        <rect x="236" y="378" width="128" height="5" rx="2.5" fill="url(#${id}-gold)"/>
-        <path d="M222 380.5 l7 -6 7 6 -7 6 Z M364 380.5 l7 -6 7 6 -7 6 Z" fill="url(#${id}-gold)"/>
+        <text class="chk" data-fit="236" x="300" y="${d.art === 'tiger' ? 526 : 286}" text-anchor="middle" font-family="Bebas" font-size="40" letter-spacing="7" fill="${d.art === 'crescent' ? d.c3 : `url(#${id}-gold)`}" ${d.art === 'crescent' ? '' : `stroke="${d.c3}" stroke-width="3" paint-order="stroke"`}>${esc(cfg.sekolah_baris1)}</text>
+        <text class="chk" data-fit="246" x="300" y="${d.art === 'tiger' ? 580 : 360}" text-anchor="middle" font-family="Anton" font-size="78" letter-spacing="1" fill="${d.text}" stroke="${d.art === 'crescent' ? d.accent : d.outline}" stroke-width="${d.art === 'crescent' ? 3 : 9}" paint-order="stroke" stroke-linejoin="round">${esc(cfg.sekolah_baris2)}</text>
+        <g transform="translate(0 ${d.art === 'tiger' ? 220 : 0})"><rect x="236" y="378" width="128" height="5" rx="2.5" fill="url(#${id}-gold)"/>
+        <path d="M222 380.5 l7 -6 7 6 -7 6 Z M364 380.5 l7 -6 7 6 -7 6 Z" fill="url(#${id}-gold)"/></g>
       </g>`;
   } else {
     deco = `
@@ -232,8 +284,9 @@ function shirt(d, id, view, player) {
     <g filter="url(#${id}-shadow)">
       <path d="${BODY}" fill="url(#${id}-base)"/>
       <g clip-path="url(#${id}-clip)">
-        ${view === 'front' ? tigerMark(d) : ''}
+        ${view === 'front' && d.art !== 'tiger' ? tigerMark(d) : ''}
         ${artBody(d, id, view)}
+        ${view === 'front' && d.art === 'tiger' ? tigerMark(d) : ''}
         ${[0, 1].map((m) => `<g ${m ? `transform="${MIRROR}"` : ''}>
           <path d="${SLEEVE}" fill="${d.c3}"/><path d="${SLEEVE}" fill="url(#${id}-kawung)" mask="url(#${id}-smask)" opacity=".7"/>
           <path class="ko" d="${CUFF}" fill="url(#${id}-gold)"/><path class="ko" d="${CUFF2}" fill="${d.line2}"/>
@@ -495,7 +548,7 @@ async function render(page, html) {
   fs.mkdirSync(path.join(OUT, 'svg'), { recursive: true });
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1920, height: 1200 }, deviceScaleFactor: 2 });
-  for (const d of DESIGNS) {
+  for (const d of DESIGNS.filter((x) => x.aktif !== false)) {
     await render(page, sheet(d, cfg.contoh_pemain));
     await page.screenshot({ path: path.join(OUT, `${d.key}.jpg`), type: 'jpeg', quality: 95 });
     await page.pdf({ path: path.join(OUT, `${d.key}.pdf`), width: '1920px', height: '1200px', printBackground: true });
@@ -523,7 +576,7 @@ async function render(page, html) {
     const pp = await browser.newPage({ viewport: { width: 900, height: 1000 }, deviceScaleFactor: 2 });
     const dir = path.join(OUT, 'per-pemain');
     fs.mkdirSync(dir, { recursive: true });
-    for (const d of DESIGNS) for (const p of cfg.pemain) {
+    for (const d of DESIGNS.filter((x) => x.aktif !== false)) for (const p of cfg.pemain) {
       await render(pp, backOnly(d, p));
       const safe = `${p.nomor}-${p.nama}`.replace(/[^\w-]+/g, '_');
       await pp.screenshot({ path: path.join(dir, `${d.key}_${safe}.jpg`), type: 'jpeg', quality: 92 });
