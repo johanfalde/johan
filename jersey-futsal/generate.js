@@ -132,8 +132,21 @@ function commonDefs(d, id) {
 // ---------- panel samping seperti nyala api ----------
 function flameSide(d, id, fill, tongue, edge = '', inner = true, innerFill = fill, edgeFromY = 0) {
   const CURVE = 'M128 236 C148 290 148 360 152 420 C160 478 210 506 220 570 C226 612 212 642 198 660';
-  const edgeLine = edge ? `<clipPath id="${id}-ec${edgeFromY}"><rect x="0" y="${edgeFromY}" width="600" height="700"/></clipPath>
-        <path class="ko" d="${CURVE}" fill="none"${edge} clip-path="url(#${id}-ec${edgeFromY})"/>` : '';
+  // garis emas meruncing (seperti lidah api) mengikuti lengkung panel: tipis di ketiak -> tebal ke bawah
+  const segs = [[[128, 236], [148, 290], [148, 360], [152, 420]], [[152, 420], [160, 478], [210, 506], [220, 570]], [[220, 570], [226, 612], [212, 642], [198, 660]]];
+  const bz = (p, t) => { const u = 1 - t; return [0, 1].map((k) => u * u * u * p[0][k] + 3 * u * u * t * p[1][k] + 3 * u * t * t * p[2][k] + t * t * t * p[3][k]); };
+  const pts = []; segs.forEach((s, i) => { for (let k = i ? 1 : 0; k <= 30; k++) pts.push(bz(s, k / 30)); });
+  const W = 8, outer = [], innerPts = [];
+  pts.forEach((p, i) => {
+    const q = pts[Math.min(i + 1, pts.length - 1)], r = pts[Math.max(i - 1, 0)];
+    let dx = q[0] - r[0], dy = q[1] - r[1]; const L = Math.hypot(dx, dy) || 1; dx /= L; dy /= L;
+    const t = i / (pts.length - 1), w = W * Math.min(1, Math.pow(t / 0.32, 1.4));
+    const nx = dy, ny = -dx; // normal ke arah dalam badan
+    outer.push(`${(p[0] - nx * w * 0.35).toFixed(1)},${(p[1] - ny * w * 0.35).toFixed(1)}`);
+    innerPts.unshift(`${(p[0] + nx * w * 0.65).toFixed(1)},${(p[1] + ny * w * 0.65).toFixed(1)}`);
+  });
+  const edgeColor = (edge.match(/stroke="([^"]+)"/) || [])[1];
+  const edgeLine = edge ? `<polygon class="ko" points="${outer.concat(innerPts).join(' ')}" fill="${edgeColor}"/>` : '';
   return `
         <path class="ko" d="M128 236 C148 290 148 360 152 420 C160 478 210 506 220 570 C226 612 212 642 198 660 L90 660 L90 236 Z" fill="${fill}"/>
         <path class="ko" d="M118 440 C150 482 170 532 164 600 C152 556 136 520 108 488 Z" fill="${tongue}"/>
