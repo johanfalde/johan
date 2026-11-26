@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright');
+const LOGO = require('./logo');
 
 const ROOT = __dirname;
 const OUT = path.join(ROOT, 'output');
@@ -12,6 +13,7 @@ const FONT_CSS = `
 @font-face{font-family:'Anton';src:url(${font('Anton.woff2')}) format('woff2');}
 @font-face{font-family:'Bebas';src:url(${font('BebasNeue.woff2')}) format('woff2');}
 @font-face{font-family:'Fredoka';src:url(${font('Fredoka-Bold.woff2')}) format('woff2');font-weight:700;}
+@font-face{font-family:'Cinzel';src:url(${font('Cinzel-ExtraBold.woff2')}) format('woff2');font-weight:800;}
 @font-face{font-family:'Teko';src:url(${font('Teko-Bold.woff2')}) format('woff2');font-weight:700;}`;
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const SCHOOL = `${cfg.sekolah_baris1} ${cfg.sekolah_baris2}`;
@@ -112,31 +114,31 @@ function artBody(d, id, view) {
   if (d.art === 'royale') {
     return `
       <rect width="600" height="660" fill="url(#${id}-pat)"/>
-      <path d="M120 236 L162 236 Q150 420 156 660 L110 660 Z" fill="${d.c3}" opacity=".9"/>
-      <path d="M480 236 L438 236 Q450 420 444 660 L490 660 Z" fill="${d.c3}" opacity=".9"/>
-      <path d="M162 236 L168 236 Q156 420 162 660 L156 660 Q150 420 162 236 Z" fill="url(#${id}-gold)"/>
-      <path d="M438 236 L432 236 Q444 420 438 660 L444 660 Q450 420 438 236 Z" fill="url(#${id}-gold)"/>
+      <path class="ko" d="M120 236 L162 236 Q150 420 156 660 L110 660 Z" fill="${d.c3}" opacity=".9"/>
+      <path class="ko" d="M480 236 L438 236 Q450 420 444 660 L490 660 Z" fill="${d.c3}" opacity=".9"/>
+      <path class="ko" d="M162 236 L168 236 Q156 420 162 660 L156 660 Q150 420 162 236 Z" fill="url(#${id}-gold)"/>
+      <path class="ko" d="M438 236 L432 236 Q444 420 438 660 L444 660 Q450 420 438 236 Z" fill="url(#${id}-gold)"/>
       <g transform="translate(0 ${o})">
-        <path d="M90 470 C220 430 360 560 620 430 L620 470 C360 600 230 470 90 505 Z" fill="url(#${id}-gold)"/>
-        <path d="M90 520 C230 485 360 615 620 490 L620 498 C360 625 230 495 90 530 Z" fill="${d.line2}" opacity=".9"/>
-        <path d="M90 540 C230 505 360 640 620 515 L620 760 L90 760 Z" fill="${d.c3}" opacity=".85"/>
-        <path d="M90 540 C230 505 360 640 620 515 L620 760 L90 760 Z" fill="url(#${id}-pat)"/>
+        <path class="ko" d="M90 470 C220 430 360 560 620 430 L620 470 C360 600 230 470 90 505 Z" fill="url(#${id}-gold)"/>
+        <path class="ko" d="M90 520 C230 485 360 615 620 490 L620 498 C360 625 230 495 90 530 Z" fill="${d.line2}" opacity=".9"/>
+        <path class="ko" d="M90 540 C230 505 360 640 620 515 L620 760 L90 760 Z" fill="${d.c3}" opacity=".85"/>
+        <path class="ko" d="M90 540 C230 505 360 640 620 515 L620 760 L90 760 Z" fill="url(#${id}-pat)"/>
       </g>`;
   }
   if (d.art === 'crescent') {
     return `
       <rect width="600" height="660" fill="url(#${id}-pat)"/>
-      <path d="M120 236 L162 236 Q150 420 156 660 L110 660 Z" fill="${d.c3}"/>
-      <path d="M480 236 L438 236 Q450 420 444 660 L490 660 Z" fill="${d.c3}"/>
-      <path d="M162 236 L168 236 Q156 420 162 660 L156 660 Q150 420 162 236 Z" fill="url(#${id}-gold)"/>
-      <path d="M438 236 L432 236 Q444 420 438 660 L444 660 Q450 420 438 236 Z" fill="url(#${id}-gold)"/>
+      <path class="ko" d="M120 236 L162 236 Q150 420 156 660 L110 660 Z" fill="${d.c3}"/>
+      <path class="ko" d="M480 236 L438 236 Q450 420 444 660 L490 660 Z" fill="${d.c3}"/>
+      <path class="ko" d="M162 236 L168 236 Q156 420 162 660 L156 660 Q150 420 162 236 Z" fill="url(#${id}-gold)"/>
+      <path class="ko" d="M438 236 L432 236 Q444 420 438 660 L444 660 Q450 420 438 236 Z" fill="url(#${id}-gold)"/>
       <g transform="translate(0 ${o})">
-        <circle cx="560" cy="720" r="290" fill="${d.c3}" opacity=".07"/>
-        <circle cx="560" cy="720" r="335" fill="none" stroke="${d.c3}" stroke-width="34"/>
-        <circle cx="560" cy="720" r="335" fill="none" stroke="url(#${id}-pat)" stroke-width="34"/>
-        <circle cx="560" cy="720" r="305" fill="none" stroke="url(#${id}-gold)" stroke-width="13"/>
-        <circle cx="560" cy="720" r="290" fill="none" stroke="${d.c3}" stroke-width="3"/>
-        <circle cx="560" cy="720" r="372" fill="none" stroke="url(#${id}-gold)" stroke-width="3.5"/>
+        <circle class="ko" cx="560" cy="720" r="290" fill="${d.c3}" opacity=".07"/>
+        <circle class="ko" cx="560" cy="720" r="335" fill="none" stroke="${d.c3}" stroke-width="34"/>
+        <circle class="ko" cx="560" cy="720" r="335" fill="none" stroke="url(#${id}-pat)" stroke-width="34"/>
+        <circle class="ko" cx="560" cy="720" r="305" fill="none" stroke="url(#${id}-gold)" stroke-width="13"/>
+        <circle class="ko" cx="560" cy="720" r="290" fill="none" stroke="${d.c3}" stroke-width="3"/>
+        <circle class="ko" cx="560" cy="720" r="372" fill="none" stroke="url(#${id}-gold)" stroke-width="3.5"/>
       </g>`;
   }
   return `
@@ -148,25 +150,27 @@ function artBody(d, id, view) {
       </g>
       <g mask="url(#${id}-fm)"><rect width="600" height="660" fill="url(#${id}-pat)"/></g>
       <g transform="translate(0 ${o})">
-        <path d="M620 360 L380 470 L430 482 L80 640 L80 600 L330 490 L280 478 L620 322 Z" fill="url(#${id}-gold)"/>
-        <path d="M620 300 L300 455 L620 310 Z" fill="${d.line2}"/>
-        <path d="M80 660 L470 500 L620 440 L620 760 L80 760 Z" fill="${d.c3}" opacity=".75"/>
-        <path d="M80 662 L470 502 L620 442" stroke="${d.line2}" stroke-width="4" fill="none"/>
+        <path class="ko" d="M620 360 L380 470 L430 482 L80 640 L80 600 L330 490 L280 478 L620 322 Z" fill="url(#${id}-gold)"/>
+        <path class="ko" d="M620 300 L300 455 L620 310 Z" fill="${d.line2}"/>
+        <path class="ko" d="M80 660 L470 500 L620 440 L620 760 L80 760 Z" fill="${d.c3}" opacity=".75"/>
+        <path class="ko" d="M80 662 L470 502 L620 442" stroke="${d.line2}" stroke-width="4" fill="none"/>
       </g>`;
 }
 
-// ---------- logo sementara (perisai, bulan bintang, bola) ----------
+// ---------- logo perisai TK Islam Plus Al Muhaajir ----------
 function crest(d, id, x, y, s = 1) {
   return `
-  <g transform="translate(${x} ${y}) scale(${s})" filter="url(#${id}-tshadow)">
-    <path d="M0 -40 L32 -29 L32 6 Q32 30 0 44 Q-32 30 -32 6 L-32 -29 Z" fill="${d.c3}" stroke="url(#${id}-gold)" stroke-width="4"/>
-    <path d="M0 -33 L26 -24 L26 5 Q26 25 0 37 Q-26 25 -26 5 L-26 -24 Z" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.2"/>
-    <path d="M-8 -22 A9 9 0 1 0 2 -10 A7 7 0 1 1 -8 -22 Z" fill="url(#${id}-gold)"/>
-    <path d="M7 -21 l1.6 3.4 3.6.4 -2.7 2.4.8 3.6 -3.3 -1.9 -3.3 1.9.8 -3.6 -2.7 -2.4 3.6 -.4 Z" fill="url(#${id}-gold)"/>
-    <circle cx="0" cy="12" r="13" fill="#fff"/>
-    <path d="M0 5 L6.5 9.5 L4 16.5 L-4 16.5 L-6.5 9.5 Z" fill="#111"/>
-    <path d="M0 -1 L0 5 M6.5 9.5 L12.5 7 M4 16.5 L8 22 M-4 16.5 L-8 22 M-6.5 9.5 L-12.5 7" stroke="#111" stroke-width="1.8"/>
-  </g>`;
+  <g class="chk" transform="translate(${x} ${y}) scale(${s})" filter="url(#${id}-tshadow)">${LOGO.crestShield(id, d.c3, `url(#${id}-gold)`)}</g>`;
+}
+
+// ---------- detail lengan: bendera Merah Putih (kanan) & logo mini (kiri) ----------
+function sleeveBadges(d, id) {
+  return `
+    <g class="chk" transform="translate(494 176) rotate(-57) scale(.9)" filter="url(#${id}-tshadow)">
+      <rect x="-17" y="-11" width="34" height="11" fill="#E70011"/><rect x="-17" y="0" width="34" height="11" fill="#FFFFFF"/>
+      <rect x="-17" y="-11" width="34" height="22" fill="none" stroke="#000" stroke-opacity=".25" stroke-width="1"/>
+    </g>
+    <g class="chk" transform="translate(108 172) rotate(57) scale(.38)" filter="url(#${id}-tshadow)">${LOGO.crestShield(id, d.c3, `url(#${id}-gold)`)}</g>`;
 }
 
 function shirt(d, id, view, player) {
@@ -175,23 +179,23 @@ function shirt(d, id, view, player) {
   let deco;
   if (view === 'front') {
     deco = `
-      ${crest(d, id, 212, 162, 1)}
-      <text x="390" y="184" text-anchor="middle" font-family="Anton" font-size="50" fill="${d.text}" stroke="${d.art === 'crescent' ? d.accent : d.outline}" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
+      ${crest(d, id, 228, 164, 0.94)}
+      <text class="chk" x="374" y="186" text-anchor="middle" font-family="Anton" font-size="48" fill="${d.text}" stroke="${d.art === 'crescent' ? d.accent : d.outline}" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
       <g filter="url(#${id}-tshadow)">
-        <text x="300" y="286" text-anchor="middle" font-family="Bebas" font-size="42" letter-spacing="12" fill="${d.art === 'crescent' ? d.c3 : `url(#${id}-gold)`}" ${d.art === 'crescent' ? '' : `stroke="${d.c3}" stroke-width="3" paint-order="stroke"`}>${esc(cfg.sekolah_baris1)}</text>
-        <text data-fit="246" x="300" y="360" text-anchor="middle" font-family="Anton" font-size="78" letter-spacing="1" fill="${d.text}" stroke="${d.art === 'crescent' ? d.accent : d.outline}" stroke-width="${d.art === 'crescent' ? 3 : 9}" paint-order="stroke" stroke-linejoin="round">${esc(cfg.sekolah_baris2)}</text>
+        <text class="chk" data-fit="236" x="300" y="286" text-anchor="middle" font-family="Bebas" font-size="40" letter-spacing="7" fill="${d.art === 'crescent' ? d.c3 : `url(#${id}-gold)`}" ${d.art === 'crescent' ? '' : `stroke="${d.c3}" stroke-width="3" paint-order="stroke"`}>${esc(cfg.sekolah_baris1)}</text>
+        <text class="chk" data-fit="246" x="300" y="360" text-anchor="middle" font-family="Anton" font-size="78" letter-spacing="1" fill="${d.text}" stroke="${d.art === 'crescent' ? d.accent : d.outline}" stroke-width="${d.art === 'crescent' ? 3 : 9}" paint-order="stroke" stroke-linejoin="round">${esc(cfg.sekolah_baris2)}</text>
         <rect x="236" y="378" width="128" height="5" rx="2.5" fill="url(#${id}-gold)"/>
         <path d="M222 380.5 l7 -6 7 6 -7 6 Z M364 380.5 l7 -6 7 6 -7 6 Z" fill="url(#${id}-gold)"/>
       </g>`;
   } else {
     deco = `
-      <path id="${id}-arc" d="M176 222 Q300 196 424 222" fill="none"/>
+      <path id="${id}-arc" d="M186 182 Q300 158 414 182" fill="none"/>
       <g filter="url(#${id}-tshadow)">
-        <text data-fit="232" font-family="Bebas" font-size="56" letter-spacing="3" text-anchor="middle" fill="${d.text}" stroke="${d.outline}" stroke-width="7" paint-order="stroke" stroke-linejoin="round"><textPath href="#${id}-arc" startOffset="50%">${esc(nm)}</textPath></text>
-        <text x="300" y="452" text-anchor="middle" font-family="Anton" font-size="225" letter-spacing="-2" fill="${d.text}" stroke="url(#${id}-gold)" stroke-width="16" paint-order="stroke" stroke-linejoin="round">${esc(player.nomor)}</text>
-        <text x="300" y="452" text-anchor="middle" font-family="Anton" font-size="225" letter-spacing="-2" fill="none" stroke="${d.outline}" stroke-width="3.5">${esc(player.nomor)}</text>
+        <text class="chk" data-fit="214" font-family="Bebas" font-size="56" letter-spacing="3" text-anchor="middle" fill="${d.text}" stroke="${d.outline}" stroke-width="7" paint-order="stroke" stroke-linejoin="round"><textPath href="#${id}-arc" startOffset="50%">${esc(nm)}</textPath></text>
+        <text class="chk" x="300" y="438" text-anchor="middle" font-family="Anton" font-size="225" letter-spacing="-2" fill="${d.text}" stroke="url(#${id}-gold)" stroke-width="16" paint-order="stroke" stroke-linejoin="round">${esc(player.nomor)}</text>
+        <text class="chk" x="300" y="438" text-anchor="middle" font-family="Anton" font-size="225" letter-spacing="-2" fill="none" stroke="${d.outline}" stroke-width="3.5">${esc(player.nomor)}</text>
       </g>
-      <text data-fit="160" x="300" y="112" text-anchor="middle" font-family="Bebas" font-size="18" letter-spacing="5" fill="${d.art === 'crescent' ? d.c3 : '#fff'}" opacity=".7">${esc(SCHOOL)}</text>`;
+      <text class="chk" data-fit="176" x="300" y="106" text-anchor="middle" font-family="Bebas" font-size="22" letter-spacing="2" fill="${d.art === 'crescent' ? d.c3 : '#fff'}" opacity=".7">${esc(SCHOOL)}</text>`;
   }
   return `
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 660" width="100%" height="100%">
@@ -202,11 +206,12 @@ function shirt(d, id, view, player) {
         ${artBody(d, id, view)}
         ${[0, 1].map((m) => `<g ${m ? `transform="${MIRROR}"` : ''}>
           <path d="${SLEEVE}" fill="${d.c3}"/><path d="${SLEEVE}" fill="url(#${id}-pat)" opacity=".7"/>
-          <path d="${CUFF}" fill="url(#${id}-gold)"/><path d="${CUFF2}" fill="${d.line2}"/>
-          <path d="${RAGLAN}" fill="none" stroke="url(#${id}-gold)" stroke-width="5"/>
+          <path class="ko" d="${CUFF}" fill="url(#${id}-gold)"/><path class="ko" d="${CUFF2}" fill="${d.line2}"/>
+          <path class="ko" d="${RAGLAN}" fill="none" stroke="url(#${id}-gold)" stroke-width="5"/>
           <path d="${RAGLAN}" transform="translate(-9 3)" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.3" stroke-dasharray="5 4"/>
         </g>`).join('')}
         ${deco}
+        ${view === 'front' ? sleeveBadges(d, id) : ''}
         <g filter="url(#${id}-blur)">
           <path d="M150 250 Q210 300 190 420" stroke="#000" stroke-opacity=".28" stroke-width="16" fill="none"/>
           <path d="M450 250 Q395 310 412 430" stroke="#000" stroke-opacity=".25" stroke-width="16" fill="none"/>
@@ -243,15 +248,15 @@ function shorts(d, id, player, view) {
         <rect width="600" height="520" fill="url(#${id}-pat)" opacity=".8"/>
         ${[0, 1].map((m) => `<g ${m ? `transform="${MIRROR}"` : ''}>
           <path d="M100 60 L168 60 Q150 250 150 460 L60 460 Z" fill="url(#${id}-base)"/>
-          <path d="M168 60 L176 60 Q158 250 158 460 L150 460 Q150 250 168 60 Z" fill="url(#${id}-gold)"/>
+          <path class="ko" d="M168 60 L176 60 Q158 250 158 460 L150 460 Q150 250 168 60 Z" fill="url(#${id}-gold)"/>
           <path d="M182 60 L185 60 Q167 250 167 460 L164 460 Q164 250 182 60 Z" fill="${d.line2}" opacity=".9"/>
         </g>`).join('')}
         <path d="M60 396 L300 424 L540 396 L540 470 L60 470 Z" fill="url(#${id}-gold)"/>
-        <path d="M60 388 L300 416 L540 388 L540 394 L300 422 L60 394 Z" fill="${d.line2}"/>
+        <path class="ko" d="M60 388 L300 416 L540 388 L540 394 L300 422 L60 394 Z" fill="${d.line2}"/>
         ${view === 'front'
-          ? `<text x="222" y="372" text-anchor="middle" font-family="Anton" font-size="56" fill="#FFFFFF" stroke="url(#${id}-gold)" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
+          ? `<text class="chk" x="222" y="372" text-anchor="middle" font-family="Anton" font-size="56" fill="#FFFFFF" stroke="url(#${id}-gold)" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
              ${crest(d, id, 392, 150, 0.62)}`
-          : `<text data-fit="180" x="300" y="170" text-anchor="middle" font-family="Bebas" font-size="32" letter-spacing="6" fill="url(#${id}-gold)">${esc(cfg.sekolah_baris2)}</text>`}
+          : `<text class="chk" data-fit="180" x="300" y="170" text-anchor="middle" font-family="Bebas" font-size="32" letter-spacing="6" fill="url(#${id}-gold)">${esc(cfg.sekolah_baris2)}</text>`}
         <g filter="url(#${id}-blur)">
           <path d="M200 120 Q240 250 215 380" stroke="#fff" stroke-opacity=".12" stroke-width="30" fill="none"/>
           <path d="M300 268 L290 440" stroke="#000" stroke-opacity=".35" stroke-width="14"/>
@@ -349,6 +354,49 @@ function backOnly(d, player) {
   <div class="l">${esc(player.nama)} · <b>NO ${esc(player.nomor)}</b> · ${esc(d.nama)}</div></body></html>`;
 }
 
+
+// ======================= LEMBAR LOGO =======================
+function logoSheet(svg) {
+  const m = [['Kubah & dua menara', 'Nilai-nilai Islam sebagai fondasi pendidikan'],
+    ['Kitab terbuka', "Ilmu & cinta Al-Qur'an sejak dini"],
+    ['Bulan sabit & bintang', 'Akhlak yang menerangi, cita-cita setinggi bintang'],
+    ['Bola', 'Anak yang aktif, sehat, sportif & kompak'],
+    ['Sinar matahari', 'Generasi yang tumbuh ceria & bersinar'],
+    ['Untaian daun', 'Pendidikan yang menumbuhkan & membanggakan']];
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${FONT_CSS}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{width:1920px;height:1200px;display:flex;font-family:'Bebas';overflow:hidden}
+  .l{width:1000px;height:1200px;background:radial-gradient(circle at 50% 45%,#FFFEF8,#EFE6CC);display:flex;align-items:center;justify-content:center;position:relative}
+  .l .lg{width:860px;height:860px;filter:drop-shadow(0 25px 40px rgba(0,0,0,.25))}
+  .r{flex:1;background:radial-gradient(ellipse at 30% 20%,#0E6B45,#03261A 75%);color:#fff;padding:70px 70px 0}
+  .ey{letter-spacing:7px;color:#F2C230;font-size:24px}
+  h1{font-family:'Cinzel';font-weight:800;font-size:54px;line-height:1.1;margin:10px 0 6px}
+  .sub{opacity:.75;letter-spacing:3px;font-size:24px}
+  .row{display:flex;gap:28px;align-items:center;margin:34px 0 30px}
+  .sm{width:190px;height:190px}
+  .lock{display:flex;align-items:center;gap:18px;background:#fff;border-radius:18px;padding:16px 26px}
+  .lock .sm2{width:120px;height:120px}
+  .lock b{display:block;font-family:'Cinzel';font-weight:800;color:#0B5D3B;font-size:26px;letter-spacing:2px}
+  .lock i{display:block;font-style:normal;font-family:'Cinzel';font-weight:800;color:#C7920B;font-size:40px;letter-spacing:2px;line-height:1}
+  .mk{display:grid;grid-template-columns:1fr 1fr;gap:16px 30px}
+  .mk div{font-size:22px;letter-spacing:1.5px;line-height:1.25;opacity:.9}
+  .mk b{display:block;color:#F2C230;font-weight:400;font-size:25px;letter-spacing:3px}
+  .ch{display:flex;gap:22px;margin-top:34px}
+  .ch span{display:flex;align-items:center;gap:10px;font-size:20px;letter-spacing:2px}
+  .ch i{width:40px;height:40px;border-radius:50%;border:3px solid rgba(255,255,255,.8);display:block}
+  </style></head><body>
+  <div class="l"><div class="lg">${svg}</div></div>
+  <div class="r">
+    <div class="ey">LOGO RESMI · IDENTITAS SEKOLAH</div>
+    <h1>TK ISLAM PLUS<br>AL MUHAAJIR</h1>
+    <div class="sub">Dipakai di jersey, seragam, spanduk, kop surat & media sosial</div>
+    <div class="row"><div class="sm">${svg}</div>
+      <div class="lock"><div class="sm2">${svg}</div><div><b>TK ISLAM PLUS</b><i>AL MUHAAJIR</i></div></div></div>
+    <div class="mk">${m.map(([a, b]) => `<div><b>${a}</b>${b}</div>`).join('')}</div>
+    <div class="ch">${[['#0B5D3B', 'HIJAU'], ['#E8B21A', 'EMAS'], ['#F2E8CC', 'KREM'], ['#FFFFFF', 'PUTIH']].map(([c, n]) => `<span><i style="background:${c}"></i>${n} ${c}</span>`).join('')}</div>
+  </div></body></html>`;
+}
+
 // Kecilkan otomatis teks yang terlalu panjang (mis. nama panjang) supaya muat
 const FIT = () => {
   document.querySelectorAll('text[data-fit]').forEach((t) => {
@@ -358,10 +406,59 @@ const FIT = () => {
   });
 };
 
+// Cek tabrakan: tulisan/logo (.chk) tidak boleh kena garis/motif (.ko) atau saling tumpuk
+const CHECK = () => {
+  const out = [], PAD = 3;
+  const boxes = (e) => {
+    if (e.tagName === 'text') {
+      const M = e.getScreenCTM(), r = [], cs = getComputedStyle(e);
+      const ctx = (window.__c ||= document.createElement('canvas').getContext('2d'));
+      ctx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      const sw = e.getAttribute('paint-order') ? (parseFloat(e.getAttribute('stroke-width')) || 0) / 2 : 0;
+      const txt = e.textContent;
+      for (let i = 0; i < e.getNumberOfChars(); i++) {
+        const ch = txt[i]; if (!ch || ch === ' ') continue;
+        const m = ctx.measureText(ch), p = e.getStartPositionOfChar(i), rot = e.getRotationOfChar(i) * Math.PI / 180;
+        const L = -m.actualBoundingBoxLeft - sw, Rr = m.actualBoundingBoxRight + sw, T = -m.actualBoundingBoxAscent - sw, B = m.actualBoundingBoxDescent + sw;
+        const pts = [[L, T], [Rr, T], [L, B], [Rr, B]].map(([x, y]) =>
+          new DOMPoint(p.x + x * Math.cos(rot) - y * Math.sin(rot), p.y + x * Math.sin(rot) + y * Math.cos(rot)).matrixTransform(M));
+        r.push({ l: Math.min(...pts.map((q) => q.x)), r: Math.max(...pts.map((q) => q.x)), t: Math.min(...pts.map((q) => q.y)), b: Math.max(...pts.map((q) => q.y)) });
+      }
+      return r;
+    }
+    const b = e.getBoundingClientRect(); return [{ l: b.left, r: b.right, t: b.top, b: b.bottom }];
+  };
+  document.querySelectorAll('svg').forEach((svg, si) => {
+    const chk = [...svg.querySelectorAll('.chk')].map((e) => ({ e, bx: boxes(e) }));
+    const ko = [...svg.querySelectorAll('.ko')];
+    const name = (e) => e.tagName === 'text' ? e.textContent.trim().slice(0, 20) : 'logo/badge@' + e.getAttribute('transform');
+    chk.forEach(({ e, bx }) => {
+      ko.forEach((k) => {
+        const L = k.getTotalLength(), M = k.getScreenCTM();
+        for (let l = 0; l <= L; l += Math.max(1, L / 400)) {
+          const p = k.getPointAtLength(l), q = new DOMPoint(p.x, p.y).matrixTransform(M);
+          if (bx.some((b) => q.x > b.l - PAD && q.x < b.r + PAD && q.y > b.t - PAD && q.y < b.b + PAD)) {
+            out.push(`svg${si}: "${name(e)}" kena garis/motif [${(k.getAttribute("d") || k.tagName).slice(0, 30)} @${q.x.toFixed(0)},${q.y.toFixed(0)}]`); return;
+          }
+        }
+      });
+    });
+    for (let i = 0; i < chk.length; i++) for (let j = i + 1; j < chk.length; j++) {
+      if (chk[i].e.contains(chk[j].e) || chk[j].e.contains(chk[i].e)) continue;
+      const hit = chk[i].bx.some((a) => chk[j].bx.some((b) => a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b));
+      if (hit && !(chk[i].e.tagName === 'text' && chk[j].e.tagName === 'text' && chk[i].e.textContent.trim() === chk[j].e.textContent.trim())) out.push(`svg${si}: "${name(chk[i].e)}" tumpuk "${name(chk[j].e)}"`);
+    }
+  });
+  return [...new Set(out)];
+};
+
 async function render(page, html) {
   await page.setContent(html, { waitUntil: 'load' });
   await page.evaluate(() => document.fonts.ready);
   await page.evaluate(FIT);
+  const w = await page.evaluate(CHECK);
+  if (w.length) { console.log('  ⚠ TABRAKAN:'); w.forEach((x) => console.log('   -', x)); }
+  return w;
 }
 
 (async () => {
@@ -380,6 +477,19 @@ async function render(page, html) {
     });
     console.log('OK', d.key);
   }
+  // ---------- LOGO ----------
+  const LD = path.join(OUT, 'logo');
+  fs.mkdirSync(LD, { recursive: true });
+  const logoSvg = LOGO.fullLogo(FONT_CSS);
+  fs.writeFileSync(path.join(LD, 'logo-tk-islam-plus-al-muhaajir.svg'), `<?xml version="1.0" encoding="UTF-8"?>\n${logoSvg.replace('width="100%" height="100%"', 'width="1000" height="1000"')}`);
+  const lp = await browser.newPage({ viewport: { width: 1000, height: 1000 }, deviceScaleFactor: 2 });
+  await render(lp, `<html><body style="margin:0;background:transparent">${logoSvg}</body></html>`);
+  await lp.screenshot({ path: path.join(LD, 'logo-tk-islam-plus-al-muhaajir.png'), omitBackground: true });
+  await render(page, logoSheet(logoSvg));
+  await page.screenshot({ path: path.join(LD, 'logo-presentasi.jpg'), type: 'jpeg', quality: 95 });
+  await page.pdf({ path: path.join(LD, 'logo-presentasi.pdf'), width: '1920px', height: '1200px', printBackground: true });
+  console.log('OK logo');
+
   if (cfg.pemain && cfg.pemain.length) {
     const pp = await browser.newPage({ viewport: { width: 900, height: 1000 }, deviceScaleFactor: 2 });
     const dir = path.join(OUT, 'per-pemain');

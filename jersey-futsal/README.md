@@ -1,4 +1,4 @@
-# Desain Jersey Futsal Anak (4–6 th) — TK IP AL MUHAAJIR
+# Desain Jersey Futsal Anak (4–6 th) — TK ISLAM PLUS AL MUHAAJIR
 
 ## File hasil (folder `output/`)
 | File | Untuk apa |
@@ -6,6 +6,7 @@
 | `desain-1-emerald-royale.jpg`, `desain-2-electric-ocean.jpg`, `desain-3-golden-crescent.jpg` | Preview untuk dibagikan ke konsumen/wali murid (3840×2400 px) |
 | `*.pdf` | Versi vektor (tajam di ukuran berapa pun), kirim ke konveksi |
 | `svg/*.svg` (baju depan/belakang, celana depan/belakang) | File vektor terpisah, bisa dibuka & diedit di CorelDraw / Illustrator / Inkscape |
+| `logo/` (PNG transparan, SVG, lembar presentasi JPG/PDF) | Logo resmi TK Islam Plus Al Muhaajir |
 | `per-pemain/*.jpg` | Tampak belakang per anak (nama + nomor), sebagai daftar order ke konveksi |
 
 ## Mengganti nama sekolah / nama & nomor anak

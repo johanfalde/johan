@@ -34,6 +34,18 @@ Generator ada di `jersey-futsal/` (`generate.js` + `config.json`). Jalankan `cd 
 - Celana: nomor di kaki kiri depan, logo kecil kanan, list samping + list bawah.
 - Nama panjang otomatis diperkecil; jangan pakai textLength yang memampatkan huruf.
 
+## Anti-tabrakan (WAJIB)
+- Semua tulisan/logo diberi class `chk`, semua garis/motif/jahitan diberi class `ko`.
+- `generate.js` otomatis mengecek (ukuran tinta huruf asli via canvas) dan mencetak `⚠ TABRAKAN` bila ada yang kena.
+  Desain belum boleh dikirim sebelum output bersih dari peringatan ini.
+- Nama punggung di atas (arc 186–414, y≈158–182), nomor di bawahnya; logo dada x=228, nomor dada x=374.
+
+## Logo
+- `logo.js`: logo bulat resmi (kubah+menara, kitab, bulan sabit-bintang, BOLA, sinar, untaian daun; font Cinzel),
+  versi perisai untuk jersey (`crestShield`, ada bola kecil), dan `ball()`.
+- Nama sekolah lengkap: "TK ISLAM PLUS" + "AL MUHAAJIR" (bukan "TK IP").
+- Lengan depan: bendera Merah Putih (kanan) + logo mini (kiri).
+
 ## Presentasi ke konsumen
 Lembar "kit launch" 1920×1200 (render @2x = 3840×2400 JPG): latar gelap senada + sorot lampu,
 watermark nama besar outline tipis, judul desain, label tampak depan/belakang/celana,
