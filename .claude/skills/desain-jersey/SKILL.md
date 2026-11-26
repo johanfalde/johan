@@ -63,7 +63,7 @@ Generator ada di `jersey-futsal/` (`generate.js` + `config.json`). Jalankan `cd 
   sendiri DITOLAK klien (imut/jelek). Ilustrasi harimau mengaum realistis butuh AI gambar (API key) atau gambar beli.
 - SEKARANG DIPAKAI: harimau putih mengaum dari klien (`assets/harimau-klien.jpg`), latar dihapus `cutout_tiger.py`
   (flood-fill dari tepi, jadi bulu putih dalam tetap). Desain 1–3: tonal transparan di bawah lockup nama
-  (luminosity .42 / baju putih multiply .32 grayscale), di bawah lapisan motif. Desain 4 BLACK TIGER: warna penuh.
+  (luminosity .6 / baju putih multiply .55 grayscale; gambar aktif = config `harimau_klien`, kini kepala harimau samping), di bawah lapisan motif. Desain 4 BLACK TIGER: warna penuh.
 
 ## Presentasi ke konsumen
 Lembar "kit launch" 1920×1200 (render @2x = 3840×2400 JPG): latar gelap senada + sorot lampu,

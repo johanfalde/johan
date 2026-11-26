@@ -257,7 +257,7 @@ function tigerMark(d) {
     return `<image href="${TIGER_PNG}" x="140" y="392" width="320" height="268" preserveAspectRatio="xMidYMid meet"/>`;
   const white = d.art === 'crescent';
   return `<image href="${TIGER_PNG}" x="125" y="372" width="350" height="293" preserveAspectRatio="xMidYMid meet"
-    style="mix-blend-mode:${white ? 'multiply' : 'luminosity'}" opacity="${white ? .32 : .42}"${white ? ' filter="grayscale(1)"' : ''}/>`;
+    style="mix-blend-mode:${white ? 'multiply' : 'luminosity'}" opacity="${white ? .55 : .6}"${white ? ' filter="grayscale(1)"' : ''}/>`;
 }
 
 function shirt(d, id, view, player) {

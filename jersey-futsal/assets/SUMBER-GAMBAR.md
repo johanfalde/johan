@@ -10,3 +10,5 @@ dan atur `"harimau_crop": [kiri, atas, kanan, bawah]` (piksel) agar kepala harim
 
 `harimau-klien.jpg` — ilustrasi harimau putih mengaum, **diberikan oleh klien** (dipakai atas permintaan klien).
 `cutout_tiger.py` menghapus latarnya → `harimau-transparan.png` (dipakai di semua desain; disalin ke output/).
+`harimau-klien-2.jpg` — kepala harimau putih mengaum (samping), **diberikan oleh klien**; SEKARANG DIPAKAI
+(`config.json` → `harimau_klien`). Sumber pudar → kontras dinaikkan 1.9x di `cutout_tiger.py`.

@@ -1,13 +1,14 @@
 # Hapus latar putih gambar harimau klien (hanya latar yang tersambung ke tepi gambar, bulu putih di dalam tetap)
 # -> assets/harimau-transparan.png (RGBA, sudah di-crop)
-import sys
+import sys, json
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 root = sys.argv[1]
-im = Image.open(f'{root}/assets/harimau-klien.jpg').convert('RGB')
+cfg = json.load(open(f'{root}/config.json'))
+im = Image.open(f"{root}/{cfg.get('harimau_klien', 'assets/harimau-klien.jpg')}").convert('RGB')
 W, H = im.size
 a = np.asarray(im).astype(int)
-bg = np.array([245, 249, 250])
+bg = a[2:12, 2:12].reshape(-1, 3).mean(0)  # warna latar diambil dari pojok
 dist = np.sqrt(((a - bg) ** 2).sum(-1))
 cand = Image.fromarray(np.where(dist < 22, 255, 0).astype('uint8')).copy()
 for x in range(0, W, 16):
@@ -20,7 +21,10 @@ m = np.asarray(cand)
 alpha = np.where(m == 128, 0, 255).astype('uint8')
 # haluskan tepi + buang sisa halo terang di tepi
 al = Image.fromarray(alpha).filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(1.1))
-out = im.convert('RGBA'); out.putalpha(al)
+from PIL import ImageEnhance
+rgb = ImageEnhance.Contrast(im).enhance(1.9)          # gambar sumber pudar -> pertegas
+rgb = ImageEnhance.Brightness(rgb).enhance(0.92)
+out = rgb.convert('RGBA'); out.putalpha(al)
 bbox = al.point(lambda v: 255 if v > 10 else 0).getbbox()
 out = out.crop((bbox[0] - 6, bbox[1] - 6, bbox[2] + 6, bbox[3] + 6))
 out.save(f'{root}/assets/harimau-transparan.png')
