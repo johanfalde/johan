@@ -140,7 +140,7 @@ function flameSide(d, id, fill, tongue, edge = '', inner = true, innerFill = fil
   pts.forEach((p, i) => {
     const q = pts[Math.min(i + 1, pts.length - 1)], r = pts[Math.max(i - 1, 0)];
     let dx = q[0] - r[0], dy = q[1] - r[1]; const L = Math.hypot(dx, dy) || 1; dx /= L; dy /= L;
-    const t = i / (pts.length - 1), w = W * Math.min(1, Math.pow(t / 0.32, 1.4));
+    const t = i / (pts.length - 1), T0 = 0.15, w = t < T0 ? 0 : W * Math.min(1, Math.pow((t - T0) / 0.22, 1.2));
     const nx = dy, ny = -dx; // normal ke arah dalam badan
     outer.push(`${(p[0] - nx * w * 0.35).toFixed(1)},${(p[1] - ny * w * 0.35).toFixed(1)}`);
     innerPts.unshift(`${(p[0] + nx * w * 0.65).toFixed(1)},${(p[1] + ny * w * 0.65).toFixed(1)}`);
