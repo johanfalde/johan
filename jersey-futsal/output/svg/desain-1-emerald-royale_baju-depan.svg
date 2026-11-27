@@ -137,6 +137,7 @@
            <rect x="286" y="62" width="28" height="11" rx="2" fill="#fff" opacity=".85"></rect>
            <path d="M205 46 Q300 122 395 46" fill="none" stroke="#04331F" stroke-width="20" stroke-linejoin="round" stroke-linecap="round"></path>
            <path d="M205 46 Q300 122 395 46" fill="none" stroke="url(#f-gold)" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" transform="translate(0 4)"></path>
+           
       <path d="M205 46 C176 56 150 64 126 74 L30 168 Q22 178 28 188 L76 262 Q84 272 96 266 L140 236 L136 616 Q300 642 464 616 L460 236 L504 266 Q516 272 524 262 L572 188 Q578 178 570 168 L474 74 C450 64 424 56 395 46 Z" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="2"></path>
     </g>
   </svg>

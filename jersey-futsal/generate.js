@@ -41,7 +41,7 @@ const DESIGNS = [
     key: 'desain-3-golden-crescent', no: 'DESAIN 03', nama: 'GOLDEN CRESCENT', jenis: 'PREMIUM KIT',
     tagline: 'Putih mutiara · panel api navy bergaris emas · harimau putih tonal',
     c1: '#FFFFFF', c2: '#F1F4F9', b3: '#D9E0EB', c3: '#0E1B3D', accent: '#D4A017', accentHi: '#F7DC7A', accentLo: '#9C7410',
-    line2: '#FFFFFF', text: '#0E1B3D', outline: '#FFFFFF', neck: 'crew', art: 'crescent', ink: '#0E1B3D',
+    line2: '#FFFFFF', text: '#0E1B3D', outline: '#FFFFFF', neck: 'crew', art: 'crescent', ink: '#0E1B3D', light: true,
     bg1: '#1B2A55', bg2: '#050A1C',
     chips: [['#F4F6FA', 'Putih Mutiara'], ['#0E1B3D', 'Navy'], ['#D4A017', 'Emas'], ['#C9D1DE', 'Abu Perak']],
   },
@@ -76,6 +76,10 @@ const NECK = {
   v: { edge: 'M214 46 L300 134 L386 46', inner: 'M214 46 L300 134 L386 46 Q300 70 214 46 Z' },
 };
 const BACK_NECK = 'M205 46 Q300 74 395 46';
+NECK.polo = NECK.v;
+// kerah lipat (johnny collar) — dua daun kerah di atas bukaan V
+const FLAP = 'M211 38 C196 42 184 50 178 62 L174 110 Q182 118 194 117 L262 95 L214 46 Z';
+const FLAP_STRIPE = 'M181 66 L178 108 M188 62 L185 112';
 const HEM_STITCH = 'M138 600 Q300 626 462 600';
 
 function commonDefs(d, id) {
@@ -215,7 +219,7 @@ function artBody(d, id, view) {
       <path d="M450 236 L444 236 Q454 420 448 660 L454 660 Q460 420 450 236 Z" fill="url(#${id}-gold)"/>`;
   }
   if (d.art === 'crescent') {
-    const side = flameSide(d, id, d.c3, '#FFFFFF', ` stroke="url(#${id}-gold)" stroke-width="7" stroke-linecap="round"`, false, '', 340);
+    const side = flameSide(d, id, d.flame || d.c3, d.tongue || '#FFFFFF', ` stroke="url(#${id}-gold)" stroke-width="7" stroke-linecap="round"`, false, '', 340);
     return `
       <rect width="600" height="660" fill="url(#${id}-pat)"/>
       ${side}
@@ -251,7 +255,7 @@ function crest(d, id, x, y, s = 1) {
 
 // ---------- detail lengan: bintang segi-8 islami (Rub el Hizb) transparan / tonal ----------
 function rubElHizb(d, id, x, y, rot) {
-  const c = d.art === 'crescent' ? '#FFFFFF' : `url(#${id}-gold)`;
+  const c = d.light ? '#FFFFFF' : `url(#${id}-gold)`;
   return `
     <g class="chk" transform="translate(${x} ${y}) rotate(${rot}) scale(.78)" opacity=".34">
       <rect x="-19" y="-19" width="38" height="38" fill="${c}" fill-opacity=".18" stroke="${c}" stroke-width="2.2"/>
@@ -309,7 +313,7 @@ function tigerMark(d) {
   if (d.art === 'curve' || d.art === 'marble') return ''; // tanpa harimau
   if (d.art === 'tiger')
     return `<image href="${TIGER_PNG}" x="140" y="392" width="320" height="268" preserveAspectRatio="xMidYMid meet"/>`;
-  const white = d.art === 'crescent';
+  const white = !!d.light;
   return `<image href="${TIGER_PNG}" x="142" y="338" width="316" height="266" preserveAspectRatio="xMidYMid meet"
     style="mix-blend-mode:${white ? 'multiply' : 'luminosity'}" opacity="${white ? .55 : .6}"${white ? ' filter="grayscale(1)"' : ''}/>`;
 }
@@ -338,10 +342,10 @@ function shirt(d, id, view, player) {
   } else if (view === 'front') {
     deco = `
       ${d.art === 'marble' ? crest(d, id, 236, 192, 1.0) : crest(d, id, 232, 164, 1.12)}
-      <text class="chk" x="374" y="${d.art === 'marble' ? 212 : 186}" text-anchor="middle" font-family="Anton" font-size="48" fill="${d.text}" stroke="${d.art === 'crescent' ? d.accent : d.outline}" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
+      <text class="chk" x="374" y="${d.art === 'marble' ? 212 : 186}" text-anchor="middle" font-family="Anton" font-size="48" fill="${d.text}" stroke="${d.light ? d.accent : d.outline}" stroke-width="6" paint-order="stroke" stroke-linejoin="round" filter="url(#${id}-tshadow)">${esc(player.nomor)}</text>
       <g filter="url(#${id}-tshadow)">
-        <text class="chk" data-fit="236" x="300" y="286" text-anchor="middle" font-family="Bebas" font-size="40" letter-spacing="7" fill="${d.art === 'crescent' ? d.c3 : `url(#${id}-gold)`}" ${d.art === 'crescent' ? '' : `stroke="${d.c3}" stroke-width="3" paint-order="stroke"`}>${esc(cfg.sekolah_baris1)}</text>
-        <text class="chk" data-fit="246" x="300" y="360" text-anchor="middle" font-family="Anton" font-size="78" letter-spacing="1" fill="${d.text}" stroke="${d.art === 'crescent' ? d.accent : d.outline}" stroke-width="${d.art === 'crescent' ? 3 : 9}" paint-order="stroke" stroke-linejoin="round">${esc(cfg.sekolah_baris2)}</text>
+        <text class="chk" data-fit="236" x="300" y="286" text-anchor="middle" font-family="Bebas" font-size="40" letter-spacing="7" fill="${d.light ? d.c3 : `url(#${id}-gold)`}" ${d.light ? '' : `stroke="${d.c3}" stroke-width="3" paint-order="stroke"`}>${esc(cfg.sekolah_baris1)}</text>
+        <text class="chk" data-fit="246" x="300" y="360" text-anchor="middle" font-family="Anton" font-size="78" letter-spacing="1" fill="${d.text}" stroke="${d.light ? d.accent : d.outline}" stroke-width="${d.light ? 3 : 9}" paint-order="stroke" stroke-linejoin="round">${esc(cfg.sekolah_baris2)}</text>
         ${d.art === 'marble' ? `<path d="M176 386 C250 398 350 392 434 366 C354 402 252 406 176 386 Z" fill="url(#${id}-gold)"/>` : d.art === 'crescent' ? '' : `<g transform="translate(0 0)"><rect x="236" y="378" width="128" height="5" rx="2.5" fill="url(#${id}-gold)"/>
         <path d="M222 380.5 l7 -6 7 6 -7 6 Z M364 380.5 l7 -6 7 6 -7 6 Z" fill="url(#${id}-gold)"/></g>`}
       </g>`;
@@ -353,7 +357,7 @@ function shirt(d, id, view, player) {
         <text class="chk" x="300" y="438" text-anchor="middle" font-family="Anton" font-size="225" letter-spacing="-2" fill="${d.text}" stroke="url(#${id}-gold)" stroke-width="16" paint-order="stroke" stroke-linejoin="round">${esc(player.nomor)}</text>
         <text class="chk" x="300" y="438" text-anchor="middle" font-family="Anton" font-size="225" letter-spacing="-2" fill="none" stroke="${d.outline}" stroke-width="3.5">${esc(player.nomor)}</text>
       </g>
-      ${d.art === 'marble' ? `<text class="chk" data-fit="170" x="300" y="488" text-anchor="middle" font-family="Bebas" font-size="28" letter-spacing="2" fill="url(#${id}-gold)">${esc(SCHOOL)}</text>` : `<text class="chk" data-fit="176" x="300" y="106" text-anchor="middle" font-family="Bebas" font-size="22" letter-spacing="2" fill="${d.art === 'crescent' ? d.c3 : '#fff'}" opacity=".7">${esc(SCHOOL)}</text>`}`;
+      ${d.art === 'marble' ? `<text class="chk" data-fit="170" x="300" y="488" text-anchor="middle" font-family="Bebas" font-size="28" letter-spacing="2" fill="url(#${id}-gold)">${esc(SCHOOL)}</text>` : `<text class="chk" data-fit="176" x="300" y="106" text-anchor="middle" font-family="Bebas" font-size="22" letter-spacing="2" fill="${d.light ? d.c3 : '#fff'}" opacity=".7">${esc(SCHOOL)}</text>`}`;
   }
   return `
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 660" width="100%" height="100%">
@@ -389,7 +393,14 @@ function shirt(d, id, view, player) {
         ? `<path d="${neck.inner}" fill="${d.c3}"/><path d="${neck.inner}" fill="#000" opacity=".45"/>
            <rect x="286" y="62" width="28" height="11" rx="2" fill="#fff" opacity=".85"/>
            <path d="${neck.edge}" fill="none" stroke="${d.art === 'marble' ? `url(#${id}-gold)` : d.c3}" stroke-width="20" stroke-linejoin="round" stroke-linecap="round"/>
-           <path d="${neck.edge}" fill="none" stroke="url(#${id}-gold)" stroke-width="${d.art === 'marble' ? 15 : 6}" stroke-linejoin="round" stroke-linecap="round" transform="translate(0 ${d.art === 'marble' ? 2 : 4})"/>`
+           <path d="${neck.edge}" fill="none" stroke="url(#${id}-gold)" stroke-width="${d.art === 'marble' ? 15 : 6}" stroke-linejoin="round" stroke-linecap="round" transform="translate(0 ${d.art === 'marble' ? 2 : 4})"/>
+           ${d.neck === 'polo' ? [0, 1].map((m) => `<g ${m ? `transform="${MIRROR}"` : ''} filter="url(#${id}-tshadow)">
+             <path d="${FLAP}" fill="${d.collar}" stroke="${d.collarEdge || '#00000055'}" stroke-width="1.5" stroke-linejoin="round"/>
+             <path d="${FLAP_STRIPE}" stroke="url(#${id}-gold)" stroke-width="3.2" fill="none"/>
+             <path d="M211 40 C198 44 188 50 182 60" stroke="#ffffff" stroke-opacity=".18" stroke-width="3" fill="none"/></g>`).join('') : ''}`
+        : d.neck === 'polo' ? `<path d="M196 40 Q300 66 404 40 L408 62 Q300 92 192 62 Z" fill="${d.collar}" stroke="#00000055" stroke-width="1.5" filter="url(#${id}-tshadow)"/>
+           <path d="M194 56 Q300 85 406 56" stroke="url(#${id}-gold)" stroke-width="3.2" fill="none"/>
+           <path d="M193 50 Q300 79 407 50" stroke="url(#${id}-gold)" stroke-width="3.2" fill="none"/>`
         : `<path d="${BACK_NECK}" fill="none" stroke="${d.art === 'marble' ? `url(#${id}-gold)` : d.c3}" stroke-width="${d.art === 'marble' ? 20 : 18}" stroke-linecap="round"/>
            <path d="${BACK_NECK}" fill="none" stroke="url(#${id}-gold)" stroke-width="5" stroke-linecap="round" transform="translate(0 5)"/>`}
       <path d="${BODY}" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="2"/>
